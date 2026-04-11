@@ -1,0 +1,10 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": "/Users/reborn/Workspace/Dev/AndroidProjects/all_api_hub_flutter/.trellis/tasks/00-bootstrap-guidelines/prd.md", "reason": "Task requirements"}
+{"file": "/Users/reborn/Workspace/Dev/AndroidProjects/all_api_hub_flutter/CLAUDE.md", "reason": "Repository guidelines and target architecture"}
+{"file": "/Users/reborn/Workspace/Dev/AndroidProjects/all_api_hub_flutter/.claude/rules/global.md", "reason": "Project architecture constraints and work rules"}
+{"file": "/Users/reborn/Workspace/Dev/AndroidProjects/all_api_hub_flutter/pubspec.yaml", "reason": "Current Flutter dependencies and SDK"}
+{"file": "/Users/reborn/Workspace/Dev/AndroidProjects/all_api_hub_flutter/analysis_options.yaml", "reason": "Current lint configuration"}
+{"file": "/Users/reborn/Workspace/Dev/AndroidProjects/all_api_hub_flutter/lib/main.dart", "reason": "Current app structure and widget patterns"}
+{"file": "/Users/reborn/Workspace/Dev/AndroidProjects/all_api_hub_flutter/test/widget_test.dart", "reason": "Current test patterns"}

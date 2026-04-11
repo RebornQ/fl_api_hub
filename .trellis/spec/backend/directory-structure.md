@@ -6,49 +6,74 @@
 
 ## Overview
 
-<!--
-Document your project's backend directory structure here.
+This repository does not currently contain implemented backend source code. It is a Flutter application bootstrap repository, and the only app code today is frontend code in `lib/main.dart` plus tests in `test/widget_test.dart`.
 
-Questions to answer:
-- How are modules/packages organized?
-- Where does business logic live?
-- Where are API endpoints defined?
-- How are utilities and helpers organized?
--->
-
-(To be filled by the team)
+However, the target architecture documented in `CLAUDE.md` plans application-side data, domain, and integration layers under `lib/`. This guide documents the current reality and the intended placement for future app-side backend-like concerns such as networking, storage, repositories, and domain logic.
 
 ---
 
 ## Directory Layout
 
+Current implemented state:
+
+```text
+.
+├── lib/
+│   └── main.dart
+├── test/
+│   └── widget_test.dart
+├── pubspec.yaml
+└── analysis_options.yaml
 ```
-<!-- Replace with your actual structure -->
-src/
-├── ...
-└── ...
+
+Planned internal application structure for non-UI logic (from `CLAUDE.md`):
+
+```text
+lib/
+├── app/
+├── core/
+│   ├── network/
+│   ├── storage/
+│   ├── error/
+│   └── utils/
+└── features/
+    └── <feature>/
+        ├── data/
+        ├── domain/
+        └── presentation/
 ```
 
 ---
 
 ## Module Organization
 
-<!-- How should new features/modules be organized? -->
+Current rule:
 
-(To be filled by the team)
+- There are no backend modules yet.
+- Do not document server routes, controllers, or service folders as if they already exist.
+
+When app-side business logic is added:
+
+- shared infrastructure belongs in `lib/core/`
+- repository implementations and remote/local data sources belong in `lib/features/<feature>/data/`
+- entities, repository interfaces, and use cases belong in `lib/features/<feature>/domain/`
+- UI code stays in `presentation/`
+
+This repository is not currently a standalone backend service.
 
 ---
 
 ## Naming Conventions
 
-<!-- File and folder naming rules -->
-
-(To be filled by the team)
+- Use `snake_case.dart` for files.
+- Name feature folders by feature intent, not by technical layer alone.
+- Keep cross-feature abstractions in `core/`, not copied into each feature.
+- Do not invent `services/`, `api/`, or `repositories/` top-level roots outside the target structure unless the architecture decision changes first.
 
 ---
 
 ## Examples
 
-<!-- Link to well-organized modules as examples -->
-
-(To be filled by the team)
+- `CLAUDE.md` — source of truth for the planned app-side architecture.
+- `lib/main.dart` — evidence that no backend module structure exists yet.
+- `pubspec.yaml` — evidence that no networking/database dependency is installed yet.

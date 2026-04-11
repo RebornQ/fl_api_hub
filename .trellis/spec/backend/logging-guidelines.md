@@ -6,46 +6,64 @@
 
 ## Overview
 
-<!--
-Document your project's logging conventions here.
+No structured logging library or project-level logging convention is implemented yet.
 
-Questions to answer:
-- What logging library do you use?
-- What are the log levels and when to use each?
-- What should be logged?
-- What should NOT be logged (PII, secrets)?
--->
+Evidence:
 
-(To be filled by the team)
+- `pubspec.yaml` does not include a logging package.
+- `lib/main.dart` contains no logging calls.
+- `analysis_options.yaml` inherits `flutter_lints`; no project-specific logging rule is defined.
+
+Until logging is introduced, avoid documenting imaginary log levels or formats as if they are already enforced.
 
 ---
 
 ## Log Levels
 
-<!-- When to use each level: debug, info, warn, error -->
+No log-level policy is currently implemented.
 
-(To be filled by the team)
+Future expectation once logging is added:
+
+- use a consistent logger abstraction rather than scattered `print` calls
+- define when debug/info/warn/error should be emitted
+- document environment-specific behavior if logs differ between debug and release builds
 
 ---
 
 ## Structured Logging
 
-<!-- Log format, required fields -->
+Not implemented.
 
-(To be filled by the team)
+There is currently no schema for fields such as request ID, feature name, user ID, or error code.
+
+When logging is introduced, update this file with the actual logger package and field conventions used by the project.
 
 ---
 
 ## What to Log
 
-<!-- Important events to log -->
+Current guidance for future work:
 
-(To be filled by the team)
+- important app lifecycle milestones
+- recoverable and unrecoverable failures
+- network request failures once a network layer exists
+- feature-specific diagnostics that help reproduce issues without exposing sensitive data
 
 ---
 
 ## What NOT to Log
 
-<!-- Sensitive data, PII, secrets -->
+Even before a logger exists, these constraints already apply:
 
-(To be filled by the team)
+- never log API keys, tokens, or secrets
+- never commit sensitive runtime configuration to source control
+- prefer build-time configuration such as `--dart-define`, as documented in `CLAUDE.md`
+
+---
+
+## Common Mistakes
+
+- Using undocumented `print` statements as a permanent logging strategy.
+- Inventing structured logging requirements before a logging package is chosen.
+- Logging secrets or user-sensitive payloads.
+- Confusing Flutter debug output with an intentional application logging standard.

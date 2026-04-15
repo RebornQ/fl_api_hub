@@ -34,14 +34,24 @@ class HiveStoreImpl implements KeyValueStore {
   Future<bool> containsKey(String key) async => _box.containsKey(key);
 }
 
-/// Initializes Hive and opens the default box.
+/// Initializes Hive and opens all application boxes.
 ///
 /// Call this before `runApp()` when local data is needed.
-/// TypeAdapters will be registered in later batches as domain models are
-/// defined.
+/// Feature boxes are opened per-entity for isolation:
+/// - `app_data` — general preferences and simple key-value data
+/// - `accounts` — account entity storage
+/// - `keys` — API key entity storage
+/// - `check_in_tasks` — check-in task entity storage
+/// - `check_in_results` — check-in result entity storage
 Future<void> initHive() async {
   await Hive.initFlutter();
-  await Hive.openBox('app_data');
+  await Future.wait([
+    Hive.openBox('app_data'),
+    Hive.openBox('accounts'),
+    Hive.openBox('keys'),
+    Hive.openBox('check_in_tasks'),
+    Hive.openBox('check_in_results'),
+  ]);
 }
 
 /// Riverpod provider for the application-wide [KeyValueStore].

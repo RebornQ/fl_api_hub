@@ -183,3 +183,60 @@ Planned the full MVP architecture and created 10 Trellis task directories for th
 ### Next Steps
 
 - None - task complete
+
+
+## Session 4: Batch 2: Set up core architecture
+
+**Date**: 2026-04-16
+**Task**: Batch 2: Set up core architecture
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## Changes
+
+| Category | Details |
+|----------|---------|
+| Dependencies | Added flutter_riverpod, dio, hive_flutter, flutter_secure_storage |
+| Error | AppException sealed hierarchy (5 subtypes) + failure_mapper (Dio→AppException) |
+| Result | Sealed Result<T> with Success/Failure + when/dataOrNull/getOrDefault extensions |
+| Network | SiteType enum (9 sites + AuthType mapping), DioClient, AuthInterceptor, SiteAdapter abstract |
+| Storage | SecureStore (abstract+impl), KeyValueStore (abstract+Hive impl), initHive() |
+| Scheduler | AppScheduler abstract interface (contract only) |
+| Widgets | AppScaffold, AppLoadingState, AppEmptyState, AppErrorState |
+| App | ProviderScope wrapping MaterialApp, AppRoutes navigation constants |
+| Tests | 3 new test files (Result, FailureMapper, SiteType), 17/17 passing |
+
+## Verification
+- `flutter analyze`: 0 errors
+- `flutter test`: 17/17 passed
+- `flutter run`: App launches normally, 3-tab navigation unchanged
+
+## Key Decisions
+- No go_router (IndexedStack sufficient for 3 tabs)
+- No codegen/freezed (keep simple for beginner)
+- SiteAdapter returns Map<String, dynamic> (typed models deferred to Batch 3)
+- initHive() defined but not called in main.dart yet (deferred to Batch 3)
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `5ba28fb` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

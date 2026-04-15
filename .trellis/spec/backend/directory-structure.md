@@ -17,49 +17,79 @@ However, the target architecture documented in `CLAUDE.md` plans application-sid
 Current implemented state:
 
 ```text
-.
-├── lib/
-│   └── main.dart
-├── test/
-│   └── widget_test.dart
-├── pubspec.yaml
-└── analysis_options.yaml
-```
-
-Planned internal application structure for non-UI logic (from `CLAUDE.md`):
-
-```text
 lib/
+├── main.dart
 ├── app/
+│   ├── app.dart
+│   ├── router.dart
+│   ├── shell/app_shell.dart
+│   └── theme/
+│       ├── app_theme.dart
+│       └── design_tokens.dart
 ├── core/
-│   ├── network/
-│   ├── storage/
 │   ├── error/
-│   └── utils/
+│   │   ├── app_exception.dart       # Sealed exception hierarchy
+│   │   └── failure_mapper.dart      # Dio → AppException mapper
+│   ├── network/
+│   │   ├── adapters/
+│   │   │   └── common_api_adapter.dart  # Common/new-api implementation
+│   │   ├── dto/
+│   │   │   ├── api_response.dart    # Generic envelope wrapper
+│   │   │   ├── user_info_dto.dart
+│   │   │   ├── site_status_dto.dart
+│   │   │   ├── check_in_result_dto.dart
+│   │   │   ├── check_in_status_dto.dart
+│   │   │   ├── token_dto.dart
+│   │   │   └── access_token_dto.dart
+│   │   ├── api_request.dart         # Per-request config (baseUrl + auth)
+│   │   ├── auth_interceptor.dart    # Per-request auth injection
+│   │   ├── dio_client.dart          # Shared Dio instance
+│   │   ├── site_adapter.dart        # Abstract adapter interface
+│   │   ├── site_adapter_provider.dart # Riverpod adapter registry
+│   │   └── site_type.dart           # SiteType + AuthType enums
+│   ├── result/
+│   │   └── result.dart              # Result<T> = Success | Failure
+│   ├── scheduler/
+│   │   └── scheduler.dart           # Abstract scheduler interface
+│   ├── storage/
+│   │   ├── hive_store.dart          # Hive KeyValueStore
+│   │   └── secure_store.dart        # FlutterSecureStorage wrapper
+│   └── widgets/
+│       ├── app_scaffold.dart
+│       ├── app_loading_state.dart
+│       ├── app_error_state.dart
+│       └── app_empty_state.dart
 └── features/
-    └── <feature>/
-        ├── data/
-        ├── domain/
-        └── presentation/
+    ├── accounts/
+    │   └── data/
+    │       ├── datasources/
+    │       │   ├── accounts_local_datasource.dart
+    │       │   └── accounts_remote_datasource.dart
+    │       ├── models/
+    │       │   ├── account_mapper.dart
+    │       │   └── account_api_mapper.dart
+    │       └── domain/
+    │           ├── entities/account.dart
+    │           └── repositories/accounts_repository.dart
+    ├── keys/ (same structure as accounts)
+    └── check_in/ (same structure as accounts)
 ```
 
 ---
 
 ## Module Organization
 
-Current rule:
-
-- There are no backend modules yet.
-- Do not document server routes, controllers, or service folders as if they already exist.
-
-When app-side business logic is added:
-
-- shared infrastructure belongs in `lib/core/`
-- repository implementations and remote/local data sources belong in `lib/features/<feature>/data/`
-- entities, repository interfaces, and use cases belong in `lib/features/<feature>/domain/`
-- UI code stays in `presentation/`
-
-This repository is not currently a standalone backend service.
+- **`core/network/`** — Dio client, per-request auth injection, site adapter interface, DTOs
+  - `adapters/` — Concrete site adapter implementations (CommonApiAdapter)
+  - `dto/` — API response models (distinct from domain entities and Hive maps)
+  - `api_request.dart` — Immutable per-request config (baseUrl + authToken + authType)
+- **`core/error/`** — Sealed `AppException` hierarchy + Dio error mapping
+- **`core/result/`** — `Result<T>` discriminated union (Success/Failure)
+- **`core/storage/`** — Hive (structured data) + SecureStore (credentials)
+- **`core/scheduler/`** — Abstract background task scheduler (not yet implemented)
+- **`features/<feature>/data/`** — Local + remote data sources, mappers (DTO↔entity, Map↔entity)
+- **`features/<feature>/domain/`** — Entities, repository contracts
+- **`features/<feature>/presentation/`** — Pages, widgets, Riverpod providers
 
 ---
 
@@ -75,5 +105,5 @@ This repository is not currently a standalone backend service.
 ## Examples
 
 - `CLAUDE.md` — source of truth for the planned app-side architecture.
-- `lib/main.dart` — evidence that no backend module structure exists yet.
-- `pubspec.yaml` — evidence that no networking/database dependency is installed yet.
+- `lib/core/network/` — API adapter pattern with per-request auth.
+- `lib/core/result/result.dart` — functional error handling via Result<T>.

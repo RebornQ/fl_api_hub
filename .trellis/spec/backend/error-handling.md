@@ -6,59 +6,97 @@
 
 ## Overview
 
-There is no custom application error-handling layer implemented yet. The current repository is a minimal Flutter starter app with no remote I/O, persistence, or domain use cases.
-
-Current observable behavior:
-
-- local UI updates happen synchronously through `setState` in `lib/main.dart`
-- there are no custom exception types in `lib/`
-- there is no user-facing error rendering pattern established in the app code
+Errors are handled through a **sealed exception hierarchy** (`AppException`) and a **discriminated union result type** (`Result<T>`). Every layer converts raw errors into typed `AppException` subtypes, and all repository/adapter methods return `Result<T>` instead of throwing, forcing callers to handle both success and failure explicitly.
 
 ---
 
 ## Error Types
 
-No project-specific error types exist yet.
+Defined in `lib/core/error/app_exception.dart`:
 
-Current rule:
+| Type | When | Key Fields |
+|------|------|------------|
+| `NetworkException` | Timeout, no connection, HTTP error | `statusCode?` |
+| `StorageException` | Hive / SecureStore failures | — |
+| `AuthException` | 401/403, expired token, invalid credentials | `statusCode?` |
+| `ValidationException` | Input validation failures | `fieldErrors?` |
+| `UnknownException` | Anything not explicitly handled | — |
 
-- Do not invent `AppError`, `Failure`, or transport exception hierarchies in docs until they exist in code.
-- When network/storage/domain layers are added, define explicit typed failures in `core/error/` or feature domain layers and update this guide.
+All carry `message`, `originalError?`, `stackTrace?`.
 
 ---
 
 ## Error Handling Patterns
 
-No reusable pattern is established yet.
+### 1. Result<T> (lib/core/result/result.dart)
 
-Current guidance for future implementation:
+All repository/adapter methods return `Result<T>`:
 
-- keep low-level exceptions from network/storage layers out of widgets
-- translate infrastructure failures into typed application/domain errors once those layers exist
-- avoid burying try/catch blocks in UI build methods
+```dart
+// Caller pattern
+result.when(
+  onSuccess: (data) => /* handle success */,
+  onFailure: (exception) => /* handle error */,
+);
+```
 
-This is guidance for future implementation, not a description of current code.
+### 2. Failure Mapper (lib/core/error/failure_mapper.dart)
+
+`mapToAppException(error, stackTrace)` converts raw errors:
+- Already `AppException` → returned as-is
+- `DioException` with 401/403 → `AuthException`
+- `DioException` timeout → `NetworkException`
+- Everything else → `UnknownException`
+
+### 3. Adapter Error Pattern
+
+In `CommonApiAdapter` and all `SiteAdapter` implementations:
+
+```dart
+try {
+  final response = await dio.request(...);
+  final apiResponse = ApiResponse.fromJson(response.data, Dto.fromJson);
+  if (apiResponse.success && apiResponse.data != null) {
+    return Success(apiResponse.data);
+  }
+  return Failure(NetworkException(message: apiResponse.message ?? 'Unknown'));
+} on DioException catch (e, st) {
+  return Failure(mapToAppException(e, st));
+} catch (e, st) {
+  return Failure(UnknownException(message: e.toString(), originalError: e, stackTrace: st));
+}
+```
+
+### 4. Remote DataSource Layer
+
+Remote data sources are **thin delegation layers** — they do NOT catch exceptions. They simply forward the `Result<T>` from the adapter.
 
 ---
 
 ## API Error Responses
 
-Not applicable right now.
+Common/new-api envelope: `{"success": bool, "message": string, "data": T}`
 
-This repository does not expose HTTP API endpoints or backend responses.
+- `success: false` → `Failure(NetworkException(message: apiResponse.message))`
+- Dio 401/403 → `Failure(AuthException(statusCode: 401))`
+- Dio timeout → `Failure(NetworkException(message: "Connection timed out"))`
 
-If the app later integrates with external APIs, document:
+---
 
-- transport error mapping
-- empty/error/loading UI states
-- retry rules
-- user-safe error messaging
+## Per-Request Auth Error Flow
+
+`AuthInterceptor` reads auth context from `RequestOptions.extra`:
+- `apiBaseUrl` → overrides Dio baseUrl
+- `apiAuthToken` + `apiAuthType` → injects `Authorization: Bearer` or `Cookie: session=`
+
+If auth fails, the Dio 401 response is caught by the adapter's try/catch and converted to `AuthException` via `mapToAppException`.
 
 ---
 
 ## Common Mistakes
 
 - Catching broad exceptions in UI code without a recovery strategy.
-- Documenting response/error envelopes before the network layer exists.
-- Leaking raw infrastructure exceptions directly into presentation logic.
-- Assuming a backend-service error model in a repository that is currently only a Flutter client.
+- Using `throw` in repository/adapter methods instead of returning `Result.Failure`.
+- Forgetting to handle the `Failure` branch of `Result.when()`.
+- Leaking `DioException` past the adapter layer — always wrap with `mapToAppException`.
+- Accessing `Result.dataOrNull` without checking `isSuccess` first.

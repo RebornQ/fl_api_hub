@@ -1,8 +1,10 @@
 /// Centralized Dio HTTP client wrapper.
 ///
 /// Provides a pre-configured Dio instance with sensible defaults for
-/// timeout, headers, and interceptor management. Used by all remote data
-/// sources through the [dioClientProvider].
+/// timeout and headers. The base URL is intentionally left empty because
+/// the [AuthInterceptor] overrides it per-request via `RequestOptions.extra`.
+///
+/// Used by all [SiteAdapter] implementations through the [dioClientProvider].
 library;
 
 import 'package:dio/dio.dart';
@@ -17,6 +19,7 @@ class DioClient {
   DioClient() {
     _dio = Dio(
       BaseOptions(
+        baseUrl: '',
         connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 10),
         sendTimeout: const Duration(seconds: 10),
@@ -27,7 +30,7 @@ class DioClient {
       ),
     );
 
-    // Add auth interceptor with no-op token provider for now.
+    // Auth interceptor handles per-request baseUrl and header injection.
     _dio.interceptors.add(AuthInterceptor());
   }
 

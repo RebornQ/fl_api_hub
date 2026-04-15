@@ -1,0 +1,44 @@
+{
+  "id": "add-tests-and-hardening",
+  "name": "add-tests-and-hardening",
+  "title": "Add tests and hardening",
+  "description": "Add widget, unit, and integration coverage for the MVP and clean up analysis issues.",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "priority": "P0",
+  "creator": "Reborn",
+  "assignee": "Reborn",
+  "createdAt": "2026-04-14",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "implement"
+    },
+    {
+      "phase": 2,
+      "action": "check"
+    },
+    {
+      "phase": 3,
+      "action": "finish"
+    },
+    {
+      "phase": 4,
+      "action": "create-pr"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

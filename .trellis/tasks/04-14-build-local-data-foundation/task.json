@@ -1,0 +1,44 @@
+{
+  "id": "build-local-data-foundation",
+  "name": "build-local-data-foundation",
+  "title": "Build local data foundation",
+  "description": "Define the core entities and local storage foundation for accounts, keys, and check-in tasks.",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "priority": "P0",
+  "creator": "Reborn",
+  "assignee": "Reborn",
+  "createdAt": "2026-04-14",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "implement"
+    },
+    {
+      "phase": 2,
+      "action": "check"
+    },
+    {
+      "phase": 3,
+      "action": "finish"
+    },
+    {
+      "phase": 4,
+      "action": "create-pr"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

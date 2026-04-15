@@ -62,3 +62,69 @@
 ### Next Steps
 
 - None - task complete
+
+
+## Session 2: MVP Architecture Planning & Trellis Roadmap Setup
+
+**Date**: 2026-04-15
+**Task**: MVP Architecture Planning & Trellis Roadmap Setup
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## Summary
+
+Planned the full MVP architecture and created 10 Trellis task directories for the All-API-Hub Flutter app.
+
+| Area | Description |
+|------|-------------|
+| PRD Analysis | Read and summarized All-API-Hub-PRD.md and API-EndPoint.md |
+| MVP Scope | Defined 3 priority pages: Accounts, Keys, Check-in; deferred analytics/backup/sync |
+| Architecture | Designed Clean Architecture + Feature First + Riverpod + Dio stack |
+| Design System | Inspected Stitch project and DESIGN.md tokens for MD3 alignment |
+| Trellis Tasks | Created 10 tasks from bootstrap-app-shell through add-tests-and-hardening |
+| Batch 1 Prep | Activated 04-14-bootstrap-app-shell with implement context files |
+
+**Key Decisions**:
+- Implementation order: Accounts → Keys → Check-in (dependency-driven, not page-name-driven)
+- Auto check-in: manual execution first, background scheduler later (Batch 9)
+- Storage: Hive for structured data, flutter_secure_storage for credentials
+- API: Dio + adapter pattern, only common/new-api compatible first
+- State: flutter_riverpod without codegen to keep beginner learning curve low
+
+**Created Task Directories**:
+- 04-14-bootstrap-app-shell (current, P0)
+- 04-14-setup-core-architecture (P0)
+- 04-14-build-local-data-foundation (P0)
+- 04-14-build-common-api-adapter (P0)
+- 04-14-wire-riverpod-state (P0)
+- 04-14-implement-accounts-ui (P0)
+- 04-14-implement-keys-ui (P0)
+- 04-14-implement-check-in-ui (P0)
+- 04-14-add-scheduler-abstraction (P1)
+- 04-14-add-tests-and-hardening (P0)
+
+**Plan File**: .claude/plans/shiny-fluttering-prism.md
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `ede982d` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

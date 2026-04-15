@@ -1,0 +1,8 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": "input/ai_analysis/prd/All-API-Hub-PRD.md", "reason": "PRD scope for the MVP and the three priority screens"}
+{"file": "DESIGN.md", "reason": "Design token baseline for Material 3 and Stitch alignment"}
+{"file": "CLAUDE.md", "reason": "Target architecture and repository guidance"}
+{"file": ".claude/rules/global.md", "reason": "Batch-by-batch workflow and user constraints"}
+{"file": "lib/main.dart", "reason": "Current broken app entry to replace"}
+{"file": "test/widget_test.dart", "reason": "Default counter smoke test to replace"}

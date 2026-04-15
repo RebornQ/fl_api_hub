@@ -72,7 +72,14 @@ def get_current_task(repo_root: str) -> str | None:
     try:
         with open(current_task_file, "r", encoding="utf-8") as f:
             content = f.read().strip()
-            return content if content else None
+            if not content:
+                return None
+            normalized = content.replace("\\", "/")
+            while normalized.startswith("./"):
+                normalized = normalized[2:]
+            if normalized.startswith("tasks/"):
+                normalized = f".trellis/{normalized}"
+            return normalized
     except Exception:
         return None
 
@@ -258,17 +265,18 @@ def main():
         sys.exit(0)
 
     # Get subagent info
-    subagent_type = input_data.get("subagent_type", "")
-    agent_output = input_data.get("agent_output", "")
-    original_prompt = input_data.get("prompt", "")
+    # Field names per Claude Code SubagentStop event schema:
+    #   agent_type, last_assistant_message, agent_id, agent_transcript_path, cwd
+    # The event does NOT carry a `prompt` field, so finish-phase detection
+    # based on a `[finish]` marker in the user prompt is no longer possible
+    # here; finish-phase skip logic should be reintroduced via task.json
+    # state (e.g. current_phase) in a follow-up.
+    agent_type = input_data.get("agent_type", "")
+    last_assistant_message = input_data.get("last_assistant_message", "")
     cwd = input_data.get("cwd", os.getcwd())
 
     # Only control check agent
-    if subagent_type != TARGET_AGENT:
-        sys.exit(0)
-
-    # Skip Ralph Loop for finish phase (already verified in check phase)
-    if "[finish]" in original_prompt.lower():
+    if agent_type != TARGET_AGENT:
         sys.exit(0)
 
     # Find repo root
@@ -350,7 +358,7 @@ def main():
     else:
         # No verify commands, fall back to completion markers
         markers = get_completion_markers(repo_root, task_dir)
-        all_complete, missing = check_completion(agent_output, markers)
+        all_complete, missing = check_completion(last_assistant_message, markers)
 
         if all_complete:
             # All checks complete, allow stop

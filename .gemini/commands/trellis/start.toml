@@ -43,12 +43,17 @@ This shows: developer identity, git status, current task (if any), active tasks.
 ### Step 3: Read Guidelines Index
 
 ```bash
-cat .trellis/spec/frontend/index.md  # Frontend guidelines
-cat .trellis/spec/backend/index.md   # Backend guidelines
-cat .trellis/spec/guides/index.md    # Thinking guides
+python3 ./.trellis/scripts/get_context.py --mode packages
 ```
 
-> **Important**: The index files are navigation — they list the actual guideline files (e.g., `error-handling.md`, `conventions.md`, `mock-strategies.md`).
+This shows available packages and their spec layers. Read the relevant spec indexes:
+
+```bash
+cat .trellis/spec/<package>/<layer>/index.md   # Package-specific guidelines
+cat .trellis/spec/guides/index.md              # Thinking guides (always read)
+```
+
+> **Important**: The index files are navigation -- they list the actual guideline files (e.g., `error-handling.md`, `conventions.md`, `mock-strategies.md`).
 > At this step, just read the indexes to understand what's available.
 > When you start actual development, you MUST go back and read the specific guideline files relevant to your task, as listed in the index's Pre-Development Checklist.
 

@@ -99,8 +99,7 @@ Hook will auto-inject:
 
 - finish-work.md
 - check-cross-layer.md
-- check-backend.md
-- check-frontend.md
+- check.md
 - All spec files from check.jsonl
 
 ### action: "debug"

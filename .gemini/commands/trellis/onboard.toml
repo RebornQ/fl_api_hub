@@ -69,8 +69,8 @@ The `/check-*` commands re-verify code against guidelines AFTER writing, catchin
 ## COMMAND DEEP DIVE
 
 ### /trellis:start - Restore AI Memory
-### /trellis:before-frontend-dev and /trellis:before-backend-dev - Inject Specialized Knowledge
-### /trellis:check-frontend and /trellis:check-backend - Combat Context Drift
+### /trellis:before-dev - Inject Specialized Knowledge
+### /trellis:check - Combat Context Drift
 ### /trellis:check-cross-layer - Multi-Dimension Verification
 ### /trellis:finish-work - Holistic Pre-Commit Review
 ### /trellis:record-session - Persist Memory for Future

@@ -38,24 +38,17 @@ This returns:
 - Active tasks
 - Journal file status
 
-### Step 3: Read Project Code-Spec Index `[AI]`
+### Step 3: Read Guidelines Index `[AI]`
 
-Based on the upcoming task, read appropriate code-spec docs:
-
-**For Frontend Work**:
 ```bash
-cat .trellis/spec/frontend/index.md
+python3 ./.trellis/scripts/get_context.py --mode packages
 ```
 
-**For Backend Work**:
-```bash
-cat .trellis/spec/backend/index.md
-```
+This shows available packages and their spec layers. Read the relevant spec indexes:
 
-**For Cross-Layer Features**:
 ```bash
-cat .trellis/spec/guides/index.md
-cat .trellis/spec/guides/cross-layer-thinking-guide.md
+cat .trellis/spec/<package>/<layer>/index.md   # Package-specific guidelines
+cat .trellis/spec/guides/index.md              # Thinking guides (always read)
 ```
 
 > **Important**: The index files are navigation — they list the actual guideline files (e.g., `error-handling.md`, `conventions.md`, `mock-strategies.md`).
@@ -331,10 +324,8 @@ The following slash commands are for users (not AI):
 |---------|-------------|
 | `/trellis-start` | Start development session (this command) |
 | `/trellis-brainstorm` | Clarify vague requirements before implementation |
-| `/trellis-before-frontend-dev` | Read frontend guidelines |
-| `/trellis-before-backend-dev` | Read backend guidelines |
-| `/trellis-check-frontend` | Check frontend code |
-| `/trellis-check-backend` | Check backend code |
+| `/trellis-before-dev` | Read development guidelines |
+| `/trellis-check` | Check code quality |
 | `/trellis-check-cross-layer` | Cross-layer verification |
 | `/trellis-finish-work` | Pre-commit checklist |
 | `/trellis-record-session` | Record session progress |

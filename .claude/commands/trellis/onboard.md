@@ -126,13 +126,13 @@ AI needs the same onboarding - but compressed into seconds at session start.
 
 ---
 
-### /trellis:before-frontend-dev and /trellis:before-backend-dev - Inject Specialized Knowledge
+### /trellis:before-dev - Inject Specialized Knowledge
 
 **WHY IT EXISTS**:
 AI models have "pre-trained knowledge" - general patterns from millions of codebases. But YOUR project has specific conventions that differ from generic patterns.
 
 **WHAT IT ACTUALLY DOES**:
-1. Reads `.trellis/spec/frontend/` or `.trellis/spec/backend/`
+1. Discovers spec layers via `get_context.py --mode packages` and reads relevant guidelines
 2. Loads project-specific patterns into AI's working context:
    - Component naming conventions
    - State management patterns
@@ -140,12 +140,12 @@ AI models have "pre-trained knowledge" - general patterns from millions of codeb
    - Error handling standards
 
 **WHY THIS MATTERS**:
-- Without before-*-dev: AI writes generic code that doesn't match project style.
-- With before-*-dev: AI writes code that looks like the rest of the codebase.
+- Without before-dev: AI writes generic code that doesn't match project style.
+- With before-dev: AI writes code that looks like the rest of the codebase.
 
 ---
 
-### /trellis:check-frontend and /trellis:check-backend - Combat Context Drift
+### /trellis:check - Combat Context Drift
 
 **WHY IT EXISTS**:
 AI context window has limited capacity. As conversation progresses, guidelines injected at session start become less influential. This causes "context drift."
@@ -211,9 +211,9 @@ All the context AI built during this session will be lost when session ends. The
 
 **[1/8] /trellis:start** - AI needs project context before touching code
 **[2/8] python3 ./.trellis/scripts/task.py create "Fix bug" --slug fix-bug** - Track work for future reference
-**[3/8] /trellis:before-frontend-dev** - Inject project-specific frontend knowledge
+**[3/8] /trellis:before-dev** - Inject project-specific development guidelines
 **[4/8] Investigate and fix the bug** - Actual development work
-**[5/8] /trellis:check-frontend** - Re-verify code against guidelines
+**[5/8] /trellis:check** - Re-verify code against guidelines
 **[6/8] /trellis:finish-work** - Holistic cross-layer review
 **[7/8] Human tests and commits** - Human validates before code enters repo
 **[8/8] /trellis:record-session** - Persist memory for future sessions
@@ -228,9 +228,9 @@ All the context AI built during this session will be lost when session ends. The
 ### Example 3: Code Review Fixes
 
 **[1/6] /trellis:start** - Resume context from previous session
-**[2/6] /trellis:before-backend-dev** - Re-inject guidelines before fixes
+**[2/6] /trellis:before-dev** - Re-inject guidelines before fixes
 **[3/6] Fix each CR issue** - Address feedback with guidelines in context
-**[4/6] /trellis:check-backend** - Verify fixes didn't introduce new issues
+**[4/6] /trellis:check** - Verify fixes did not introduce new issues
 **[5/6] /trellis:finish-work** - Document lessons from CR
 **[6/6] Human commits, then /trellis:record-session** - Preserve CR lessons
 
@@ -238,16 +238,16 @@ All the context AI built during this session will be lost when session ends. The
 
 **[1/5] /trellis:start** - Clear baseline before major changes
 **[2/5] Plan phases** - Break into verifiable chunks
-**[3/5] Execute phase by phase with /check-* after each** - Incremental verification
+**[3/5] Execute phase by phase with /trellis:check after each** - Incremental verification
 **[4/5] /trellis:finish-work** - Check if new patterns should be documented
 **[5/5] Record with multiple commit hashes** - Link all commits to one feature
 
 ### Example 5: Debug Session
 
 **[1/6] /trellis:start** - See if this bug was investigated before
-**[2/6] /trellis:before-backend-dev** - Guidelines might document known gotchas
+**[2/6] /trellis:before-dev** - Guidelines might document known gotchas
 **[3/6] Investigation** - Actual debugging work
-**[4/6] /trellis:check-backend** - Verify debug changes don't break other things
+**[4/6] /trellis:check** - Verify debug changes do not break other things
 **[5/6] /trellis:finish-work** - Debug findings might need documentation
 **[6/6] Human commits, then /trellis:record-session** - Debug knowledge is valuable
 
@@ -256,7 +256,7 @@ All the context AI built during this session will be lost when session ends. The
 ## KEY RULES TO EMPHASIZE
 
 1. **AI NEVER commits** - Human tests and approves. AI prepares, human validates.
-2. **Guidelines before code** - /before-*-dev commands inject project knowledge.
+2. **Guidelines before code** - /before-dev command injects project knowledge.
 3. **Check after code** - /check-* commands catch context drift.
 4. **Record everything** - /trellis:record-session persists memory.
 

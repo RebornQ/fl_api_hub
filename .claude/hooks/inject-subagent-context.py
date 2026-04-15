@@ -99,7 +99,14 @@ def get_current_task(repo_root: str) -> str | None:
     try:
         with open(current_task_file, "r", encoding="utf-8") as f:
             content = f.read().strip()
-            return content if content else None
+            if not content:
+                return None
+            normalized = content.replace("\\", "/")
+            while normalized.startswith("./"):
+                normalized = normalized[2:]
+            if normalized.startswith("tasks/"):
+                normalized = f".trellis/{normalized}"
+            return normalized
     except Exception:
         return None
 
@@ -339,8 +346,7 @@ def get_check_context(repo_root: str, task_dir: str) -> str:
         check_files = [
             (".claude/commands/trellis/finish-work.md", "Finish work checklist"),
             (".claude/commands/trellis/check-cross-layer.md", "Cross-layer check spec"),
-            (".claude/commands/trellis/check-backend.md", "Backend check spec"),
-            (".claude/commands/trellis/check-frontend.md", "Frontend check spec"),
+            (".claude/commands/trellis/check.md", "Code quality check spec"),
         ]
         for file_path, description in check_files:
             content = read_file_content(repo_root, file_path)
@@ -432,8 +438,7 @@ def get_debug_context(repo_root: str, task_dir: str) -> str:
             context_parts.append(f"=== {file_path} (Dev spec) ===\n{content}")
 
         check_files = [
-            (".claude/commands/trellis/check-backend.md", "Backend check spec"),
-            (".claude/commands/trellis/check-frontend.md", "Frontend check spec"),
+            (".claude/commands/trellis/check.md", "Code quality check spec"),
             (".claude/commands/trellis/check-cross-layer.md", "Cross-layer check spec"),
         ]
         for file_path, description in check_files:
@@ -603,24 +608,34 @@ def get_research_context(repo_root: str, task_dir: str | None) -> str:
     """
     context_parts = []
 
-    # 1. Project structure overview (uses constants for paths)
+    # 1. Project structure overview (dynamically discover spec directories)
     spec_path = f"{DIR_WORKFLOW}/{DIR_SPEC}"
+    spec_root = Path(repo_root) / DIR_WORKFLOW / DIR_SPEC
+
+    # Build spec tree dynamically
+    tree_lines = [f"{spec_path}/"]
+    if spec_root.is_dir():
+        pkg_dirs = sorted(d for d in spec_root.iterdir() if d.is_dir())
+        for i, pkg_dir in enumerate(pkg_dirs):
+            is_last = i == len(pkg_dirs) - 1
+            prefix = "└── " if is_last else "├── "
+            layers = sorted(d.name for d in pkg_dir.iterdir() if d.is_dir())
+            layer_info = f" ({', '.join(layers)})" if layers else ""
+            tree_lines.append(f"{prefix}{pkg_dir.name}/{layer_info}")
+
+    spec_tree = "\n".join(tree_lines)
+
     project_structure = f"""## Project Spec Directory Structure
 
 ```
-{spec_path}/
-├── shared/      # Cross-project common specs (TypeScript, code quality, git)
-├── frontend/    # Frontend standards
-├── backend/     # Backend standards
-└── guides/      # Thinking guides (cross-layer, code reuse, etc.)
-
-{DIR_WORKFLOW}/big-question/  # Known issues and pitfalls
+{spec_tree}
 ```
+
+To get structured package info, run: `python3 ./{DIR_WORKFLOW}/scripts/get_context.py --mode packages`
 
 ## Search Tips
 
 - Spec files: `{spec_path}/**/*.md`
-- Known issues: `{DIR_WORKFLOW}/big-question/`
 - Code search: Use Glob and Grep tools
 - Tech solutions: Use mcp__exa__web_search_exa or mcp__exa__get_code_context_exa"""
 

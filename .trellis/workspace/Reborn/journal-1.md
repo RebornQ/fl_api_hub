@@ -128,3 +128,58 @@ Planned the full MVP architecture and created 10 Trellis task directories for th
 ### Next Steps
 
 - None - task complete
+
+
+## Session 3: Batch 1: Bootstrap app shell
+
+**Date**: 2026-04-16
+**Task**: Batch 1: Bootstrap app shell
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## 完成内容
+
+| 文件 | 变更 |
+|------|------|
+| `lib/main.dart` | 替换 counter demo 为简短入口 |
+| `lib/app/app.dart` | MaterialApp 根 widget |
+| `lib/app/shell/app_shell.dart` | NavigationBar + IndexedStack 三页切换 |
+| `lib/app/theme/design_tokens.dart` | 设计 token 常量（颜色/间距/圆角） |
+| `lib/app/theme/app_theme.dart` | MD3 主题 + Inter 字体 |
+| `lib/features/accounts/presentation/pages/accounts_page.dart` | 账号管理占位页 |
+| `lib/features/keys/presentation/pages/keys_page.dart` | 密钥管理占位页 |
+| `lib/features/check_in/presentation/pages/check_in_page.dart` | 自动签到占位页 |
+| `test/widget_test.dart` | App shell 启动 + tab 切换测试 |
+| `pubspec.yaml` | 添加 google_fonts 依赖 |
+
+## 验证结果
+- `flutter analyze`: No errors
+- `flutter test`: 2/2 passed
+- `flutter run`: 三页导航正常切换
+
+## 下一步
+- Batch 2: setup-core-architecture（引入 Riverpod、Dio、Hive，建 core/ 骨架）
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `c7fc956` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

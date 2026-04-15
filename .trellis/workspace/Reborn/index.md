@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 4
+- **Total Sessions**: 5
 - **Last Active**: 2026-04-16
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~242 | Active |
+| `journal-1.md` | ~322 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 5 | 2026-04-16 | Batch 4: Build Dio Networking Layer + Common API Adapter | `4fe91d6` | `main` |
 | 4 | 2026-04-16 | Batch 2: Set up core architecture | `5ba28fb` | `main` |
 | 3 | 2026-04-16 | Batch 1: Bootstrap app shell | `c7fc956` | `main` |
 | 2 | 2026-04-15 | MVP Architecture Planning & Trellis Roadmap Setup | `ede982d` | `main` |

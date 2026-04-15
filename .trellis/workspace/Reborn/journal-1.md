@@ -240,3 +240,83 @@ Planned the full MVP architecture and created 10 Trellis task directories for th
 ### Next Steps
 
 - None - task complete
+
+
+## Session 5: Batch 4: Build Dio Networking Layer + Common API Adapter
+
+**Date**: 2026-04-16
+**Task**: Batch 4: Build Dio Networking Layer + Common API Adapter
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## Summary
+
+Built the complete API networking infrastructure for Batch 4 — the bridge between local data and remote API calls.
+
+## What Was Done
+
+| Category | Details |
+|----------|---------|
+| Per-Request Config | `ApiRequest` immutable object carrying baseUrl + authToken + authType via `RequestOptions.extra` |
+| AuthInterceptor Rewrite | Stateless interceptor: reads auth context per-request, supports Bearer/Cookie/none modes, overrides baseUrl |
+| DioClient Update | Default baseUrl set to empty string; interceptor handles per-request override |
+| DTO Layer (7 files) | `ApiResponse<T>`, `UserInfoDto`, `SiteStatusDto`, `CheckInResultDto`, `CheckInStatusDto`, `TokenDto`/`TokenListDto`, `AccessTokenDto` |
+| SiteAdapter Expansion | Interface expanded from 3→9 methods with typed DTOs and `ApiRequest` parameter |
+| CommonApiAdapter | Concrete implementation for new-api/one-api/one-hub/done-hub/veloera/octopus |
+| Provider Registry | `siteAdapterProvider` + `siteAdapterForTypeProvider(SiteType)` family provider |
+| Remote DataSources | 3 thin delegation layers (accounts/keys/check_in) with SiteType-family providers |
+| API Mappers | 3 DTO→Entity mappers (AccountApiMapper, ApiKeyApiMapper, CheckInApiMapper) |
+| Spec Updates | Updated `backend/directory-structure.md` and `backend/error-handling.md` to reflect actual architecture |
+
+## Files Changed (21 files, 1157 insertions)
+
+**New (16):**
+- `lib/core/network/api_request.dart`
+- `lib/core/network/dto/` (7 files)
+- `lib/core/network/adapters/common_api_adapter.dart`
+- `lib/core/network/site_adapter_provider.dart`
+- `lib/features/accounts/data/datasources/accounts_remote_datasource.dart`
+- `lib/features/keys/data/datasources/keys_remote_datasource.dart`
+- `lib/features/check_in/data/datasources/check_in_remote_datasource.dart`
+- `lib/features/accounts/data/models/account_api_mapper.dart`
+- `lib/features/keys/data/models/api_key_api_mapper.dart`
+- `lib/features/check_in/data/models/check_in_api_mapper.dart`
+
+**Modified (5):**
+- `lib/core/network/auth_interceptor.dart` — Rewritten for per-request auth
+- `lib/core/network/dio_client.dart` — baseUrl default empty
+- `lib/core/network/site_adapter.dart` — Expanded to 9 methods with typed DTOs
+- `.trellis/spec/backend/directory-structure.md` — Updated to current state
+- `.trellis/spec/backend/error-handling.md` — Updated with actual patterns
+
+## Verification
+- `flutter analyze` — No errors
+- `dart format .` — 0 changed
+- `flutter test` — All tests passed
+
+## Next Step
+**Batch 5 — wire-riverpod-state**: Repository implementations (local+remote), UseCases, Riverpod Notifier/Provider chain.
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `4fe91d6` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

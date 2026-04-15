@@ -47,3 +47,7 @@ app.*.map.json
 # AI Agent ignored files
 .claude/settings.local.json
 .mcp.json
+
+# 临时
+input/
+#input/design.pen

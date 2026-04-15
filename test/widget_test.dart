@@ -1,30 +1,36 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:all_api_hub_flutter/main.dart';
+import 'package:all_api_hub_flutter/app/app.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('App shell renders with bottom navigation', (tester) async {
+    await tester.pumpWidget(const App());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Default page is Check-in.
+    expect(find.text('自动签到'), findsWidgets);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Bottom navigation has three destinations.
+    expect(find.text('签到'), findsOneWidget);
+    expect(find.text('账号'), findsOneWidget);
+    expect(find.text('密钥'), findsOneWidget);
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  testWidgets('Switching tabs updates the visible page', (tester) async {
+    await tester.pumpWidget(const App());
+
+    // Tap the Accounts tab.
+    await tester.tap(find.text('账号'));
+    await tester.pumpAndSettle();
+    expect(find.text('账号管理'), findsWidgets);
+
+    // Tap the Keys tab.
+    await tester.tap(find.text('密钥'));
+    await tester.pumpAndSettle();
+    expect(find.text('密钥管理'), findsWidgets);
+
+    // Tap back to Check-in tab.
+    await tester.tap(find.text('签到'));
+    await tester.pumpAndSettle();
+    expect(find.text('自动签到'), findsWidgets);
   });
 }

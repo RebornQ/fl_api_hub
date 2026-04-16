@@ -24,8 +24,9 @@ class SchedulerConfigLocalDataSource {
 
   /// Loads the saved config, or returns defaults if none exists.
   SchedulerConfig load() {
-    final map = _box.get(_configKey) as Map<String, dynamic>?;
-    if (map == null) return const SchedulerConfig();
+    final raw = _box.get(_configKey);
+    if (raw == null) return const SchedulerConfig();
+    final map = Map<String, dynamic>.from(raw as Map);
     return SchedulerConfigMapper.fromMap(map);
   }
 

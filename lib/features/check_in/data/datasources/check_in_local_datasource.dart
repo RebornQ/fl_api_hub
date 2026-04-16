@@ -30,7 +30,7 @@ class CheckInLocalDataSource {
   /// Returns all stored check-in tasks.
   List<CheckInTask> getAllTasks() {
     return _taskBox.values
-        .cast<Map<String, dynamic>>()
+        .map((e) => Map<String, dynamic>.from(e as Map))
         .map(CheckInTaskMapper.fromMap)
         .toList();
   }
@@ -38,7 +38,7 @@ class CheckInLocalDataSource {
   /// Returns tasks filtered by [accountId].
   List<CheckInTask> getTasksByAccountId(String accountId) {
     return _taskBox.values
-        .cast<Map<String, dynamic>>()
+        .map((e) => Map<String, dynamic>.from(e as Map))
         .where((map) => map['accountId'] == accountId)
         .map(CheckInTaskMapper.fromMap)
         .toList();
@@ -46,8 +46,9 @@ class CheckInLocalDataSource {
 
   /// Returns a single task by [id], or `null` if not found.
   CheckInTask? getTaskById(String id) {
-    final map = _taskBox.get(id) as Map<String, dynamic>?;
-    if (map == null) return null;
+    final raw = _taskBox.get(id);
+    if (raw == null) return null;
+    final map = Map<String, dynamic>.from(raw as Map);
     return CheckInTaskMapper.fromMap(map);
   }
 
@@ -82,7 +83,7 @@ class CheckInLocalDataSource {
   /// Returns `null` if no results exist for the task.
   CheckInResult? getLatestResult(String taskId) {
     final results = _resultBox.values
-        .cast<Map<String, dynamic>>()
+        .map((e) => Map<String, dynamic>.from(e as Map))
         .where((map) => map['taskId'] == taskId)
         .map(CheckInResultMapper.fromMap)
         .toList();
@@ -96,7 +97,7 @@ class CheckInLocalDataSource {
   /// Returns all results for a given [taskId], newest first.
   List<CheckInResult> getResultsByTaskId(String taskId) {
     final results = _resultBox.values
-        .cast<Map<String, dynamic>>()
+        .map((e) => Map<String, dynamic>.from(e as Map))
         .where((map) => map['taskId'] == taskId)
         .map(CheckInResultMapper.fromMap)
         .toList();
@@ -108,7 +109,7 @@ class CheckInLocalDataSource {
   /// Returns all results for a given [accountId], newest first.
   List<CheckInResult> getResultsByAccountId(String accountId) {
     final results = _resultBox.values
-        .cast<Map<String, dynamic>>()
+        .map((e) => Map<String, dynamic>.from(e as Map))
         .where((map) => map['accountId'] == accountId)
         .map(CheckInResultMapper.fromMap)
         .toList();
@@ -120,7 +121,7 @@ class CheckInLocalDataSource {
   /// Returns all results across all tasks, newest first.
   List<CheckInResult> getAllResults() {
     final results = _resultBox.values
-        .cast<Map<String, dynamic>>()
+        .map((e) => Map<String, dynamic>.from(e as Map))
         .map(CheckInResultMapper.fromMap)
         .toList();
 

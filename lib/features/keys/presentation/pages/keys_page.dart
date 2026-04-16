@@ -106,9 +106,10 @@ class _KeysPageState extends ConsumerState<KeysPage> {
           ],
         ),
       ),
-      // FAB group (stacked).
+      // FAB group (stacked, right-aligned to match the extended primary FAB).
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           // Secondary FAB: refresh channels.
           SizedBox(
@@ -130,25 +131,57 @@ class _KeysPageState extends ConsumerState<KeysPage> {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          // Main FAB: add key.
-          SizedBox(
-            width: 64,
-            height: 64,
-            child: FloatingActionButton(
-              heroTag: 'add',
-              onPressed: _selectedAccountId != null
-                  ? () => KeyFormSheet.show(
-                      context,
-                      accountId: _selectedAccountId!,
-                    )
-                  : null,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
+          // Main FAB: add key (extended, solid brand color, rounded-2xl).
+          _buildAddKeyFab(context),
+        ],
+      ),
+    );
+  }
+
+  /// Primary extended FAB with icon + label.
+  /// Solid brand color + ink splash, matches Stitch design.
+  Widget _buildAddKeyFab(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final enabled = _selectedAccountId != null;
+    return Hero(
+      tag: 'add',
+      child: Opacity(
+        opacity: enabled ? 1.0 : 0.5,
+        child: Material(
+          color: colorScheme.primary,
+          borderRadius: BorderRadius.circular(16),
+          elevation: 4,
+          shadowColor: colorScheme.primary.withValues(alpha: 0.4),
+          child: InkWell(
+            onTap: enabled
+                ? () =>
+                      KeyFormSheet.show(context, accountId: _selectedAccountId!)
+                : null,
+            borderRadius: BorderRadius.circular(16),
+            splashColor: colorScheme.onPrimary.withValues(alpha: 0.24),
+            highlightColor: colorScheme.onPrimary.withValues(alpha: 0.12),
+            child: Container(
+              height: 56,
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.add, color: colorScheme.onPrimary),
+                  const SizedBox(width: AppSpacing.sm + 4),
+                  Text(
+                    '添加密钥',
+                    style: TextStyle(
+                      color: colorScheme.onPrimary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
               ),
-              child: const Icon(Icons.add, size: 32),
             ),
           ),
-        ],
+        ),
       ),
     );
   }

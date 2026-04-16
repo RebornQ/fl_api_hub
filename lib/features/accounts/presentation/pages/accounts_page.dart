@@ -87,20 +87,37 @@ class AccountsPage extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          // Main FAB: add account.
-          SizedBox(
+          // Main FAB: add account (solid brand color, rounded-2xl).
+          _buildAddFab(context),
+        ],
+      ),
+    );
+  }
+
+  /// Primary FAB with solid brand color + rounded-2xl + ink splash.
+  /// Matches the check-in page execute FAB for visual consistency.
+  Widget _buildAddFab(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Hero(
+      tag: 'add',
+      child: Material(
+        color: colorScheme.primary,
+        borderRadius: BorderRadius.circular(16),
+        elevation: 4,
+        shadowColor: colorScheme.primary.withValues(alpha: 0.4),
+        child: InkWell(
+          onTap: () => AccountFormSheet.show(context),
+          borderRadius: BorderRadius.circular(16),
+          splashColor: colorScheme.onPrimary.withValues(alpha: 0.24),
+          highlightColor: colorScheme.onPrimary.withValues(alpha: 0.12),
+          child: SizedBox(
             width: 64,
             height: 64,
-            child: FloatingActionButton(
-              heroTag: 'add',
-              onPressed: () => AccountFormSheet.show(context),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: const Icon(Icons.add, size: 32),
+            child: Center(
+              child: Icon(Icons.add, size: 32, color: colorScheme.onPrimary),
             ),
           ),
-        ],
+        ),
       ),
     );
   }

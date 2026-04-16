@@ -39,4 +39,7 @@ abstract class CheckInRepository {
 
   /// Returns all results for [taskId], newest first.
   Future<Result<List<CheckInResult>>> getResultsByTaskId(String taskId);
+
+  /// Returns all check-in results across all tasks, newest first.
+  Future<Result<List<CheckInResult>>> getAllResults();
 }

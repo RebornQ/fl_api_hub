@@ -153,4 +153,19 @@ class CheckInRepositoryImpl implements CheckInRepository {
       );
     }
   }
+
+  @override
+  Future<Result<List<CheckInResult>>> getAllResults() async {
+    try {
+      return Success(_local.getAllResults());
+    } catch (e, st) {
+      return Failure(
+        StorageException(
+          message: 'Failed to load all check-in results: $e',
+          originalError: e,
+          stackTrace: st,
+        ),
+      );
+    }
+  }
 }

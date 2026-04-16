@@ -117,6 +117,17 @@ class CheckInLocalDataSource {
     return results;
   }
 
+  /// Returns all results across all tasks, newest first.
+  List<CheckInResult> getAllResults() {
+    final results = _resultBox.values
+        .cast<Map<String, dynamic>>()
+        .map(CheckInResultMapper.fromMap)
+        .toList();
+
+    results.sort((a, b) => b.executedAt.compareTo(a.executedAt));
+    return results;
+  }
+
   // ── Private helpers ──────────────────────────────────────────────
 
   Future<void> _deleteResultsByTaskId(String taskId) async {

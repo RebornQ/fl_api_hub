@@ -173,4 +173,28 @@ class CheckInNotifier extends AsyncNotifier<List<CheckInTask>> {
       onFailure: (e) => AsyncError(e, StackTrace.current),
     );
   }
+
+  /// Executes check-in for all enabled tasks with a concurrency pool of 5.
+  ///
+  /// Returns the list of [CheckInResult]s from all executions.
+  /// Individual failures do not prevent other tasks from running.
+  Future<List<CheckInResult?>> executeAll() async {
+    final tasks = state.valueOrNull ?? [];
+    final enabled = tasks.where((t) => t.enabled).toList();
+    final results = <CheckInResult?>[];
+
+    // Process in chunks of 5 for concurrency control.
+    for (var i = 0; i < enabled.length; i += 5) {
+      final chunk = enabled.skip(i).take(5);
+      final chunkResults = await Future.wait(
+        chunk.map((t) => executeCheckIn(t.id)),
+      );
+      results.addAll(chunkResults);
+    }
+
+    // Invalidate results provider so dashboard refreshes.
+    ref.invalidate(allCheckInResultsProvider);
+
+    return results;
+  }
 }

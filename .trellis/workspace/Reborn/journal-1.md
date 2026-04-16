@@ -734,3 +734,56 @@ MVP Batch 10 (final batch) complete. All 10 batches done.
 ### Next Steps
 
 - None - task complete
+
+
+## Session 12: Fix: Hive Map type cast error in check-in datasources
+
+**Date**: 2026-04-17
+**Task**: Fix: Hive Map type cast error in check-in datasources
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## Summary
+
+修复签到页面的 Hive `_Map<dynamic, dynamic>` 类型转换崩溃问题。
+
+## Changes
+
+| File | Change |
+|------|--------|
+| `check_in_local_datasource.dart` | 7 处 `.cast<Map<String, dynamic>>()` / `as Map<String, dynamic>?` → `Map<String, dynamic>.from()` |
+| `scheduler_config_local_datasource.dart` | 1 处 `as Map<String, dynamic>?` → `Map<String, dynamic>.from()` |
+
+## Root Cause
+
+Hive 存储返回 `_Map<dynamic, dynamic>`，`.cast<>()` 是惰性转换会在运行时崩溃，`Map<String, dynamic>.from()` 做即时深拷贝转换安全可靠。与 Session 7 accounts 模块修复方式一致。
+
+## Testing
+
+- [OK] `flutter analyze` — 零错误
+- [OK] `flutter test` — 215 tests passed
+- [OK] 签到页面不再崩溃
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `7bd61f9` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

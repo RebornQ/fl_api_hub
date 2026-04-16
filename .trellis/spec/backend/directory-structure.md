@@ -61,18 +61,25 @@ lib/
 │       └── app_empty_state.dart
 └── features/
     ├── accounts/
-    │   └── data/
-    │       ├── datasources/
-    │       │   ├── accounts_local_datasource.dart
-    │       │   └── accounts_remote_datasource.dart
-    │       ├── models/
-    │       │   ├── account_mapper.dart
-    │       │   └── account_api_mapper.dart
-    │       └── domain/
-    │           ├── entities/account.dart
-    │           └── repositories/accounts_repository.dart
-    ├── keys/ (same structure as accounts)
-    └── check_in/ (same structure as accounts)
+    │   ├── data/
+    │   │   ├── datasources/
+    │   │   │   ├── accounts_local_datasource.dart
+    │   │   │   └── accounts_remote_datasource.dart
+    │   │   ├── models/
+    │   │   │   ├── account_mapper.dart
+    │   │   │   └── account_api_mapper.dart
+    │   │   └── repositories/
+    │   │       └── accounts_repository_impl.dart  # Local CRUD via Hive + SecureStore
+    │   ├── domain/
+    │   │   ├── entities/account.dart
+    │   │   └── repositories/accounts_repository.dart  # Abstract interface
+    │   └── presentation/
+    │       ├── pages/accounts_page.dart
+    │       └── providers/
+    │           ├── accounts_providers.dart  # Repository + Notifier provider declarations
+    │           └── accounts_notifier.dart   # AsyncNotifier (CRUD + toggleEnabled)
+    ├── keys/ (same structure, plus FamilyAsyncNotifier for per-account scoping)
+    └── check_in/ (same structure, plus executeCheckIn orchestration + FutureProvider.family for results)
 ```
 
 ---
@@ -88,8 +95,10 @@ lib/
 - **`core/storage/`** — Hive (structured data) + SecureStore (credentials)
 - **`core/scheduler/`** — Abstract background task scheduler (not yet implemented)
 - **`features/<feature>/data/`** — Local + remote data sources, mappers (DTO↔entity, Map↔entity)
-- **`features/<feature>/domain/`** — Entities, repository contracts
+  - `repositories/` — Concrete repository implementations (wrap local datasources, return `Result<T>`)
+- **`features/<feature>/domain/`** — Entities, repository contracts (abstract interfaces)
 - **`features/<feature>/presentation/`** — Pages, widgets, Riverpod providers
+  - `providers/` — Provider declarations (`*_providers.dart`) + AsyncNotifier classes (`*_notifier.dart`)
 
 ---
 

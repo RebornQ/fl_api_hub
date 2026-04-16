@@ -442,3 +442,55 @@ UI matched Stitch design (screen `2ee398a5f534418fadd6c7e665cf1260`): horizontal
 ### Next Steps
 
 - None - task complete
+
+
+## Session 8: Implement keys management UI (Batch 7)
+
+**Date**: 2026-04-16
+**Task**: Implement keys management UI (Batch 7)
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+| File | Operation | Description |
+|------|-----------|-------------|
+| `keys/presentation/pages/keys_page.dart` | Modified | Replaced placeholder with full page (account selector, search, stats, FAB group) |
+| `keys/presentation/widgets/account_selector.dart` | Created | Dropdown for selecting which account's keys to view |
+| `keys/presentation/widgets/key_card.dart` | Created | Card widget with name, badges, actions, masked value, quota grid |
+| `keys/presentation/widgets/key_status_badge.dart` | Created | Status pill: green "启用" / red "已过期" |
+| `keys/presentation/widgets/key_value_row.dart` | Created | Masked key display with visibility toggle (lazy SecureStore load) |
+| `keys/presentation/widgets/key_quota_grid.dart` | Created | 2x2 grid: remaining quota, used quota, expiry, creation date |
+| `keys/presentation/widgets/key_form_sheet.dart` | Created | Modal bottom sheet for add/edit key with validation |
+
+**Design reference**: `input/stitch_all_api_hub_flutter/_3_密钥管理/code.html`
+
+**Key decisions**:
+- Keys scoped to accounts via `keysProvider(accountId)` family provider
+- Account auto-selection with fallback when selected account is deleted
+- Secret values only loaded from SecureStore on explicit user tap (never during build)
+- Followed Accounts feature pattern for consistency (page structure, form sheet, delete dialog)
+
+**Verification**: `flutter analyze` 0 errors, `flutter test` 20/20 passed
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `a995dba` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

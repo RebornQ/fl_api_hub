@@ -383,3 +383,62 @@ Built the complete API networking infrastructure for Batch 4 — the bridge betw
 ### Next Steps
 
 - None - task complete
+
+
+## Session 7: Batch 6: Implement Accounts Management UI
+
+**Date**: 2026-04-16
+**Task**: Batch 6: Implement Accounts Management UI
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## What was done
+
+| Area | Change |
+|------|--------|
+| AccountCard | New widget — horizontal layout with status dot (green/orange/gray + glow), name, siteType, URL, balance column, disabled state (opacity 0.6 + gray dot) |
+| AccountFormSheet | New widget — modal bottom sheet for add/edit with 6 fields (name, URL, siteType, authType, token, notes), form validation, SiteType→AuthType cascade, async token loading from SecureStore |
+| AccountsPage | Rewritten from placeholder — large title section, search bar, filter chips (pill style), stacked FAB group (add + search), pull-to-refresh, tap→edit, long-press→delete confirmation |
+| SiteType/AuthType | Added `displayName` getters as shared extensions to eliminate DRY violation |
+| Bug fix | Hive `_Map<dynamic, dynamic>` type cast error in `accounts_local_datasource.dart` — replaced `.cast<>()` with `Map<String, dynamic>.from()` |
+
+## Key files
+
+- `lib/features/accounts/presentation/widgets/account_card.dart` (new)
+- `lib/features/accounts/presentation/widgets/account_form_sheet.dart` (new)
+- `lib/features/accounts/presentation/pages/accounts_page.dart` (rewritten)
+- `lib/core/network/site_type.dart` (added displayName extensions)
+- `lib/features/accounts/data/datasources/accounts_local_datasource.dart` (bug fix)
+
+## Design alignment
+
+UI matched Stitch design (screen `2ee398a5f534418fadd6c7e665cf1260`): horizontal cards with status dots, search bar, filter chips, large title, stacked FABs.
+
+## Next
+
+- Batch 7: Implement keys management UI
+- Batch 8: Implement check-in UI
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f920593` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

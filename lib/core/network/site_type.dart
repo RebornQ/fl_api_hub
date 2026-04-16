@@ -50,4 +50,27 @@ enum SiteType {
       orElse: () => throw ArgumentError('Unknown SiteType: $value'),
     );
   }
+
+  /// Human-readable display label for UI.
+  String get displayName => switch (this) {
+    SiteType.newApi => 'New API',
+    SiteType.oneApi => 'One API',
+    SiteType.oneHub => 'One Hub',
+    SiteType.doneHub => 'Done Hub',
+    SiteType.veloera => 'Veloera',
+    SiteType.octopus => 'Octopus',
+    SiteType.sub2api => 'Sub2API',
+    SiteType.anyrouter => 'AnyRouter',
+    SiteType.wongGongyi => 'Wong Gongyi',
+  };
+}
+
+/// Human-readable display label for [AuthType].
+extension AuthTypeDisplayName on AuthType {
+  /// Label shown in dropdowns and cards.
+  String get displayName => switch (this) {
+    AuthType.accessToken => 'Access Token',
+    AuthType.cookie => 'Cookie',
+    AuthType.none => '无',
+  };
 }

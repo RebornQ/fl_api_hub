@@ -28,16 +28,18 @@ class AccountsLocalDataSource {
   /// Returns all stored accounts.
   List<Account> getAll() {
     return _box.values
-        .cast<Map<String, dynamic>>()
-        .map(AccountMapper.fromMap)
+        .map(
+          (dynamic raw) =>
+              AccountMapper.fromMap(Map<String, dynamic>.from(raw)),
+        )
         .toList();
   }
 
   /// Returns a single account by [id], or `null` if not found.
   Account? getById(String id) {
-    final map = _box.get(id) as Map<String, dynamic>?;
-    if (map == null) return null;
-    return AccountMapper.fromMap(map);
+    final raw = _box.get(id);
+    if (raw == null) return null;
+    return AccountMapper.fromMap(Map<String, dynamic>.from(raw));
   }
 
   /// Persists an [account] to the local box.

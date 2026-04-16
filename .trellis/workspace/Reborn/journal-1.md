@@ -320,3 +320,66 @@ Built the complete API networking infrastructure for Batch 4 — the bridge betw
 ### Next Steps
 
 - None - task complete
+
+
+## Session 6: Batch 5: Wire Riverpod State Management
+
+**Date**: 2026-04-16
+**Task**: Batch 5: Wire Riverpod State Management
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## 完成内容
+
+为 accounts / keys / check_in 三个 feature 建立完整的 **Repository → Riverpod AsyncNotifier/Provider** 状态管理链路。
+
+| 层 | 新增文件 | 说明 |
+|---|---|---|
+| Repository 实现 | `accounts_repository_impl.dart` | 包装 LocalDataSource，返回 Result |
+| Repository 实现 | `keys_repository_impl.dart` | 同上，按 accountId 查询 |
+| Repository 实现 | `check_in_repository_impl.dart` | Task + Result 双域 CRUD |
+| Providers | `accounts_providers.dart` | 全局 AsyncNotifier |
+| Providers | `keys_providers.dart` | FamilyAsyncNotifier (按 accountId) |
+| Providers | `check_in_providers.dart` | Task notifier + FutureProvider.family (results) |
+| Notifier | `accounts_notifier.dart` | CRUD + toggleEnabled |
+| Notifier | `keys_notifier.dart` | CRUD + Family arg |
+| Notifier | `check_in_notifier.dart` | CRUD + executeCheckIn 全流程编排 |
+
+**关键设计决策**:
+- Notifier 即 Use Case（无单独 use case 文件，CRUD 逻辑简单）
+- 悲观更新策略（本地存储 <1ms，简洁可靠）
+- executeCheckIn 编排：task → account → token → remote API → save result → update task
+- `update` 方法改名 `saveAccount`/`saveKey`（避免与 AsyncNotifier.update 冲突）
+- Keys 使用 FamilyAsyncNotifier 按 accountId 参数化
+- CheckIn results 用 FutureProvider.family 只读查询
+
+**修复的问题**:
+- accounts_providers.dart 缺 Account entity import
+- check_in_providers.dart 缺 Result import (dataOrNull)
+- AsyncNotifier.update 方法名冲突 → 重命名
+
+**Spec 更新**: `.trellis/spec/backend/directory-structure.md` 补充 repositories/ 和 providers/ 目录说明
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `be82e0d` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

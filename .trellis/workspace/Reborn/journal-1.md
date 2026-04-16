@@ -559,3 +559,84 @@ Replace check-in placeholder page with full results dashboard.
 ### Next Steps
 
 - None - task complete
+
+
+## Session 10: Batch 9: Scheduler Abstraction + Auto Check-In
+
+**Date**: 2026-04-16
+**Task**: Batch 9: Scheduler Abstraction + Auto Check-In
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## Summary
+
+Implemented foreground Timer-based scheduler infrastructure for automatic check-in execution (Batch 9 of the master plan).
+
+## Changes
+
+| Category | Description |
+|----------|-------------|
+| AppScheduler Interface | Enhanced with `ScheduledTaskCallback` typedef and optional `onTick` parameter |
+| ForegroundScheduler | New Timer.periodic implementation of AppScheduler for foreground mode |
+| SchedulerConfig Entity | Global auto-check-in config: enabled, time window, retry strategy |
+| Config Persistence | New `scheduler_config` Hive box + mapper + local datasource |
+| CheckInSchedulerService | Core orchestrator: 1-min tick, time-window filtering, daily dedup, retry tracking |
+| SchedulerConfigNotifier | Riverpod Notifier with Hive persistence for config state |
+| SchedulerConfigCard | UI widget: global toggle, time window picker, retry strategy config |
+| CheckInNotifier | Added `executeAllDue(List<String>)` for scheduler-targeted execution |
+| Widget Test | Updated to use temp-directory Hive init for test environment |
+
+## Files
+
+| Action | File |
+|--------|------|
+| New | `lib/core/scheduler/foreground_scheduler.dart` |
+| New | `lib/core/scheduler/check_in_scheduler_service.dart` |
+| New | `lib/features/check_in/domain/entities/scheduler_config.dart` |
+| New | `lib/features/check_in/data/models/scheduler_config_mapper.dart` |
+| New | `lib/features/check_in/data/datasources/scheduler_config_local_datasource.dart` |
+| New | `lib/features/check_in/presentation/providers/scheduler_config_notifier.dart` |
+| New | `lib/features/check_in/presentation/providers/scheduler_providers.dart` |
+| New | `lib/features/check_in/presentation/widgets/scheduler_config_card.dart` |
+| Modified | `lib/core/scheduler/scheduler.dart` |
+| Modified | `lib/core/storage/hive_store.dart` |
+| Modified | `lib/features/check_in/presentation/providers/check_in_notifier.dart` |
+| Modified | `lib/features/check_in/presentation/providers/check_in_providers.dart` |
+| Modified | `lib/features/check_in/presentation/pages/check_in_page.dart` |
+| Modified | `test/widget_test.dart` |
+
+**Stats**: 14 files, +868 lines, -1 line
+
+## Verification
+
+- `flutter analyze` — 0 errors
+- `dart format` — 0 changed
+- `flutter test` — 43/43 passed
+
+## Next
+
+Batch 10: Tests and hardening (unit tests for scheduler, widget tests, clean up).
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `c7b5f1f` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

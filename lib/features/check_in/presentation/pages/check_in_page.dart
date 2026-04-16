@@ -22,6 +22,7 @@ import '../widgets/check_in_filter_bar.dart';
 import '../widgets/check_in_result_card.dart';
 import '../widgets/check_in_stats_grid.dart';
 import '../widgets/check_in_summary_card.dart';
+import '../widgets/scheduler_config_card.dart';
 
 /// Check-in results dashboard with responsive layout.
 class CheckInPage extends ConsumerStatefulWidget {
@@ -259,13 +260,15 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
     );
   }
 
-  /// Sidebar: summary card + stats grid.
+  /// Sidebar: scheduler config + summary card + stats grid.
   Widget _buildSidebarContent(
     BuildContext context,
     CheckInDashboardStats stats,
   ) {
     return Column(
       children: [
+        const SchedulerConfigCard(),
+        const SizedBox(height: AppSpacing.sm),
         CheckInSummaryCard(stats: stats),
         const SizedBox(height: AppSpacing.sm),
         CheckInStatsGrid(stats: stats),

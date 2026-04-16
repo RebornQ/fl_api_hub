@@ -1,8 +1,31 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive/hive.dart';
 
 import 'package:all_api_hub_flutter/app/app.dart';
 
 void main() {
+  late Directory _tempDir;
+
+  setUp(() async {
+    _tempDir = await Directory.systemTemp.createTemp('hive_test_');
+    Hive.init(_tempDir.path);
+    await Future.wait([
+      Hive.openBox('app_data'),
+      Hive.openBox('accounts'),
+      Hive.openBox('keys'),
+      Hive.openBox('check_in_tasks'),
+      Hive.openBox('check_in_results'),
+      Hive.openBox('scheduler_config'),
+    ]);
+  });
+
+  tearDown(() async {
+    await Hive.close();
+    await _tempDir.delete(recursive: true);
+  });
+
   testWidgets('App shell renders with bottom navigation', (tester) async {
     await tester.pumpWidget(const App());
 

@@ -5,6 +5,11 @@
 /// and balance-snapshot features will depend on.
 library;
 
+/// Callback signature for foreground task execution.
+///
+/// [id] is the unique identifier passed to [AppScheduler.schedulePeriodic].
+typedef ScheduledTaskCallback = Future<void> Function(String id);
+
 /// Schedules and manages periodic background tasks.
 abstract class AppScheduler {
   /// Schedules a repeating task.
@@ -12,10 +17,12 @@ abstract class AppScheduler {
   /// [id] is a unique identifier for this scheduled task.
   /// [taskName] identifies what to run (e.g. 'check_in', 'balance_snapshot').
   /// [interval] is the minimum time between executions.
+  /// [onTick] is an optional callback invoked on each tick (foreground mode).
   Future<void> schedulePeriodic({
     required String id,
     required String taskName,
     required Duration interval,
+    ScheduledTaskCallback? onTick,
   });
 
   /// Cancels a previously scheduled task by [id].

@@ -21,6 +21,7 @@ import '../../domain/repositories/check_in_repository.dart';
 import 'check_in_notifier.dart';
 
 export 'check_in_notifier.dart';
+export 'scheduler_providers.dart';
 
 // ── Repository & Task providers ────────────────────────────────────
 

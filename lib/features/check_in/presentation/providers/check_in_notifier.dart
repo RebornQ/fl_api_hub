@@ -197,4 +197,24 @@ class CheckInNotifier extends AsyncNotifier<List<CheckInTask>> {
 
     return results;
   }
+
+  /// Executes check-in for specific tasks identified by [taskIds].
+  ///
+  /// Used by the scheduler service to execute only due tasks,
+  /// not all enabled tasks. Maintains the same concurrency pool of 5.
+  Future<List<CheckInResult?>> executeAllDue(List<String> taskIds) async {
+    final results = <CheckInResult?>[];
+
+    for (var i = 0; i < taskIds.length; i += 5) {
+      final chunk = taskIds.skip(i).take(5);
+      final chunkResults = await Future.wait(
+        chunk.map((id) => executeCheckIn(id)),
+      );
+      results.addAll(chunkResults);
+    }
+
+    ref.invalidate(allCheckInResultsProvider);
+
+    return results;
+  }
 }

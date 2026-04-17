@@ -6,9 +6,12 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/design_tokens.dart';
+import '../../../../core/network/reachability_status.dart';
 import '../../domain/entities/account.dart';
+import '../providers/account_reachability_providers.dart';
 
 /// Displays a summary card for a single [Account].
 class AccountCard extends StatelessWidget {
@@ -112,40 +115,117 @@ class AccountCard extends StatelessWidget {
   }
 }
 
-/// Colored status indicator dot with a glow effect.
-class _StatusDot extends StatelessWidget {
+/// Colored status indicator dot with a glow effect and optional breathing
+/// animation while its account is being checked.
+///
+/// Color priority:
+///  1. Disabled → slate gray.
+///  2. Reachability failure → red.
+///  3. Balance ≤ 1 → orange (low balance warning).
+///  4. Otherwise → emerald green (healthy).
+///
+/// When the account id is in [checkingIdsProvider], the dot continuously
+/// scales between 0.85 ↔ 1.15 with opacity pulsing 0.5 ↔ 1.0. Non-checking
+/// accounts do not allocate an [AnimationController].
+class _StatusDot extends ConsumerStatefulWidget {
   final Account account;
 
   const _StatusDot({required this.account});
 
   @override
-  Widget build(BuildContext context) {
-    final color = _dotColor;
-    return Container(
-      margin: const EdgeInsets.only(top: 6),
-      width: 10,
-      height: 10,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color,
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.4),
-            blurRadius: 8,
-            spreadRadius: 0,
-          ),
-        ],
-      ),
+  ConsumerState<_StatusDot> createState() => _StatusDotState();
+}
+
+class _StatusDotState extends ConsumerState<_StatusDot>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
     );
   }
 
-  Color get _dotColor {
-    if (!account.enabled) return const Color(0xFF94A3B8); // slate-400
-    if (account.balance != null && account.balance! <= 1.0) {
-      return const Color(0xFFF97316); // orange-500 — low balance warning
-    }
-    return const Color(0xFF10B981); // emerald-500 — healthy
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
+
+  @override
+  Widget build(BuildContext context) {
+    final record = ref.watch(
+      accountReachabilityMapProvider.select((map) => map[widget.account.id]),
+    );
+    final isChecking = ref.watch(
+      checkingIdsProvider.select((ids) => ids.contains(widget.account.id)),
+    );
+
+    if (isChecking) {
+      if (!_controller.isAnimating) {
+        _controller.repeat(reverse: true);
+      }
+    } else {
+      if (_controller.isAnimating) {
+        _controller.stop();
+      }
+      if (_controller.value != 0) {
+        _controller.value = 0;
+      }
+    }
+
+    final color = _resolveDotColor(widget.account, record);
+
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        final t = _controller.value; // 0..1
+        final scale = 0.85 + 0.30 * t;
+        final opacity = 0.5 + 0.5 * (1 - t);
+        return Container(
+          margin: const EdgeInsets.only(top: 6),
+          width: 10,
+          height: 10,
+          child: Transform.scale(
+            scale: isChecking ? scale : 1.0,
+            child: Opacity(
+              opacity: isChecking ? opacity : 1.0,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color,
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withValues(alpha: 0.4),
+                      blurRadius: 8,
+                      spreadRadius: 0,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Resolves the dot color given the account + current reachability record.
+///
+/// Pure function (kept at top-level for easy unit testing).
+Color _resolveDotColor(Account account, ReachabilityRecord? record) {
+  if (!account.enabled) return const Color(0xFF94A3B8); // slate-400, disabled
+  if (record != null && record.status == ReachabilityStatus.fail) {
+    return const Color(0xFFEF4444); // red-500, site unreachable
+  }
+  if (account.balance != null && account.balance! <= 1.0) {
+    return const Color(0xFFF97316); // orange-500, low balance
+  }
+  return const Color(0xFF10B981); // emerald-500, healthy
 }
 
 /// Right-side column showing balance and status text.

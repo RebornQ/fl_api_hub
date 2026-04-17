@@ -44,6 +44,7 @@ class HiveStoreImpl implements KeyValueStore {
 /// - `check_in_tasks` — check-in task entity storage
 /// - `check_in_results` — check-in result entity storage
 /// - `scheduler_config` — auto-check-in scheduler configuration
+/// - `account_reachability` — cached website reachability per account
 Future<void> initHive() async {
   await Hive.initFlutter();
   await Future.wait([
@@ -53,6 +54,7 @@ Future<void> initHive() async {
     Hive.openBox('check_in_tasks'),
     Hive.openBox('check_in_results'),
     Hive.openBox('scheduler_config'),
+    Hive.openBox('account_reachability'),
   ]);
 }
 

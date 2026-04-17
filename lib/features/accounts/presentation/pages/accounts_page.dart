@@ -17,16 +17,34 @@ import '../widgets/account_card.dart';
 import '../widgets/account_form_sheet.dart';
 
 /// Accounts management page.
-class AccountsPage extends ConsumerWidget {
+class AccountsPage extends ConsumerStatefulWidget {
   const AccountsPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AccountsPage> createState() => _AccountsPageState();
+}
+
+class _AccountsPageState extends ConsumerState<AccountsPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Fire a throttled reachability scan after the first frame. The
+    // AccountsNotifier awaits its own load, so this works even when the
+    // accounts future has not yet resolved.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(accountsProvider.notifier).checkAll();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final accounts = ref.watch(accountsProvider);
 
     return Scaffold(
       body: RefreshIndicator(
-        onRefresh: () async => ref.invalidate(accountsProvider),
+        onRefresh: () =>
+            ref.read(accountsProvider.notifier).checkAll(force: true),
         child: Stack(
           children: [
             // Main content.
@@ -178,8 +196,8 @@ class AccountsPage extends ConsumerWidget {
                 borderSide: BorderSide.none,
               ),
               contentPadding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md,
-                vertical: AppSpacing.md + AppSpacing.xs,
+                horizontal: AppSpacing.sm,
+                vertical: AppSpacing.sm + AppSpacing.xs,
               ),
             ),
           ),

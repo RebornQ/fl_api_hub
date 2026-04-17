@@ -3,16 +3,40 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:all_api_hub_flutter/core/error/app_exception.dart';
+import 'package:all_api_hub_flutter/core/network/reachability_status.dart';
 import 'package:all_api_hub_flutter/core/network/site_type.dart';
 import 'package:all_api_hub_flutter/core/result/result.dart';
 import 'package:all_api_hub_flutter/features/accounts/domain/entities/account.dart';
+import 'package:all_api_hub_flutter/features/accounts/domain/repositories/account_reachability_repository.dart';
 import 'package:all_api_hub_flutter/features/accounts/domain/repositories/accounts_repository.dart';
+import 'package:all_api_hub_flutter/features/accounts/presentation/providers/account_reachability_providers.dart';
 import 'package:all_api_hub_flutter/features/accounts/presentation/providers/accounts_providers.dart';
 
 class MockAccountsRepository extends Mock implements AccountsRepository {}
 
+/// In-memory fake so tests don't need to open the Hive box backing the
+/// real [AccountReachabilityRepository].
+class FakeAccountReachabilityRepository
+    implements AccountReachabilityRepository {
+  final Map<String, ReachabilityRecord> _store = {};
+
+  @override
+  Map<String, ReachabilityRecord> getAll() => Map.of(_store);
+
+  @override
+  Future<void> put(String accountId, ReachabilityRecord record) async {
+    _store[accountId] = record;
+  }
+
+  @override
+  Future<void> remove(String accountId) async {
+    _store.remove(accountId);
+  }
+}
+
 void main() {
   late MockAccountsRepository mockRepo;
+  late FakeAccountReachabilityRepository fakeReachability;
   late ProviderContainer container;
 
   final testAccount = Account(
@@ -43,6 +67,7 @@ void main() {
 
   setUp(() {
     mockRepo = MockAccountsRepository();
+    fakeReachability = FakeAccountReachabilityRepository();
   });
 
   tearDown(() {
@@ -57,7 +82,12 @@ void main() {
         ).thenAnswer((_) async => Success([testAccount, testAccount2]));
 
         container = ProviderContainer(
-          overrides: [accountsRepositoryProvider.overrideWithValue(mockRepo)],
+          overrides: [
+            accountsRepositoryProvider.overrideWithValue(mockRepo),
+            accountReachabilityRepositoryProvider.overrideWithValue(
+              fakeReachability,
+            ),
+          ],
         );
 
         final accounts = await container.read(accountsProvider.future);
@@ -73,7 +103,12 @@ void main() {
         ).thenAnswer((_) async => Failure(exception));
 
         container = ProviderContainer(
-          overrides: [accountsRepositoryProvider.overrideWithValue(mockRepo)],
+          overrides: [
+            accountsRepositoryProvider.overrideWithValue(mockRepo),
+            accountReachabilityRepositoryProvider.overrideWithValue(
+              fakeReachability,
+            ),
+          ],
         );
 
         expect(
@@ -93,7 +128,12 @@ void main() {
         ).thenAnswer((_) async => Success(testAccount));
 
         container = ProviderContainer(
-          overrides: [accountsRepositoryProvider.overrideWithValue(mockRepo)],
+          overrides: [
+            accountsRepositoryProvider.overrideWithValue(mockRepo),
+            accountReachabilityRepositoryProvider.overrideWithValue(
+              fakeReachability,
+            ),
+          ],
         );
 
         // Wait for initial build
@@ -117,7 +157,12 @@ void main() {
         ).thenAnswer((_) async => Failure(exception));
 
         container = ProviderContainer(
-          overrides: [accountsRepositoryProvider.overrideWithValue(mockRepo)],
+          overrides: [
+            accountsRepositoryProvider.overrideWithValue(mockRepo),
+            accountReachabilityRepositoryProvider.overrideWithValue(
+              fakeReachability,
+            ),
+          ],
         );
 
         // Wait for initial build
@@ -141,7 +186,12 @@ void main() {
         ).thenAnswer((_) async => Success(null));
 
         container = ProviderContainer(
-          overrides: [accountsRepositoryProvider.overrideWithValue(mockRepo)],
+          overrides: [
+            accountsRepositoryProvider.overrideWithValue(mockRepo),
+            accountReachabilityRepositoryProvider.overrideWithValue(
+              fakeReachability,
+            ),
+          ],
         );
 
         // Wait for initial build
@@ -164,7 +214,12 @@ void main() {
         ).thenAnswer((_) async => Failure(exception));
 
         container = ProviderContainer(
-          overrides: [accountsRepositoryProvider.overrideWithValue(mockRepo)],
+          overrides: [
+            accountsRepositoryProvider.overrideWithValue(mockRepo),
+            accountReachabilityRepositoryProvider.overrideWithValue(
+              fakeReachability,
+            ),
+          ],
         );
 
         // Wait for initial build
@@ -189,7 +244,12 @@ void main() {
         ).thenAnswer((_) async => Success(updated));
 
         container = ProviderContainer(
-          overrides: [accountsRepositoryProvider.overrideWithValue(mockRepo)],
+          overrides: [
+            accountsRepositoryProvider.overrideWithValue(mockRepo),
+            accountReachabilityRepositoryProvider.overrideWithValue(
+              fakeReachability,
+            ),
+          ],
         );
 
         // Wait for initial build
@@ -215,7 +275,12 @@ void main() {
         );
 
         container = ProviderContainer(
-          overrides: [accountsRepositoryProvider.overrideWithValue(mockRepo)],
+          overrides: [
+            accountsRepositoryProvider.overrideWithValue(mockRepo),
+            accountReachabilityRepositoryProvider.overrideWithValue(
+              fakeReachability,
+            ),
+          ],
         );
 
         // Wait for initial build
@@ -247,7 +312,12 @@ void main() {
         ).thenAnswer((_) async => Success([testAccount]));
 
         container = ProviderContainer(
-          overrides: [accountsRepositoryProvider.overrideWithValue(mockRepo)],
+          overrides: [
+            accountsRepositoryProvider.overrideWithValue(mockRepo),
+            accountReachabilityRepositoryProvider.overrideWithValue(
+              fakeReachability,
+            ),
+          ],
         );
 
         // Do NOT await the initial build, set loading state manually

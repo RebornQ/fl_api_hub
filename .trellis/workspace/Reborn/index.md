@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 14
-- **Last Active**: 2026-04-18
+- **Total Sessions**: 15
+- **Last Active**: 2026-04-19
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~958 | Active |
+| `journal-1.md` | ~1037 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 15 | 2026-04-19 | 完善账号管理过滤标签与搜索链路 | `12f77d5` | `main` |
 | 14 | 2026-04-18 | 账号启用/禁用切换贯通 UI 与签到链路 | `1b95258`, `276ee7f`, `67934fd` | `main` |
 | 13 | 2026-04-17 | 同步 Stitch UI 设计稿：FAB / AppBar / BottomBar | `469cb91` | `main` |
 | 12 | 2026-04-17 | Fix: Hive Map type cast error in check-in datasources | `7bd61f9` | `main` |

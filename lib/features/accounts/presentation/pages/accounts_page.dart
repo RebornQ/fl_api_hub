@@ -4,6 +4,8 @@
 /// horizontal account cards with status dots, and a stacked FAB group.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,9 +14,14 @@ import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_error_state.dart';
 import '../../../../core/widgets/app_loading_state.dart';
 import '../../domain/entities/account.dart';
+import '../providers/accounts_filter_providers.dart';
 import '../providers/accounts_providers.dart';
 import '../widgets/account_card.dart';
 import '../widgets/account_form_sheet.dart';
+
+/// Debounce window for the search field. Keeps the derived provider from
+/// rebuilding on every keystroke while still feeling immediate to users.
+const _searchDebounce = Duration(milliseconds: 300);
 
 /// Accounts management page.
 class AccountsPage extends ConsumerStatefulWidget {
@@ -25,9 +32,20 @@ class AccountsPage extends ConsumerStatefulWidget {
 }
 
 class _AccountsPageState extends ConsumerState<AccountsPage> {
+  late final TextEditingController _searchController;
+  Timer? _debounce;
+  bool _hasSearchText = false;
+
   @override
   void initState() {
     super.initState();
+    // Seed the controller from the provider so the search text survives
+    // BottomNav tab switches (provider outlives the widget).
+    final initialQuery = ref.read(accountSearchQueryProvider);
+    _searchController = TextEditingController(text: initialQuery);
+    _hasSearchText = initialQuery.isNotEmpty;
+    _searchController.addListener(_onControllerChanged);
+
     // Fire a throttled reachability scan after the first frame. The
     // AccountsNotifier awaits its own load, so this works even when the
     // accounts future has not yet resolved.
@@ -35,6 +53,50 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
       if (!mounted) return;
       ref.read(accountsProvider.notifier).checkAll();
     });
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController
+      ..removeListener(_onControllerChanged)
+      ..dispose();
+    super.dispose();
+  }
+
+  /// Drives the suffix-icon visibility without re-running the debounce
+  /// write path. Called for both user input and programmatic `clear()`.
+  void _onControllerChanged() {
+    final hasText = _searchController.text.isNotEmpty;
+    if (hasText != _hasSearchText) {
+      setState(() => _hasSearchText = hasText);
+    }
+  }
+
+  /// Debounced handler for the search TextField's `onChanged`.
+  void _onSearchChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(_searchDebounce, () {
+      if (!mounted) return;
+      ref.read(accountSearchQueryProvider.notifier).state = value.trim();
+    });
+  }
+
+  /// Clears the search box immediately (no debounce) and flushes the
+  /// provider so the list reacts on the next frame.
+  void _clearSearch() {
+    _debounce?.cancel();
+    _searchController.clear();
+    ref.read(accountSearchQueryProvider.notifier).state = '';
+  }
+
+  /// Resets filter to `all` and clears search. Invoked from the "no match"
+  /// empty state's CTA button.
+  void _resetFilters() {
+    _debounce?.cancel();
+    _searchController.clear();
+    ref.read(accountSearchQueryProvider.notifier).state = '';
+    ref.read(accountListFilterProvider.notifier).state = AccountListFilter.all;
   }
 
   @override
@@ -59,7 +121,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
                   // Account list.
                   Expanded(
                     child: accounts.when(
-                      data: (list) => _buildList(context, ref, list),
+                      data: (list) => _buildBody(context, list),
                       loading: () => const AppLoadingState(message: '加载中...'),
                       error: (err, _) => AppErrorState(
                         message: err.toString(),
@@ -174,6 +236,17 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
   /// Search input and filter chips.
   Widget _buildSearchAndFilter(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final selectedFilter = ref.watch(accountListFilterProvider);
+    final view = ref.watch(filteredAccountsProvider).valueOrNull;
+
+    int countFor(AccountListFilter f) {
+      if (view == null) return 0;
+      return switch (f) {
+        AccountListFilter.all => view.countAll,
+        AccountListFilter.enabled => view.countEnabled,
+        AccountListFilter.disabled => view.countDisabled,
+      };
+    }
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -186,8 +259,17 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
         children: [
           // Search bar.
           TextField(
+            controller: _searchController,
+            onChanged: _onSearchChanged,
             decoration: InputDecoration(
               prefixIcon: const Icon(Icons.search),
+              suffixIcon: _hasSearchText
+                  ? IconButton(
+                      tooltip: '清除',
+                      icon: const Icon(Icons.close),
+                      onPressed: _clearSearch,
+                    )
+                  : null,
               hintText: '搜索账号、URL 或标签...',
               filled: true,
               fillColor: colorScheme.surfaceContainerHigh,
@@ -203,20 +285,28 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
           ),
           const SizedBox(height: AppSpacing.sm + 4),
           // Filter chips.
+          // TODO 优化：这里的 height 会控制筛选标签列表的高度，可能会导致文字无法居中，建议做成自适应高度
           SizedBox(
             height: 40,
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: [
-                _FilterChip(label: '全部', selected: true),
-                const SizedBox(width: AppSpacing.sm),
-                _FilterChip(label: '已启用'),
-                const SizedBox(width: AppSpacing.sm),
-                _FilterChip(label: '已禁用'),
-                const SizedBox(width: AppSpacing.sm),
-                _FilterChip(label: '已同步'),
-                const SizedBox(width: AppSpacing.sm),
-                _FilterChip(label: '警告'),
+                for (final filter in AccountListFilter.values) ...[
+                  _FilterChip(
+                    filter: filter,
+                    count: countFor(filter),
+                    selected: selectedFilter == filter,
+                    onTap: selectedFilter == filter
+                        ? null
+                        : () =>
+                              ref
+                                      .read(accountListFilterProvider.notifier)
+                                      .state =
+                                  filter,
+                  ),
+                  if (filter != AccountListFilter.values.last)
+                    const SizedBox(width: AppSpacing.sm),
+                ],
               ],
             ),
           ),
@@ -225,9 +315,15 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
     );
   }
 
-  /// Builds either the empty state or the list of account cards.
-  Widget _buildList(BuildContext context, WidgetRef ref, List<Account> list) {
-    if (list.isEmpty) {
+  /// Resolves the body once accounts have loaded.
+  ///
+  /// Three cases:
+  ///   1. No accounts at all — original onboarding empty state.
+  ///   2. Accounts exist but filter/search returns none — "no match"
+  ///      empty state with a "clear filter" CTA.
+  ///   3. Accounts match — list of cards.
+  Widget _buildBody(BuildContext context, List<Account> allAccounts) {
+    if (allAccounts.isEmpty) {
       return SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         child: SizedBox(
@@ -242,20 +338,40 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
       );
     }
 
-    // Sink disabled accounts to the bottom while preserving the original
-    // order within each partition. This is O(n) and stable without relying
-    // on List.sort's stability guarantees.
-    final sorted = [
-      ...list.where((a) => a.enabled),
-      ...list.where((a) => !a.enabled),
-    ];
+    final view = ref.watch(filteredAccountsProvider).valueOrNull;
+    if (view == null || view.list.isEmpty) {
+      return _buildNoMatchState(context);
+    }
 
+    return _buildAccountsList(context, view.list);
+  }
+
+  /// Shown when the accounts list is non-empty but the current filter /
+  /// search eliminates every row.
+  Widget _buildNoMatchState(BuildContext context) {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.4,
+        child: AppEmptyState(
+          icon: Icons.search_off,
+          message: '没有匹配的账号',
+          actionLabel: '清除筛选',
+          onAction: _resetFilters,
+        ),
+      ),
+    );
+  }
+
+  /// Scrollable list of account cards. Ordering is handled upstream by
+  /// [filteredAccountsProvider] (stable partition: enabled → disabled).
+  Widget _buildAccountsList(BuildContext context, List<Account> accounts) {
     return ListView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.only(bottom: 160), // Space for FAB + nav bar.
-      itemCount: sorted.length,
+      itemCount: accounts.length,
       itemBuilder: (context, index) {
-        final account = sorted[index];
+        final account = accounts[index];
         return Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
@@ -301,11 +417,22 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
 }
 
 /// A single filter chip matching the Stitch pill style.
+///
+/// Renders `"{label} ({count})"`. When [onTap] is `null` the chip acts as
+/// a static "currently selected" marker — the Radio semantics forbid
+/// de-selecting by tapping the active chip.
 class _FilterChip extends StatelessWidget {
-  final String label;
+  final AccountListFilter filter;
+  final int count;
   final bool selected;
+  final VoidCallback? onTap;
 
-  const _FilterChip({required this.label, this.selected = false});
+  const _FilterChip({
+    required this.filter,
+    required this.count,
+    required this.selected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -318,22 +445,23 @@ class _FilterChip extends StatelessWidget {
       borderRadius: BorderRadius.circular(9999),
       child: InkWell(
         borderRadius: BorderRadius.circular(9999),
-        onTap: () {
-          // TODO: implement filter logic
-        },
+        onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: 20,
             vertical: AppSpacing.sm,
           ),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: selected
-                  ? colorScheme.onPrimary
-                  : colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
+          child: Center(
+            child: Text(
+              '${filter.label} ($count)',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: selected
+                    ? colorScheme.onPrimary
+                    : colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+              ),
             ),
           ),
         ),

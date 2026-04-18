@@ -73,6 +73,7 @@ class AccountsRepositoryImpl implements AccountsRepository {
       await _local.save(account, accessToken: accessToken);
       return Success(account);
     } catch (e, st) {
+      // TODO 修复：flutter: PlatformException(Unexpected security result code, Code: -34018, Message: A required entitlement isn't present., -34018, null)
       return Failure(
         StorageException(
           message: 'Failed to update account: $e',

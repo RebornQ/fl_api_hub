@@ -5,6 +5,8 @@
 /// existing access token from secure storage).
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -45,6 +47,7 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
 
   late SiteType _selectedSiteType;
   late AuthType _selectedAuthType;
+  late bool _enabled;
   bool _obscureToken = true;
   bool _tokenLoaded = false;
   bool _tokenModified = false;
@@ -62,6 +65,7 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
     _notesController = TextEditingController(text: a?.notes ?? '');
     _selectedSiteType = a?.siteType ?? SiteType.newApi;
     _selectedAuthType = a?.authType ?? SiteType.newApi.defaultAuthType;
+    _enabled = a?.enabled ?? true;
 
     // Load existing token when editing.
     if (_isEditing) {
@@ -123,9 +127,29 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
               ),
               const SizedBox(height: AppSpacing.md),
 
+              // Enabled toggle (above all other fields so the whole form
+              // reflects the account state at a glance).
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '启用账号',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  Switch(
+                    key: const ValueKey('accountEnabledSwitch'),
+                    value: _enabled,
+                    onChanged: (v) => setState(() => _enabled = v),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+
               // Name.
               TextFormField(
                 controller: _nameController,
+                enabled: _enabled,
                 decoration: const InputDecoration(
                   labelText: '名称',
                   hintText: '例如：My API Hub',
@@ -138,6 +162,7 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
               // Base URL.
               TextFormField(
                 controller: _urlController,
+                enabled: _enabled,
                 decoration: const InputDecoration(
                   labelText: 'API 地址',
                   hintText: 'https://api.example.com',
@@ -161,14 +186,16 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
                       ),
                     )
                     .toList(),
-                onChanged: (type) {
-                  if (type != null) {
-                    setState(() {
-                      _selectedSiteType = type;
-                      _selectedAuthType = type.defaultAuthType;
-                    });
-                  }
-                },
+                onChanged: _enabled
+                    ? (type) {
+                        if (type != null) {
+                          setState(() {
+                            _selectedSiteType = type;
+                            _selectedAuthType = type.defaultAuthType;
+                          });
+                        }
+                      }
+                    : null,
               ),
               const SizedBox(height: AppSpacing.md),
 
@@ -185,17 +212,20 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
                       ),
                     )
                     .toList(),
-                onChanged: (type) {
-                  if (type != null) {
-                    setState(() => _selectedAuthType = type);
-                  }
-                },
+                onChanged: _enabled
+                    ? (type) {
+                        if (type != null) {
+                          setState(() => _selectedAuthType = type);
+                        }
+                      }
+                    : null,
               ),
               const SizedBox(height: AppSpacing.md),
 
               // Access token.
               TextFormField(
                 controller: _tokenController,
+                enabled: _enabled,
                 decoration: InputDecoration(
                   labelText: '访问令牌',
                   hintText: _selectedAuthType == AuthType.none
@@ -208,9 +238,13 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
                                 ? Icons.visibility_off_outlined
                                 : Icons.visibility_outlined,
                           ),
-                          onPressed: () {
-                            setState(() => _obscureToken = !_obscureToken);
-                          },
+                          onPressed: _enabled
+                              ? () {
+                                  setState(
+                                    () => _obscureToken = !_obscureToken,
+                                  );
+                                }
+                              : null,
                         )
                       : const SizedBox(
                           width: 20,
@@ -227,6 +261,7 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
               // Notes.
               TextFormField(
                 controller: _notesController,
+                enabled: _enabled,
                 decoration: const InputDecoration(
                   labelText: '备注',
                   hintText: '可选备注信息',
@@ -297,7 +332,7 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
       baseUrl: _urlController.text.trim(),
       siteType: _selectedSiteType,
       authType: _selectedAuthType,
-      enabled: _isEditing ? widget.account!.enabled : true,
+      enabled: _enabled,
       notes: _notesController.text.trim().isEmpty
           ? null
           : _notesController.text.trim(),
@@ -329,6 +364,16 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
       } else {
         await notifier.create(account, accessToken: accessToken);
       }
+
+      // Re-run reachability check when the account is (or just became) enabled
+      // so the list card updates immediately. Fire-and-forget; we don't block
+      // the sheet close on a network call.
+      final prevEnabled = widget.account?.enabled ?? false;
+      final shouldRecheck = _enabled && (!_isEditing || !prevEnabled);
+      if (shouldRecheck) {
+        unawaited(notifier.checkOne(account.id));
+      }
+
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (mounted) {

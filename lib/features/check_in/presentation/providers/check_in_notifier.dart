@@ -104,6 +104,10 @@ class CheckInNotifier extends AsyncNotifier<List<CheckInTask>> {
     final account = accountResult.dataOrNull;
     if (account == null) return null;
 
+    // Silently skip disabled accounts — no history record is produced, so
+    // automatic schedulers won't flood the timeline with "skipped" entries.
+    if (!account.enabled) return null;
+
     // 3. Load the access token.
     final tokenResult = await accountsRepo.getAccessToken(task.accountId);
     final token = tokenResult.dataOrNull;

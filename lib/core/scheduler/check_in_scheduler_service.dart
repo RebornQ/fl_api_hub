@@ -15,6 +15,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/accounts/presentation/providers/accounts_providers.dart';
 import '../../features/check_in/domain/entities/check_in_result.dart';
 import '../../features/check_in/domain/entities/check_in_task.dart';
 import '../../features/check_in/presentation/providers/check_in_providers.dart';
@@ -70,10 +71,20 @@ class CheckInSchedulerService {
   }
 
   /// Returns the list of tasks that should run now.
+  ///
+  /// Tasks belonging to disabled accounts are filtered out up-front so the
+  /// scheduler never even attempts them — this avoids producing "skipped"
+  /// history entries and honors the account-level enabled switch.
   List<CheckInTask> _getDueTasks(DateTime now) {
     final tasks = _ref.read(checkInProvider).valueOrNull ?? [];
+    final accounts = _ref.read(accountsProvider).valueOrNull ?? const [];
+    final disabledAccountIds = {
+      for (final a in accounts)
+        if (!a.enabled) a.id,
+    };
     return tasks.where((task) {
       if (!task.enabled) return false;
+      if (disabledAccountIds.contains(task.accountId)) return false;
       if (_alreadyExecutedToday(task, now)) return false;
       if (_isInRetryCooldown(task, now)) return false;
       return true;

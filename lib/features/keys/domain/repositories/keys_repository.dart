@@ -8,7 +8,7 @@ library;
 import '../../../../core/result/result.dart';
 import '../entities/api_key.dart';
 
-/// Abstract repository for API key CRUD and secret value access.
+/// Abstract repository for API key CRUD operations.
 abstract class KeysRepository {
   /// Returns all API keys for a given [accountId].
   Future<Result<List<ApiKey>>> getByAccountId(String accountId);
@@ -16,19 +16,12 @@ abstract class KeysRepository {
   /// Returns a single API key by [id].
   Future<Result<ApiKey>> getById(String id);
 
-  /// Creates a new API key.
-  ///
-  /// [keyValue] (the actual secret) is stored securely.
-  Future<Result<ApiKey>> create(ApiKey apiKey, {String? keyValue});
+  /// Creates a new [apiKey]. The secret value is embedded in the entity.
+  Future<Result<ApiKey>> create(ApiKey apiKey);
 
-  /// Updates an existing API key.
-  ///
-  /// If [keyValue] is provided, the stored secret is updated.
-  Future<Result<ApiKey>> update(ApiKey apiKey, {String? keyValue});
+  /// Updates an existing [apiKey]. The secret value is embedded in the entity.
+  Future<Result<ApiKey>> update(ApiKey apiKey);
 
-  /// Deletes an API key and its associated secret value.
+  /// Deletes an API key by [id].
   Future<Result<void>> delete(String id);
-
-  /// Retrieves the securely stored secret key value for [keyId].
-  Future<Result<String?>> getKeyValue(String keyId);
 }

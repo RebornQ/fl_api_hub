@@ -118,7 +118,7 @@ class KeyCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
 
             // Key value row (masked/revealed).
-            KeyValueRow(keyId: apiKey.id),
+            KeyValueRow(keyValue: apiKey.keyValue),
             const SizedBox(height: AppSpacing.md),
 
             // Quota and date grid.

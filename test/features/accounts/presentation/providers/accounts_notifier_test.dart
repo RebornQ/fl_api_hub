@@ -124,7 +124,7 @@ void main() {
           () => mockRepo.getAll(),
         ).thenAnswer((_) async => Success([testAccount]));
         when(
-          () => mockRepo.create(any(), accessToken: any(named: 'accessToken')),
+          () => mockRepo.create(any()),
         ).thenAnswer((_) async => Success(testAccount));
 
         container = ProviderContainer(
@@ -143,7 +143,7 @@ void main() {
 
         final state = container.read(accountsProvider).valueOrNull;
         expect(state, [testAccount]);
-        verify(() => mockRepo.create(testAccount, accessToken: null)).called(1);
+        verify(() => mockRepo.create(testAccount)).called(1);
         verify(() => mockRepo.getAll()).called(greaterThan(1));
       });
 
@@ -153,7 +153,7 @@ void main() {
           () => mockRepo.getAll(),
         ).thenAnswer((_) async => Success([testAccount]));
         when(
-          () => mockRepo.create(any(), accessToken: any(named: 'accessToken')),
+          () => mockRepo.create(any()),
         ).thenAnswer((_) async => Failure(exception));
 
         container = ProviderContainer(
@@ -240,7 +240,7 @@ void main() {
           () => mockRepo.getAll(),
         ).thenAnswer((_) async => Success([updated]));
         when(
-          () => mockRepo.update(any(), accessToken: any(named: 'accessToken')),
+          () => mockRepo.update(any()),
         ).thenAnswer((_) async => Success(updated));
 
         container = ProviderContainer(
@@ -259,7 +259,7 @@ void main() {
 
         final state = container.read(accountsProvider).valueOrNull;
         expect(state, [updated]);
-        verify(() => mockRepo.update(updated, accessToken: null)).called(1);
+        verify(() => mockRepo.update(updated)).called(1);
       });
     });
 
@@ -269,7 +269,7 @@ void main() {
           () => mockRepo.getAll(),
         ).thenAnswer((_) async => Success([testAccount]));
         when(
-          () => mockRepo.update(any(), accessToken: any(named: 'accessToken')),
+          () => mockRepo.update(any()),
         ).thenAnswer(
           (_) async => Success(testAccount.copyWith(enabled: false)),
         );
@@ -296,10 +296,7 @@ void main() {
 
         // Verify update was called with enabled=false
         final captured = verify(
-          () => mockRepo.update(
-            captureAny(),
-            accessToken: any(named: 'accessToken'),
-          ),
+          () => mockRepo.update(captureAny()),
         ).captured;
 
         final updatedAccount = captured.first as Account;

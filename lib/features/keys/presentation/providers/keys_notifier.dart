@@ -21,10 +21,10 @@ class KeysNotifier extends FamilyAsyncNotifier<List<ApiKey>, String> {
   }
 
   /// Creates a new API key and refreshes the list.
-  Future<void> create(ApiKey apiKey, {String? keyValue}) async {
+  Future<void> create(ApiKey apiKey) async {
     state = const AsyncLoading();
     final repo = ref.read(keysRepositoryProvider);
-    final result = await repo.create(apiKey, keyValue: keyValue);
+    final result = await repo.create(apiKey);
     switch (result) {
       case Success():
         final updated = await repo.getByAccountId(arg);
@@ -35,10 +35,10 @@ class KeysNotifier extends FamilyAsyncNotifier<List<ApiKey>, String> {
   }
 
   /// Updates an existing API key and refreshes the list.
-  Future<void> saveKey(ApiKey apiKey, {String? keyValue}) async {
+  Future<void> saveKey(ApiKey apiKey) async {
     state = const AsyncLoading();
     final repo = ref.read(keysRepositoryProvider);
-    final result = await repo.update(apiKey, keyValue: keyValue);
+    final result = await repo.update(apiKey);
     switch (result) {
       case Success():
         final updated = await repo.getByAccountId(arg);

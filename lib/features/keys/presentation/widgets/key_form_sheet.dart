@@ -1,8 +1,8 @@
 /// Modal bottom sheet form for adding or editing an [ApiKey].
 ///
 /// When [apiKey] is `null`, the form operates in add mode. Otherwise it
-/// pre-populates fields from the given key (including async-loading the
-/// existing secret value from secure storage).
+/// pre-populates fields from the given key, including the secret value
+/// stored on the entity itself.
 library;
 
 import 'package:flutter/material.dart';
@@ -10,7 +10,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../app/theme/design_tokens.dart';
-import '../../../../core/result/result.dart';
 import '../../../accounts/presentation/providers/accounts_providers.dart';
 import '../../domain/entities/api_key.dart';
 import '../providers/keys_providers.dart';
@@ -53,7 +52,6 @@ class _KeyFormSheetState extends ConsumerState<KeyFormSheet> {
   String? _selectedAccountId;
   DateTime? _selectedExpiry;
   bool _obscureKey = true;
-  bool _keyLoaded = false;
   bool _keyModified = false;
   bool _isSubmitting = false;
 
@@ -64,7 +62,7 @@ class _KeyFormSheetState extends ConsumerState<KeyFormSheet> {
     super.initState();
     final k = widget.apiKey;
     _nameController = TextEditingController(text: k?.name ?? '');
-    _keyValueController = TextEditingController();
+    _keyValueController = TextEditingController(text: k?.keyValue ?? '');
     _quotaController = TextEditingController(text: k?.quota?.toString() ?? '');
     _expiresAtController = TextEditingController();
     _selectedAccountId = k?.accountId ?? widget.accountId;
@@ -72,31 +70,6 @@ class _KeyFormSheetState extends ConsumerState<KeyFormSheet> {
 
     if (_selectedExpiry != null) {
       _expiresAtController.text = _formatDate(_selectedExpiry!);
-    }
-
-    // Load existing key value when editing.
-    if (_isEditing) {
-      _loadExistingKeyValue();
-    } else {
-      _keyLoaded = true;
-    }
-  }
-
-  Future<void> _loadExistingKeyValue() async {
-    final repo = ref.read(keysRepositoryProvider);
-    final result = await repo.getKeyValue(widget.apiKey!.id);
-    if (mounted) {
-      result.when(
-        onSuccess: (value) {
-          if (value != null) {
-            _keyValueController.text = value;
-          }
-          setState(() => _keyLoaded = true);
-        },
-        onFailure: (_) {
-          setState(() => _keyLoaded = true);
-        },
-      );
     }
   }
 
@@ -169,21 +142,15 @@ class _KeyFormSheetState extends ConsumerState<KeyFormSheet> {
                 decoration: InputDecoration(
                   labelText: '密钥值',
                   hintText: 'sk-...',
-                  suffixIcon: _keyLoaded
-                      ? IconButton(
-                          icon: Icon(
-                            _obscureKey
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                          ),
-                          onPressed: () =>
-                              setState(() => _obscureKey = !_obscureKey),
-                        )
-                      : const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureKey
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                    ),
+                    onPressed: () =>
+                        setState(() => _obscureKey = !_obscureKey),
+                  ),
                 ),
                 obscureText: _obscureKey,
                 textInputAction: TextInputAction.next,
@@ -296,12 +263,25 @@ class _KeyFormSheetState extends ConsumerState<KeyFormSheet> {
 
     setState(() => _isSubmitting = true);
 
+    // Determine the secret value for the entity.
+    // Editing + key field untouched: keep the previously stored value.
+    // Otherwise: use the current field value (null when blank).
+    final String? keyValue;
+    if (_isEditing && !_keyModified) {
+      keyValue = widget.apiKey!.keyValue;
+    } else {
+      keyValue = _keyValueController.text.isEmpty
+          ? null
+          : _keyValueController.text;
+    }
+
     final now = DateTime.now();
     final quotaText = _quotaController.text.trim();
     final apiKey = ApiKey(
       id: _isEditing ? widget.apiKey!.id : const Uuid().v4(),
       accountId: _selectedAccountId!,
       name: _nameController.text.trim(),
+      keyValue: keyValue,
       quota: quotaText.isNotEmpty ? int.tryParse(quotaText) : null,
       usedQuota: _isEditing ? widget.apiKey!.usedQuota : 0,
       expiresAt: _selectedExpiry,
@@ -309,26 +289,12 @@ class _KeyFormSheetState extends ConsumerState<KeyFormSheet> {
       updatedAt: now,
     );
 
-    // Determine the key value to pass.
-    String? keyValue;
-    if (_isEditing) {
-      if (_keyModified) {
-        keyValue = _keyValueController.text.isEmpty
-            ? ''
-            : _keyValueController.text;
-      }
-    } else {
-      keyValue = _keyValueController.text.isEmpty
-          ? null
-          : _keyValueController.text;
-    }
-
     try {
       final notifier = ref.read(keysProvider(_selectedAccountId!).notifier);
       if (_isEditing) {
-        await notifier.saveKey(apiKey, keyValue: keyValue);
+        await notifier.saveKey(apiKey);
       } else {
-        await notifier.create(apiKey, keyValue: keyValue);
+        await notifier.create(apiKey);
       }
       if (mounted) {
         Navigator.of(context).pop();

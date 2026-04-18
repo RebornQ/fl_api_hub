@@ -1,8 +1,7 @@
 /// Concrete implementation of [CheckInRepository].
 ///
 /// Delegates all operations to [CheckInLocalDataSource]. Tasks and results
-/// are stored in separate Hive boxes. No sensitive data is involved, so
-/// [SecureStore] is not needed for this feature.
+/// are stored in separate Hive boxes.
 library;
 
 import '../../../../core/error/app_exception.dart';

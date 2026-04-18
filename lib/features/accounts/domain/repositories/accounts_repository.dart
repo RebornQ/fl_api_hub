@@ -8,7 +8,7 @@ library;
 import '../../../../core/result/result.dart';
 import '../entities/account.dart';
 
-/// Abstract repository for account CRUD and credential access.
+/// Abstract repository for account CRUD operations.
 abstract class AccountsRepository {
   /// Returns all accounts.
   Future<Result<List<Account>>> getAll();
@@ -16,20 +16,12 @@ abstract class AccountsRepository {
   /// Returns a single account by [id].
   Future<Result<Account>> getById(String id);
 
-  /// Creates a new account.
-  ///
-  /// [accessToken] is stored securely alongside the account.
-  Future<Result<Account>> create(Account account, {String? accessToken});
+  /// Creates a new [account]. The access token is embedded in the entity.
+  Future<Result<Account>> create(Account account);
 
-  /// Updates an existing account.
-  ///
-  /// If [accessToken] is provided, the stored token is updated.
-  /// Pass `null` explicitly to clear the stored token.
-  Future<Result<Account>> update(Account account, {String? accessToken});
+  /// Updates an existing [account]. The access token is embedded in the entity.
+  Future<Result<Account>> update(Account account);
 
-  /// Deletes an account and its associated access token.
+  /// Deletes an account by [id].
   Future<Result<void>> delete(String id);
-
-  /// Retrieves the securely stored access token for [accountId].
-  Future<Result<String?>> getAccessToken(String accountId);
 }

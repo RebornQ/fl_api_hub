@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:all_api_hub_flutter/core/network/site_type.dart';
-import 'package:all_api_hub_flutter/core/result/result.dart';
 import 'package:all_api_hub_flutter/features/accounts/domain/entities/account.dart';
 import 'package:all_api_hub_flutter/features/accounts/domain/repositories/accounts_repository.dart';
 import 'package:all_api_hub_flutter/features/accounts/presentation/providers/accounts_providers.dart';
@@ -30,13 +29,13 @@ class FakeAccountsNotifier extends AccountsNotifier {
   Future<List<Account>> build() async => _initial;
 
   @override
-  Future<void> create(Account account, {String? accessToken}) async {
+  Future<void> create(Account account) async {
     createdAccounts.add(account);
     state = AsyncData([..._initial, account]);
   }
 
   @override
-  Future<void> saveAccount(Account account, {String? accessToken}) async {
+  Future<void> saveAccount(Account account) async {
     savedAccounts.add(account);
     state = AsyncData([
       for (final a in _initial) a.id == account.id ? account : a,
@@ -76,10 +75,6 @@ void main() {
 
   setUp(() {
     mockRepo = MockAccountsRepository();
-    // AccountFormSheet.initState reads the access token when editing.
-    when(
-      () => mockRepo.getAccessToken(any()),
-    ).thenAnswer((_) async => Success(null));
   });
 
   /// Builds the host MaterialApp that opens the sheet on demand.

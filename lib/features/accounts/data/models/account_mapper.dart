@@ -18,6 +18,7 @@ class AccountMapper {
     'baseUrl': account.baseUrl,
     'siteType': account.siteType.value,
     'authType': account.authType.name,
+    'accessToken': account.accessToken,
     'enabled': account.enabled,
     'notes': account.notes,
     'balance': account.balance,
@@ -37,6 +38,7 @@ class AccountMapper {
       authType: AuthType.values.firstWhere(
         (e) => e.name == (map['authType'] as String),
       ),
+      accessToken: map['accessToken'] as String?,
       enabled: map['enabled'] as bool? ?? true,
       notes: map['notes'] as String?,
       balance: (map['balance'] as num?)?.toDouble(),

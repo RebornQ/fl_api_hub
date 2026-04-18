@@ -1,8 +1,8 @@
 /// Modal bottom sheet form for adding or editing an [Account].
 ///
 /// When [account] is `null`, the form operates in add mode. Otherwise it
-/// pre-populates all fields from the given account (including loading the
-/// existing access token from secure storage).
+/// pre-populates all fields from the given account, including the access
+/// token stored on the entity itself.
 library;
 
 import 'dart:async';
@@ -13,7 +13,6 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../app/theme/design_tokens.dart';
 import '../../../../core/network/site_type.dart';
-import '../../../../core/result/result.dart';
 import '../../domain/entities/account.dart';
 import '../providers/accounts_providers.dart';
 
@@ -49,7 +48,6 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
   late AuthType _selectedAuthType;
   late bool _enabled;
   bool _obscureToken = true;
-  bool _tokenLoaded = false;
   bool _tokenModified = false;
   bool _isSubmitting = false;
 
@@ -61,36 +59,11 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
     final a = widget.account;
     _nameController = TextEditingController(text: a?.name ?? '');
     _urlController = TextEditingController(text: a?.baseUrl ?? '');
-    _tokenController = TextEditingController();
+    _tokenController = TextEditingController(text: a?.accessToken ?? '');
     _notesController = TextEditingController(text: a?.notes ?? '');
     _selectedSiteType = a?.siteType ?? SiteType.newApi;
     _selectedAuthType = a?.authType ?? SiteType.newApi.defaultAuthType;
     _enabled = a?.enabled ?? true;
-
-    // Load existing token when editing.
-    if (_isEditing) {
-      _loadExistingToken();
-    } else {
-      _tokenLoaded = true;
-    }
-  }
-
-  Future<void> _loadExistingToken() async {
-    final repo = ref.read(accountsRepositoryProvider);
-    final result = await repo.getAccessToken(widget.account!.id);
-    if (mounted) {
-      result.when(
-        onSuccess: (token) {
-          if (token != null) {
-            _tokenController.text = token;
-          }
-          setState(() => _tokenLoaded = true);
-        },
-        onFailure: (_) {
-          setState(() => _tokenLoaded = true);
-        },
-      );
-    }
   }
 
   @override
@@ -231,26 +204,18 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
                   hintText: _selectedAuthType == AuthType.none
                       ? '当前认证方式无需令牌'
                       : '输入 API Token',
-                  suffixIcon: _tokenLoaded
-                      ? IconButton(
-                          icon: Icon(
-                            _obscureToken
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                          ),
-                          onPressed: _enabled
-                              ? () {
-                                  setState(
-                                    () => _obscureToken = !_obscureToken,
-                                  );
-                                }
-                              : null,
-                        )
-                      : const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureToken
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                    ),
+                    onPressed: _enabled
+                        ? () {
+                            setState(() => _obscureToken = !_obscureToken);
+                          }
+                        : null,
+                  ),
                 ),
                 obscureText: _obscureToken,
                 textInputAction: TextInputAction.next,
@@ -325,6 +290,18 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
 
     setState(() => _isSubmitting = true);
 
+    // Determine the access token for the entity.
+    // Editing + token field untouched: keep the previously stored token.
+    // Otherwise: use the current field value (null when blank).
+    final String? accessToken;
+    if (_isEditing && !_tokenModified) {
+      accessToken = widget.account!.accessToken;
+    } else {
+      accessToken = _tokenController.text.isEmpty
+          ? null
+          : _tokenController.text;
+    }
+
     final now = DateTime.now();
     final account = Account(
       id: _isEditing ? widget.account!.id : const Uuid().v4(),
@@ -332,6 +309,7 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
       baseUrl: _urlController.text.trim(),
       siteType: _selectedSiteType,
       authType: _selectedAuthType,
+      accessToken: accessToken,
       enabled: _enabled,
       notes: _notesController.text.trim().isEmpty
           ? null
@@ -341,28 +319,12 @@ class _AccountFormSheetState extends ConsumerState<AccountFormSheet> {
       updatedAt: now,
     );
 
-    // Determine the access token to pass.
-    // If editing and token field was not modified, pass null to preserve
-    // the existing stored token. Otherwise pass the current field value.
-    String? accessToken;
-    if (_isEditing) {
-      if (_tokenModified) {
-        accessToken = _tokenController.text.isEmpty
-            ? ''
-            : _tokenController.text;
-      }
-    } else {
-      accessToken = _tokenController.text.isEmpty
-          ? null
-          : _tokenController.text;
-    }
-
     try {
       final notifier = ref.read(accountsProvider.notifier);
       if (_isEditing) {
-        await notifier.saveAccount(account, accessToken: accessToken);
+        await notifier.saveAccount(account);
       } else {
-        await notifier.create(account, accessToken: accessToken);
+        await notifier.create(account);
       }
 
       // Re-run reachability check when the account is (or just became) enabled

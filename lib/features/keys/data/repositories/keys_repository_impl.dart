@@ -1,8 +1,7 @@
-/// Concrete implementation of [KeysRepository].
+/// Concrete implementation of [KeysRepository] backed by local storage.
 ///
-/// Delegates all operations to [KeysLocalDataSource]. API key metadata is
-/// stored in Hive while secret key values are kept in [SecureStore] — both
-/// are handled transparently by the data source.
+/// Delegates all operations to [KeysLocalDataSource]. API key data
+/// (including secret value) is persisted as a single Hive entry.
 library;
 
 import '../../../../core/error/app_exception.dart';
@@ -52,9 +51,9 @@ class KeysRepositoryImpl implements KeysRepository {
   }
 
   @override
-  Future<Result<ApiKey>> create(ApiKey apiKey, {String? keyValue}) async {
+  Future<Result<ApiKey>> create(ApiKey apiKey) async {
     try {
-      await _local.save(apiKey, keyValue: keyValue);
+      await _local.save(apiKey);
       return Success(apiKey);
     } catch (e, st) {
       return Failure(
@@ -68,9 +67,9 @@ class KeysRepositoryImpl implements KeysRepository {
   }
 
   @override
-  Future<Result<ApiKey>> update(ApiKey apiKey, {String? keyValue}) async {
+  Future<Result<ApiKey>> update(ApiKey apiKey) async {
     try {
-      await _local.save(apiKey, keyValue: keyValue);
+      await _local.save(apiKey);
       return Success(apiKey);
     } catch (e, st) {
       return Failure(
@@ -92,22 +91,6 @@ class KeysRepositoryImpl implements KeysRepository {
       return Failure(
         StorageException(
           message: 'Failed to delete API key: $e',
-          originalError: e,
-          stackTrace: st,
-        ),
-      );
-    }
-  }
-
-  @override
-  Future<Result<String?>> getKeyValue(String keyId) async {
-    try {
-      final value = await _local.getKeyValue(keyId);
-      return Success(value);
-    } catch (e, st) {
-      return Failure(
-        StorageException(
-          message: 'Failed to read key value: $e',
           originalError: e,
           stackTrace: st,
         ),

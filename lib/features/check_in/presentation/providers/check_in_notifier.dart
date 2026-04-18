@@ -108,9 +108,8 @@ class CheckInNotifier extends AsyncNotifier<List<CheckInTask>> {
     // automatic schedulers won't flood the timeline with "skipped" entries.
     if (!account.enabled) return null;
 
-    // 3. Load the access token.
-    final tokenResult = await accountsRepo.getAccessToken(task.accountId);
-    final token = tokenResult.dataOrNull;
+    // 3. Read the access token from the account entity.
+    final token = account.accessToken;
     if (token == null || token.isEmpty) return null;
 
     // 4. Build the request.

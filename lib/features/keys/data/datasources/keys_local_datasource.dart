@@ -1,28 +1,23 @@
-/// Local data source for [ApiKey] entities using Hive + SecureStore.
+/// Local data source for [ApiKey] entities using Hive.
 ///
-/// API key metadata is stored in a Hive box, while the actual secret key
-/// values are kept in encrypted storage via [SecureStore].
+/// API key data (including secret key value) is stored as a single map in
+/// the Hive `keys` box. See [ApiKeyMapper] for serialization details.
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../../../core/storage/secure_store.dart';
 import '../../domain/entities/api_key.dart';
 import '../models/api_key_mapper.dart';
 
 /// Box name for API key entity storage.
 const _boxName = 'keys';
 
-/// SecureStore key prefix for API key secret values.
-const _keyValuePrefix = 'api_key_value_';
-
 /// Local CRUD operations for [ApiKey] entities.
 class KeysLocalDataSource {
   final Box _box;
-  final SecureStore _secureStore;
 
-  KeysLocalDataSource(this._box, this._secureStore);
+  KeysLocalDataSource(this._box);
 
   /// Returns all API keys for a specific [accountId].
   List<ApiKey> getByAccountId(String accountId) {
@@ -49,26 +44,13 @@ class KeysLocalDataSource {
   }
 
   /// Persists an [apiKey] to the local box.
-  ///
-  /// If [keyValue] (the actual secret) is provided, it is stored securely.
-  Future<void> save(ApiKey apiKey, {String? keyValue}) async {
+  Future<void> save(ApiKey apiKey) async {
     await _box.put(apiKey.id, ApiKeyMapper.toMap(apiKey));
-    if (keyValue != null) {
-      await _secureStore.write('$_keyValuePrefix${apiKey.id}', keyValue);
-    }
   }
 
-  /// Retrieves the stored secret key value for [keyId].
-  ///
-  /// Returns `null` if no value has been stored.
-  Future<String?> getKeyValue(String keyId) {
-    return _secureStore.read('$_keyValuePrefix$keyId');
-  }
-
-  /// Deletes an API key and its associated secret value.
+  /// Deletes an API key by [id].
   Future<void> delete(String id) async {
     await _box.delete(id);
-    await _secureStore.delete('$_keyValuePrefix$id');
   }
 
   /// Deletes all API keys belonging to a specific [accountId].
@@ -82,8 +64,5 @@ class KeysLocalDataSource {
 
 /// Riverpod provider for [KeysLocalDataSource].
 final keysLocalDataSourceProvider = Provider<KeysLocalDataSource>((ref) {
-  return KeysLocalDataSource(
-    Hive.box(_boxName),
-    ref.watch(secureStoreProvider),
-  );
+  return KeysLocalDataSource(Hive.box(_boxName));
 });

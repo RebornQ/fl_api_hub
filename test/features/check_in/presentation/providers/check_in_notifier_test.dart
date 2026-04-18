@@ -107,7 +107,6 @@ void main() {
         // history entries. The flow stops BEFORE the token lookup and the
         // remote call, and NO CheckInResult is persisted.
         verifyNever(() => mockCheckInRepo.saveResult(any()));
-        verifyNever(() => mockAccountsRepo.getAccessToken(any()));
       },
     );
 

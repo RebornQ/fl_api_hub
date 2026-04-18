@@ -1,8 +1,7 @@
-/// Concrete implementation of [AccountsRepository].
+/// Concrete implementation of [AccountsRepository] backed by local storage.
 ///
-/// Delegates all operations to [AccountsLocalDataSource]. Account metadata
-/// is stored in Hive while access tokens are kept in [SecureStore] — both
-/// are handled transparently by the data source.
+/// Delegates all operations to [AccountsLocalDataSource]. Account data
+/// (including access token) is persisted as a single Hive entry.
 library;
 
 import '../../../../core/error/app_exception.dart';
@@ -52,9 +51,9 @@ class AccountsRepositoryImpl implements AccountsRepository {
   }
 
   @override
-  Future<Result<Account>> create(Account account, {String? accessToken}) async {
+  Future<Result<Account>> create(Account account) async {
     try {
-      await _local.save(account, accessToken: accessToken);
+      await _local.save(account);
       return Success(account);
     } catch (e, st) {
       return Failure(
@@ -68,12 +67,11 @@ class AccountsRepositoryImpl implements AccountsRepository {
   }
 
   @override
-  Future<Result<Account>> update(Account account, {String? accessToken}) async {
+  Future<Result<Account>> update(Account account) async {
     try {
-      await _local.save(account, accessToken: accessToken);
+      await _local.save(account);
       return Success(account);
     } catch (e, st) {
-      // TODO 修复：flutter: PlatformException(Unexpected security result code, Code: -34018, Message: A required entitlement isn't present., -34018, null)
       return Failure(
         StorageException(
           message: 'Failed to update account: $e',
@@ -93,22 +91,6 @@ class AccountsRepositoryImpl implements AccountsRepository {
       return Failure(
         StorageException(
           message: 'Failed to delete account: $e',
-          originalError: e,
-          stackTrace: st,
-        ),
-      );
-    }
-  }
-
-  @override
-  Future<Result<String?>> getAccessToken(String accountId) async {
-    try {
-      final token = await _local.getAccessToken(accountId);
-      return Success(token);
-    } catch (e, st) {
-      return Failure(
-        StorageException(
-          message: 'Failed to read access token: $e',
           originalError: e,
           stackTrace: st,
         ),

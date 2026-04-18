@@ -42,10 +42,10 @@ class AccountsNotifier extends AsyncNotifier<List<Account>> {
   }
 
   /// Creates a new account and refreshes the list.
-  Future<void> create(Account account, {String? accessToken}) async {
+  Future<void> create(Account account) async {
     state = const AsyncLoading();
     final repo = ref.read(accountsRepositoryProvider);
-    final result = await repo.create(account, accessToken: accessToken);
+    final result = await repo.create(account);
     switch (result) {
       case Success():
         final updated = await repo.getAll();
@@ -56,10 +56,10 @@ class AccountsNotifier extends AsyncNotifier<List<Account>> {
   }
 
   /// Updates an existing account and refreshes the list.
-  Future<void> saveAccount(Account account, {String? accessToken}) async {
+  Future<void> saveAccount(Account account) async {
     state = const AsyncLoading();
     final repo = ref.read(accountsRepositoryProvider);
-    final result = await repo.update(account, accessToken: accessToken);
+    final result = await repo.update(account);
     switch (result) {
       case Success():
         final updated = await repo.getAll();
@@ -203,17 +203,13 @@ class AccountsNotifier extends AsyncNotifier<List<Account>> {
     );
     final checkingNotifier = ref.read(checkingIdsProvider.notifier);
     try {
-      final repo = ref.read(accountsRepositoryProvider);
-      final tokenResult = await repo.getAccessToken(account.id);
-      final token = tokenResult.dataOrNull;
-
       final remote = ref.read(
         accountsRemoteDataSourceProvider(account.siteType),
       );
       final result = await remote.fetchAccountInfo(
         ApiRequest(
           baseUrl: account.baseUrl,
-          authToken: token,
+          authToken: account.accessToken,
           authType: account.authType,
         ),
       );

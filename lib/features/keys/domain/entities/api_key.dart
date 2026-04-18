@@ -1,8 +1,7 @@
 /// API key entity representing a token/key associated with an account.
 ///
-/// An [ApiKey] holds metadata about a single API token. The actual secret
-/// key value is stored separately via [SecureStore] (key: `api_key_value_{id}`)
-/// and is NOT part of this entity.
+/// An [ApiKey] holds metadata and the secret value of a single API token,
+/// persisted as a whole entity on local storage.
 library;
 
 /// An API key / token associated with an [Account].
@@ -15,6 +14,11 @@ class ApiKey {
 
   /// Display name for this key.
   final String name;
+
+  /// Actual secret key value used in API calls. `null` if not set.
+  ///
+  /// Stored in plaintext as part of the entity on local persistence.
+  final String? keyValue;
 
   /// Quota limit for this key. `null` means unlimited.
   final int? quota;
@@ -35,6 +39,7 @@ class ApiKey {
     required this.id,
     required this.accountId,
     required this.name,
+    this.keyValue,
     this.quota,
     this.usedQuota = 0,
     this.expiresAt,
@@ -47,6 +52,7 @@ class ApiKey {
     String? id,
     String? accountId,
     String? name,
+    String? keyValue,
     int? quota,
     int? usedQuota,
     DateTime? expiresAt,
@@ -57,6 +63,7 @@ class ApiKey {
       id: id ?? this.id,
       accountId: accountId ?? this.accountId,
       name: name ?? this.name,
+      keyValue: keyValue ?? this.keyValue,
       quota: quota ?? this.quota,
       usedQuota: usedQuota ?? this.usedQuota,
       expiresAt: expiresAt ?? this.expiresAt,

@@ -1,7 +1,7 @@
 /// Mapper between [ApiKey] domain entity and persistable [Map].
 ///
 /// Used by local data sources to serialize/deserialize API keys for Hive
-/// storage. The actual secret key value is handled separately by [SecureStore].
+/// storage.
 library;
 
 import '../../domain/entities/api_key.dart';
@@ -15,6 +15,7 @@ class ApiKeyMapper {
     'id': apiKey.id,
     'accountId': apiKey.accountId,
     'name': apiKey.name,
+    'keyValue': apiKey.keyValue,
     'quota': apiKey.quota,
     'usedQuota': apiKey.usedQuota,
     'expiresAt': apiKey.expiresAt?.toIso8601String(),
@@ -28,6 +29,7 @@ class ApiKeyMapper {
       id: map['id'] as String,
       accountId: map['accountId'] as String,
       name: map['name'] as String,
+      keyValue: map['keyValue'] as String?,
       quota: map['quota'] as int?,
       usedQuota: map['usedQuota'] as int? ?? 0,
       expiresAt: map['expiresAt'] != null

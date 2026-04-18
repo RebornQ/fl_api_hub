@@ -1,8 +1,7 @@
 /// Account entity representing a connected API site.
 ///
-/// An [Account] holds the connection details for a single API endpoint.
-/// Sensitive data (access token) is stored separately via [SecureStore]
-/// and is NOT part of this entity to prevent accidental leakage.
+/// An [Account] holds the connection details for a single API endpoint,
+/// including the access token used for authenticated calls.
 library;
 
 import '../../../../core/network/site_type.dart';
@@ -23,6 +22,11 @@ class Account {
 
   /// Authentication method for this account.
   final AuthType authType;
+
+  /// Access token used for authenticated API calls. `null` if not set.
+  ///
+  /// Stored in plaintext as part of the entity on local persistence.
+  final String? accessToken;
 
   /// Whether this account is active and available for operations.
   final bool enabled;
@@ -46,6 +50,7 @@ class Account {
     required this.baseUrl,
     required this.siteType,
     required this.authType,
+    this.accessToken,
     this.enabled = true,
     this.notes,
     this.balance,
@@ -60,6 +65,7 @@ class Account {
     String? baseUrl,
     SiteType? siteType,
     AuthType? authType,
+    String? accessToken,
     bool? enabled,
     String? notes,
     double? balance,
@@ -72,6 +78,7 @@ class Account {
       baseUrl: baseUrl ?? this.baseUrl,
       siteType: siteType ?? this.siteType,
       authType: authType ?? this.authType,
+      accessToken: accessToken ?? this.accessToken,
       enabled: enabled ?? this.enabled,
       notes: notes ?? this.notes,
       balance: balance ?? this.balance,

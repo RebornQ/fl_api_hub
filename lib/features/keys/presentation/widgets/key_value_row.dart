@@ -1,35 +1,33 @@
-/// Masked API key value display with show/hide and copy actions.
+/// Masked API key value display with show/hide toggle.
 ///
-/// The secret key value is only loaded from [SecureStore] when the user
-/// explicitly taps the visibility toggle — never during build.
+/// Renders [keyValue] (plaintext) in a masked form by default and reveals
+/// it on user tap. A `null` or empty [keyValue] is shown as a mask and the
+/// visibility toggle is disabled.
 library;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/design_tokens.dart';
-import '../../../../core/result/result.dart';
-import '../providers/keys_providers.dart';
 
 /// A row displaying a masked (or revealed) API key value.
-class KeyValueRow extends ConsumerStatefulWidget {
-  /// The API key ID used to fetch the secret value.
-  final String keyId;
+class KeyValueRow extends StatefulWidget {
+  /// Plaintext secret value to display. `null` means not set.
+  final String? keyValue;
 
-  const KeyValueRow({super.key, required this.keyId});
+  const KeyValueRow({super.key, required this.keyValue});
 
   @override
-  ConsumerState<KeyValueRow> createState() => _KeyValueRowState();
+  State<KeyValueRow> createState() => _KeyValueRowState();
 }
 
-class _KeyValueRowState extends ConsumerState<KeyValueRow> {
-  String? _keyValue;
+class _KeyValueRowState extends State<KeyValueRow> {
   bool _isVisible = false;
-  bool _isLoadingValue = false;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final value = widget.keyValue;
+    final hasValue = value != null && value.isNotEmpty;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -48,72 +46,32 @@ class _KeyValueRowState extends ConsumerState<KeyValueRow> {
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
-            child: _isLoadingValue
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Text(
-                    _isVisible && _keyValue != null
-                        ? _keyValue!
-                        : 'sk-****...****',
-                    style: TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 12,
-                      color: colorScheme.onSurfaceVariant,
-                      letterSpacing: -0.3,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+            child: Text(
+              _isVisible && hasValue ? value : 'sk-****...****',
+              style: TextStyle(
+                fontFamily: 'monospace',
+                fontSize: 12,
+                color: colorScheme.onSurfaceVariant,
+                letterSpacing: -0.3,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-          // Visibility toggle.
+          // Visibility toggle (disabled when no value).
           GestureDetector(
-            onTap: _toggleVisibility,
+            onTap: hasValue
+                ? () => setState(() => _isVisible = !_isVisible)
+                : null,
             child: Icon(
               _isVisible ? Icons.visibility_off : Icons.visibility,
               size: 18,
-              color: colorScheme.outline,
+              color: hasValue
+                  ? colorScheme.outline
+                  : colorScheme.outlineVariant,
             ),
           ),
         ],
       ),
     );
-  }
-
-  /// Toggles key value visibility, loading from SecureStore if needed.
-  Future<void> _toggleVisibility() async {
-    if (!_isVisible) {
-      // Show: load value if not already loaded.
-      if (_keyValue == null) {
-        setState(() => _isLoadingValue = true);
-        final repo = ref.read(keysRepositoryProvider);
-        final result = await repo.getKeyValue(widget.keyId);
-        if (mounted) {
-          result.when(
-            onSuccess: (value) {
-              setState(() {
-                _keyValue = value;
-                _isLoadingValue = false;
-                _isVisible = true;
-              });
-            },
-            onFailure: (_) {
-              setState(() => _isLoadingValue = false);
-              if (mounted) {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('无法读取密钥值')));
-              }
-            },
-          );
-        }
-      } else {
-        setState(() => _isVisible = true);
-      }
-    } else {
-      // Hide.
-      setState(() => _isVisible = false);
-    }
   }
 }

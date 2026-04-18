@@ -1,0 +1,53 @@
+{
+  "id": "storage-flatten-secrets",
+  "name": "storage-flatten-secrets",
+  "title": "refactor(storage): 扁平化 access_token/api_key_value 到实体并移除 SecureStore",
+  "description": "把 access_token 作为 Account 字段、api_key_value 作为 ApiKey 字段直接存 Hive Box，删除 SecureStore 抽象，从 pubspec 移除 flutter_secure_storage。接受明文存储威胁模型。",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "Reborn",
+  "assignee": "Reborn",
+  "createdAt": "2026-04-19",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

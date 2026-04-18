@@ -1,7 +1,8 @@
 /// Abstract interface and default implementation for local key-value storage.
 ///
-/// Non-sensitive structured data (account list, preferences, bookmarks) is
-/// stored in a Hive box. Sensitive data should use [SecureStore] instead.
+/// Structured data (account list, API keys, preferences, bookmarks) is
+/// stored in Hive boxes as plaintext maps. See each feature's data source
+/// for entity-specific serialization.
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';

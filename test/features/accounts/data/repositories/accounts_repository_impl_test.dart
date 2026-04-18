@@ -95,38 +95,28 @@ void main() {
     });
 
     group('create', () {
-      test('returns Success with created account', () async {
-        when(
-          () => mockLocal.save(any(), accessToken: any(named: 'accessToken')),
-        ).thenAnswer((_) async {});
+      test('returns Success with created account carrying the token', () async {
+        when(() => mockLocal.save(any())).thenAnswer((_) async {});
 
-        final result = await repository.create(
-          testAccount,
-          accessToken: 'token-123',
-        );
+        final accountWithToken = testAccount.copyWith(accessToken: 'token-123');
+        final result = await repository.create(accountWithToken);
 
         expect(result, isA<Success<Account>>());
-        expect((result as Success<Account>).data, testAccount);
-        verify(
-          () => mockLocal.save(testAccount, accessToken: 'token-123'),
-        ).called(1);
+        expect((result as Success<Account>).data, accountWithToken);
+        verify(() => mockLocal.save(accountWithToken)).called(1);
       });
 
-      test('returns Success without accessToken', () async {
-        when(
-          () => mockLocal.save(any(), accessToken: any(named: 'accessToken')),
-        ).thenAnswer((_) async {});
+      test('returns Success without access token on the entity', () async {
+        when(() => mockLocal.save(any())).thenAnswer((_) async {});
 
         final result = await repository.create(testAccount);
 
         expect(result, isA<Success<Account>>());
-        verify(() => mockLocal.save(testAccount, accessToken: null)).called(1);
+        verify(() => mockLocal.save(testAccount)).called(1);
       });
 
       test('returns Failure with StorageException on error', () async {
-        when(
-          () => mockLocal.save(any(), accessToken: any(named: 'accessToken')),
-        ).thenThrow(Exception('save failed'));
+        when(() => mockLocal.save(any())).thenThrow(Exception('save failed'));
 
         final result = await repository.create(testAccount);
 
@@ -136,27 +126,19 @@ void main() {
     });
 
     group('update', () {
-      test('returns Success with updated account', () async {
-        when(
-          () => mockLocal.save(any(), accessToken: any(named: 'accessToken')),
-        ).thenAnswer((_) async {});
+      test('returns Success with updated account carrying the token', () async {
+        when(() => mockLocal.save(any())).thenAnswer((_) async {});
 
-        final result = await repository.update(
-          testAccount,
-          accessToken: 'new-token',
-        );
+        final accountWithToken = testAccount.copyWith(accessToken: 'new-token');
+        final result = await repository.update(accountWithToken);
 
         expect(result, isA<Success<Account>>());
-        expect((result as Success<Account>).data, testAccount);
-        verify(
-          () => mockLocal.save(testAccount, accessToken: 'new-token'),
-        ).called(1);
+        expect((result as Success<Account>).data, accountWithToken);
+        verify(() => mockLocal.save(accountWithToken)).called(1);
       });
 
       test('returns Failure with StorageException on error', () async {
-        when(
-          () => mockLocal.save(any(), accessToken: any(named: 'accessToken')),
-        ).thenThrow(Exception('update failed'));
+        when(() => mockLocal.save(any())).thenThrow(Exception('update failed'));
 
         final result = await repository.update(testAccount);
 
@@ -184,42 +166,6 @@ void main() {
 
         expect(result, isA<Failure<void>>());
         expect((result as Failure<void>).exception, isA<StorageException>());
-      });
-    });
-
-    group('getAccessToken', () {
-      test('returns Success with token', () async {
-        when(
-          () => mockLocal.getAccessToken('test-id'),
-        ).thenAnswer((_) async => 'stored-token');
-
-        final result = await repository.getAccessToken('test-id');
-
-        expect(result, isA<Success<String?>>());
-        expect((result as Success<String?>).data, 'stored-token');
-        verify(() => mockLocal.getAccessToken('test-id')).called(1);
-      });
-
-      test('returns Success with null when no token', () async {
-        when(
-          () => mockLocal.getAccessToken('test-id'),
-        ).thenAnswer((_) async => null);
-
-        final result = await repository.getAccessToken('test-id');
-
-        expect(result, isA<Success<String?>>());
-        expect((result as Success<String?>).data, isNull);
-      });
-
-      test('returns Failure with StorageException on error', () async {
-        when(
-          () => mockLocal.getAccessToken('test-id'),
-        ).thenThrow(Exception('read failed'));
-
-        final result = await repository.getAccessToken('test-id');
-
-        expect(result, isA<Failure<String?>>());
-        expect((result as Failure<String?>).exception, isA<StorageException>());
       });
     });
   });

@@ -2,7 +2,6 @@
 ///
 /// Tasks and results are stored in separate Hive boxes. Tasks hold the
 /// scheduling configuration; results capture individual execution outcomes.
-/// No sensitive data is involved, so SecureStore is not needed here.
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';

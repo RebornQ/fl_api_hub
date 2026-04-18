@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 16
+- **Total Sessions**: 17
 - **Last Active**: 2026-04-19
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1154 | Active |
+| `journal-1.md` | ~1326 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 17 | 2026-04-19 | 扁平化敏感字段到实体并彻底移除 flutter_secure_storage | `57500f9` | `main` |
 | 16 | 2026-04-19 | 修复 macOS adhoc 签名并新增 platform spec 分类 | `bc68e99`, `d48c9b3` | `main` |
 | 15 | 2026-04-19 | 完善账号管理过滤标签与搜索链路 | `12f77d5` | `main` |
 | 14 | 2026-04-18 | 账号启用/禁用切换贯通 UI 与签到链路 | `1b95258`, `276ee7f`, `67934fd` | `main` |

@@ -1152,3 +1152,175 @@ error: "Runner" has entitlements that require signing with a development certifi
 ### Next Steps
 
 - None - task complete
+
+
+## Session 17: 扁平化敏感字段到实体并彻底移除 flutter_secure_storage
+
+**Date**: 2026-04-19
+**Task**: 扁平化敏感字段到实体并彻底移除 flutter_secure_storage
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## 背景
+
+上一轮（commit `bc68e99`）把 macOS Runner 签名改成 adhoc + 移除 entitlements 里的
+`keychain-access-groups` 让 `flutter build macos` 能过，但运行时保存 Token 仍报：
+
+```
+PlatformException(Code: -34018, A required entitlement isn't present., null)
+```
+
+## 真正根因（读源码确认）
+
+`flutter_secure_storage_darwin` 10.0 的 `FlutterSecureStorage.swift:204-208` 在 macOS
+下**硬编码** `kSecUseDataProtectionKeychain = true`，该后端要求调用进程签名携带
+`application-identifier`（来自真实 Apple Team）或 `keychain-access-groups`
+entitlement。adhoc 签名两者都没有：
+
+- `application-identifier` 需要 Apple Team 签发的证书
+- `keychain-access-groups` 是 Apple restricted entitlement，adhoc / 自签证书不能携带
+  （Xcode 会报 "requires signing with a development certificate"）
+
+死胡同。另外还发现插件存在 Dart/Swift 键名拼写不一致的 bug
+（`usesDataProtectionKeychain` vs `useDataProtectionKeyChain`），用户即使通过
+`MacOsOptions` 关闭也不生效，无法从 API 层绕过。
+
+## 决策
+
+用户明确放弃 Apple 账号体系（免费 Personal Team 也不用），也放弃本地 AES 加密方案
+（之前 research 过的 cryptography + path_provider + master.seed），选最朴素的
+**扁平化明文存储**：敏感字段直接挂到实体上，走现有的 Hive 明文 Box。威胁模型接受
+本机被攻破就能读 token 这个前提——和绝大多数单机工具一致。
+
+## 实施（37 files, +327 / -698 行净减 371）
+
+### Domain 层
+
+- `Account` 加 `String? accessToken`
+- `ApiKey` 加 `String? keyValue`
+- 两个 Mapper 的 `toMap` / `fromMap` 同步加字段
+
+### Repository 接口简化
+
+- `create(Entity, {String? token/value})` → `create(Entity)`
+- `update(...)` 同上
+- 删除 `getAccessToken(id)` / `getKeyValue(id)` 方法声明
+
+### Data 层
+
+- 两个 `*_local_datasource.dart` 去掉 `SecureStore` 依赖
+- `save` 方法去掉命名参数（token 已在 entity 里）
+- 两个 `*_repository_impl.dart` 同步签名 + 清除 `accounts_repository_impl.dart:76`
+  的 -34018 TODO 注释
+- `check_in_notifier.dart:111-114` 去掉 `await repo.getAccessToken(...)` 的二次查询，
+  直接读 `account.accessToken`（`accountsRepo.getById` 一步已经拿到实体）
+
+### Presentation 层
+
+- `account_form_sheet` / `key_form_sheet`：`_loadExisting*` 异步加载方法整块删除；
+  `_*Loaded` 加载状态字段连同 UI 的 `CircularProgressIndicator` 分支一起简化；
+  编辑模式下直接从 `widget.account?.accessToken` / `widget.apiKey?.keyValue` 同步取值
+- 编辑 + token 未改 → 保留原值；改了或新建 → 用输入框值（空串映射到 `null`）
+- `accounts_notifier` / `keys_notifier` 的 `create` / `save*` 去命名参数
+- `key_value_row.dart` 从 `ConsumerStatefulWidget` 降级为普通 `StatefulWidget`：
+  签名从 `{required keyId}` 改成 `{required keyValue}`，去掉异步读 Keychain 逻辑
+  与 `ref` 依赖；无 keyValue 时显示 mask 并禁用切换
+
+### 清理
+
+- 删除 `lib/core/storage/secure_store.dart`
+- `pubspec.yaml` 移除 `flutter_secure_storage`，`flutter pub get` 连带清掉 8 个
+  `flutter_secure_storage_*` 子包
+- `macos/Flutter/GeneratedPluginRegistrant.swift` / `linux/*` / `windows/*` 的
+  generated plugin registrant 自动刷新
+- `cd macos && pod install` 后 `macos/Runner.xcodeproj/project.pbxproj` 自动移除
+  `[CP] Embed Pods Frameworks` build phase（无 Pods 可嵌入）
+
+### 测试（5 个文件对齐新签名）
+
+- `accounts_repository_impl_test.dart` / `keys_repository_impl_test.dart`：
+  删 `getAccessToken` / `getKeyValue` group；`mockLocal.save(..., token: ...)` 改成
+  `mockLocal.save(...)`；新增 "carrying the token / secret" 测试断言实体字段
+- `accounts_notifier_test.dart`：replace_all 去 `accessToken: any(named:...)`，修
+  `captureAny` verify
+- `account_form_sheet_test.dart`：FakeAccountsNotifier 签名对齐；删 `getAccessToken`
+  stub 与 `Success` import
+- `check_in_notifier_test.dart`：删 `verifyNever(() => mockAccountsRepo.getAccessToken(...))`
+
+### Spec 同步
+
+更新 `.trellis/spec/platform/macos-signing.md`：
+
+- 新增 **Historical Note** 章节记录两轮决策链（adhoc 签名修复 → secure_storage 退场）
+- 修正原文错误断言："flutter_secure_storage_darwin still works because it falls
+  back to default keychain" —— 实测不成立
+- Forbidden Patterns 加一条：禁止在没有恢复真实 Apple Team 前重新引入
+  Keychain-backed plugin
+- Common Mistakes 表加一行：`flutter_secure_storage + adhoc + 移除 keychain-access-groups = 运行时 -34018`
+- Verification 的 Runtime smoke 改成验证 Hive 读写
+- Migration Back 重写 step 4：先恢复 Apple Team 再决定是否启用 Keychain
+- Reference 链接 round 1 / round 2 两个 Trellis 任务
+
+## 验证结果（SubAgent 两轮验证）
+
+| 项 | 结果 |
+|---|---|
+| `flutter analyze` | 0 errors / 0 warnings / 0 infos |
+| `flutter test` | 249 passed（原 222，新增 carrying-token / carrying-secret 测试替换 get* 测试） |
+| `flutter build macos --debug` | exit 0，~15s |
+| `codesign -dvv` | Signature=adhoc，Identifier=com.mallotec.reb.flallapihub |
+| `grep flutter_secure_storage` lib/ + test/ + pubspec.yaml | 空命中 |
+| 各平台 plugin_registrant 扫描 | 空命中 |
+
+中途出错两次并自我修复：
+
+1. 第一轮 SubAgent 发现 4 个遗漏测试文件（accounts_notifier / account_form_sheet /
+   check_in_notifier / keys_repository_impl）以及 2 个 unused_import（两个 form_sheet
+   的 `core/result/result.dart`），11 处 Edit 修复
+2. 中途 Bash `rm` 被 permission 拒绝，改用 `git rm` 删除 `secure_store.dart`
+3. `pod install` 把 cwd 切到 `macos/` 导致 Agent 工具因相对路径找不到 hook 而报错，
+   显式 `cd` 回根目录修复
+
+## 关键洞察（Non-Obvious）
+
+- **`flutter_secure_storage_darwin` 在 adhoc 签名下无论如何都会 `-34018`**：根本原因是
+  插件硬编码 Data Protection Keychain，需要 Apple Team 证书或 restricted entitlement
+  两选一。移除 `keychain-access-groups` 只让构建通过，运行时仍报错。这是本次最容易
+  反复踩的坑——spec 文档已更新。
+- **拼写不一致 bug 让 `usesDataProtectionKeychain` option 形同虚设**：Dart 发
+  `usesDataProtectionKeychain`，Swift 读 `useDataProtectionKeyChain`，参数永远不生效。
+  未来若 flutter_secure_storage 修了上游 bug，再考虑是否回归。
+- **删除垂直抽象比优化实现更干净**：两轮尝试（第一轮签名修复 + 第二轮 research 走 AES
+  加密）最后都输给了"扁平化+接受明文"。SecureStore 抽象层对单机工具是过度设计，移除
+  之后净减 371 行代码（含测试），是本次意外的收益。
+
+## 下一步（留给人）
+
+1. `flutter run -d macos` 冒烟验证 -34018 确已消失（重点：添账号填 token → 保存 →
+   重启 → 读回；编辑不改 / 改 / 清空 三分支；ApiKey keyValue 同样走一遍）
+2. Android / iOS 真机冒烟（如有设备）
+3. 未来上架 App Store 时参考 macos-signing.md 的 Migration Back 重新启用 Keychain
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `57500f9` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

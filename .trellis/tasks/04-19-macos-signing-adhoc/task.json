@@ -1,0 +1,53 @@
+{
+  "id": "macos-signing-adhoc",
+  "name": "macos-signing-adhoc",
+  "title": "fix(macos): 修复 Runner 签名使 Provisioning Profile 显示 None Required",
+  "description": "把 Runner target 三个配置的 CODE_SIGN_IDENTITY[sdk=macosx*] 改为 '-'，CODE_SIGN_STYLE 统一 Automatic，TargetAttributes 的 ProvisioningStyle 改回 Automatic。解决 'Signing for Runner requires a development team' 错误。不改 entitlements，不处理 Run Script 警告。",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "Reborn",
+  "assignee": "Reborn",
+  "createdAt": "2026-04-19",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

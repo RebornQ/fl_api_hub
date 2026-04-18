@@ -242,16 +242,24 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
       );
     }
 
+    // Sink disabled accounts to the bottom while preserving the original
+    // order within each partition. This is O(n) and stable without relying
+    // on List.sort's stability guarantees.
+    final sorted = [
+      ...list.where((a) => a.enabled),
+      ...list.where((a) => !a.enabled),
+    ];
+
     return ListView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.only(bottom: 160), // Space for FAB + nav bar.
-      itemCount: list.length,
+      itemCount: sorted.length,
       itemBuilder: (context, index) {
-        final account = list[index];
+        final account = sorted[index];
         return Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
-            vertical: 6,
+            vertical: AppSpacing.xs,
           ),
           child: AccountCard(
             account: account,

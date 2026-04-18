@@ -34,6 +34,7 @@ class AccountCard extends StatelessWidget {
     final isDisabled = !account.enabled;
 
     return Card(
+      margin: EdgeInsets.zero,
       color: isDisabled
           ? colorScheme.surfaceContainerLow
           : colorScheme.surfaceContainerLowest,

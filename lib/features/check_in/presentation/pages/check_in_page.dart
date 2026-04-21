@@ -1,12 +1,14 @@
 /// Check-in results dashboard page.
 ///
-/// Displays a responsive two-column layout (desktop) or single-column
-/// layout (mobile) with:
-/// - Summary card showing overall status and run times.
-/// - Stats grid with aggregate metrics.
-/// - Filter chips and search for result filtering.
-/// - Scrollable result list with status badges.
-/// - FABs for refreshing and executing all enabled tasks.
+/// Per-account master-detail layout:
+/// - Wide (≥900px): master list on the left; per-account detail pane on
+///   the right, initially showing an empty placeholder.
+/// - Narrow: single scrolling column; tapping a row pushes
+///   [CheckInAccountDetailPage].
+///
+/// The master list shows one card per account (the account's latest result)
+/// and is filtered/searched against that latest-per-account set. Accounts
+/// with zero recorded results are hidden.
 library;
 
 import 'package:flutter/material.dart';
@@ -17,13 +19,16 @@ import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_error_state.dart';
 import '../../../../core/widgets/app_loading_state.dart';
 import '../../domain/entities/check_in_result.dart';
+import '../../domain/entities/check_in_task.dart';
 import '../providers/check_in_providers.dart';
+import '../widgets/check_in_detail_view.dart';
 import '../widgets/check_in_filter_bar.dart';
 import '../widgets/check_in_result_card.dart';
 import '../widgets/check_in_stats_grid.dart';
 import '../widgets/check_in_summary_card.dart';
+import 'check_in_account_detail_page.dart';
 
-/// Check-in results dashboard with responsive layout.
+/// Check-in results dashboard with responsive master-detail layout.
 class CheckInPage extends ConsumerStatefulWidget {
   const CheckInPage({super.key});
 
@@ -38,14 +43,14 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
 
   @override
   Widget build(BuildContext context) {
-    final dashboardAsync = ref.watch(checkInDashboardProvider);
+    final summariesAsync = ref.watch(checkInAccountSummariesProvider);
     final stats = ref.watch(checkInStatsProvider);
     final tasksAsync = ref.watch(checkInProvider);
 
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.invalidate(allCheckInResultsProvider);
+          ref.invalidate(latestResultPerAccountProvider);
           ref.invalidate(checkInProvider);
         },
         child: Stack(
@@ -54,9 +59,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Header.
                   _buildHeader(context),
-                  // Responsive body.
                   Expanded(
                     child: LayoutBuilder(
                       builder: (context, constraints) {
@@ -65,13 +68,13 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
                             ? _buildWideLayout(
                                 context,
                                 stats,
-                                dashboardAsync,
+                                summariesAsync,
                                 tasksAsync,
                               )
                             : _buildNarrowLayout(
                                 context,
                                 stats,
-                                dashboardAsync,
+                                summariesAsync,
                                 tasksAsync,
                               );
                       },
@@ -91,18 +94,16 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
           ],
         ),
       ),
-      // FAB group.
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Secondary FAB: refresh.
           SizedBox(
             width: 48,
             height: 48,
             child: FloatingActionButton(
               heroTag: 'check_in_refresh',
               onPressed: () {
-                ref.invalidate(allCheckInResultsProvider);
+                ref.invalidate(latestResultPerAccountProvider);
                 ref.invalidate(checkInProvider);
               },
               backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
@@ -116,7 +117,6 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          // Primary FAB: execute all (brand gradient, rounded-2xl).
           _buildExecuteFab(context),
         ],
       ),
@@ -124,7 +124,6 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
   }
 
   /// Primary FAB with solid brand color + rounded-2xl + ink splash.
-  /// Preserves `heroTag: 'execute'` via [Hero].
   Widget _buildExecuteFab(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final disabled = _isExecuting;
@@ -159,7 +158,6 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
     );
   }
 
-  /// Page header with title and description.
   Widget _buildHeader(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -191,33 +189,33 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
     );
   }
 
-  /// Desktop layout: sidebar + content side by side.
+  /// Desktop layout: sidebar (summary + stats + filter + master list) on
+  /// the left, detail pane on the right.
   Widget _buildWideLayout(
     BuildContext context,
     CheckInDashboardStats stats,
-    dynamic dashboardAsync,
-    dynamic tasksAsync,
+    AsyncValue<List<CheckInResultDisplay>> summariesAsync,
+    AsyncValue<List<CheckInTask>> tasksAsync,
   ) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Left sidebar panel.
         SizedBox(
-          width: MediaQuery.of(context).size.width * 0.30,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              AppSpacing.md,
-              AppSpacing.sm,
-              160,
-            ),
-            child: _buildSidebarContent(context, stats),
+          width: MediaQuery.of(context).size.width * 0.40,
+          child: _buildMasterColumn(
+            context,
+            stats,
+            summariesAsync,
+            tasksAsync,
+            isWide: true,
           ),
         ),
-        // Right content panel.
-        Expanded(
-          child: _buildContentPanel(context, dashboardAsync, tasksAsync),
+        VerticalDivider(
+          width: 1,
+          thickness: 1,
+          color: Theme.of(context).colorScheme.outlineVariant.withAlpha(40),
         ),
+        Expanded(child: _CheckInDetailPanel()),
       ],
     );
   }
@@ -226,33 +224,56 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
   Widget _buildNarrowLayout(
     BuildContext context,
     CheckInDashboardStats stats,
-    AsyncValue<List<CheckInResultDisplay>> dashboardAsync,
-    AsyncValue<dynamic> tasksAsync,
+    AsyncValue<List<CheckInResultDisplay>> summariesAsync,
+    AsyncValue<List<CheckInTask>> tasksAsync,
   ) {
+    return _buildMasterColumn(
+      context,
+      stats,
+      summariesAsync,
+      tasksAsync,
+      isWide: false,
+    );
+  }
+
+  /// Master column: summary/stats/filter + list. Used by both layouts.
+  Widget _buildMasterColumn(
+    BuildContext context,
+    CheckInDashboardStats stats,
+    AsyncValue<List<CheckInResultDisplay>> summariesAsync,
+    AsyncValue<List<CheckInTask>> tasksAsync, {
+    required bool isWide,
+  }) {
+    final displays = summariesAsync.valueOrNull ?? const [];
+    final filtered = _filterResults(displays);
+    final successCount =
+        displays.where((d) => d.result.status == CheckInStatus.success).length;
+    final failedCount =
+        displays.where((d) => d.result.status == CheckInStatus.failed).length;
+    final skippedCount =
+        displays.where((d) => d.result.status == CheckInStatus.skipped).length;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         AppSpacing.md,
         AppSpacing.xs,
         AppSpacing.md,
-        160,
+        isWide ? 24 : 160,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Sidebar content.
-          _buildSidebarContent(context, stats),
+          CheckInSummaryCard(stats: stats),
           const SizedBox(height: AppSpacing.sm),
-          // Filter + search.
+          CheckInStatsGrid(stats: stats),
+          const SizedBox(height: AppSpacing.sm),
           CheckInFilterBar(
             selectedFilter: _selectedFilter,
             searchQuery: _searchQuery,
-            totalCount:
-                ref.watch(checkInStatsProvider).successCount +
-                ref.watch(checkInStatsProvider).failedCount +
-                ref.watch(checkInStatsProvider).skippedCount,
-            successCount: ref.watch(checkInStatsProvider).successCount,
-            failedCount: ref.watch(checkInStatsProvider).failedCount,
-            skippedCount: ref.watch(checkInStatsProvider).skippedCount,
+            totalCount: displays.length,
+            successCount: successCount,
+            failedCount: failedCount,
+            skippedCount: skippedCount,
             onFilterChanged: (filter) {
               setState(() => _selectedFilter = filter);
             },
@@ -261,10 +282,9 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
             },
           ),
           const SizedBox(height: AppSpacing.sm),
-          // Results (shrink-wrapped so parent scrolls).
-          dashboardAsync.when(
-            data: (displays) =>
-                _buildStaticResultList(context, displays, tasksAsync),
+          summariesAsync.when(
+            data: (_) =>
+                _buildMasterList(context, filtered, tasksAsync, isWide),
             loading: () => const SizedBox(
               height: 200,
               child: AppLoadingState(message: '加载中...'),
@@ -274,7 +294,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
               child: AppErrorState(
                 message: err.toString(),
                 onRetry: () {
-                  ref.invalidate(allCheckInResultsProvider);
+                  ref.invalidate(latestResultPerAccountProvider);
                   ref.invalidate(checkInProvider);
                 },
               ),
@@ -285,133 +305,12 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
     );
   }
 
-  /// Sidebar: scheduler config + summary card + stats grid.
-  Widget _buildSidebarContent(
+  /// Builds the filtered master list or the appropriate empty state.
+  Widget _buildMasterList(
     BuildContext context,
-    CheckInDashboardStats stats,
-  ) {
-    return Column(
-      children: [
-        // const SchedulerConfigCard(),
-        // const SizedBox(height: AppSpacing.sm),
-        CheckInSummaryCard(stats: stats),
-        const SizedBox(height: AppSpacing.sm),
-        CheckInStatsGrid(stats: stats),
-      ],
-    );
-  }
-
-  /// Right panel: filter bar + result list.
-  Widget _buildContentPanel(
-    BuildContext context,
-    AsyncValue<List<CheckInResultDisplay>> dashboardAsync,
-    AsyncValue<dynamic> tasksAsync,
-  ) {
-    return Column(
-      children: [
-        // Filter + search.
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.sm,
-            AppSpacing.md,
-            AppSpacing.md,
-            AppSpacing.sm,
-          ),
-          child: CheckInFilterBar(
-            selectedFilter: _selectedFilter,
-            searchQuery: _searchQuery,
-            totalCount:
-                ref.watch(checkInStatsProvider).successCount +
-                ref.watch(checkInStatsProvider).failedCount +
-                ref.watch(checkInStatsProvider).skippedCount,
-            successCount: ref.watch(checkInStatsProvider).successCount,
-            failedCount: ref.watch(checkInStatsProvider).failedCount,
-            skippedCount: ref.watch(checkInStatsProvider).skippedCount,
-            onFilterChanged: (filter) {
-              setState(() => _selectedFilter = filter);
-            },
-            onSearchChanged: (query) {
-              setState(() => _searchQuery = query);
-            },
-          ),
-        ),
-        // Result list.
-        Expanded(
-          child: dashboardAsync.when(
-            data: (displays) => _buildResultList(context, displays, tasksAsync),
-            loading: () => const AppLoadingState(message: '加载中...'),
-            error: (err, _) => AppErrorState(
-              message: err.toString(),
-              onRetry: () {
-                ref.invalidate(allCheckInResultsProvider);
-                ref.invalidate(checkInProvider);
-              },
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Builds the filtered result list or appropriate empty state.
-  Widget _buildResultList(
-    BuildContext context,
-    List<CheckInResultDisplay> displays,
-    AsyncValue<dynamic> tasksAsync,
-  ) {
-    // No tasks at all → show empty state.
-    final tasks = tasksAsync.valueOrNull ?? [];
-    if (tasks.isEmpty) {
-      return SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height * 0.3,
-          child: const AppEmptyState(
-            icon: Icons.check_circle_outline,
-            message: '暂无签到任务',
-          ),
-        ),
-      );
-    }
-
-    // Apply filters.
-    var filtered = _filterResults(displays);
-
-    if (filtered.isEmpty) {
-      return SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height * 0.3,
-          child: const AppEmptyState(
-            icon: Icons.event_available_outlined,
-            message: '暂无签到记录',
-          ),
-        ),
-      );
-    }
-
-    return ListView.builder(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.only(
-        left: AppSpacing.sm,
-        right: AppSpacing.md,
-        bottom: 160,
-      ),
-      itemCount: filtered.length,
-      itemBuilder: (context, index) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: CheckInResultCard(display: filtered[index]),
-        );
-      },
-    );
-  }
-
-  /// Shrink-wrapped result list for mobile (no Expanded needed).
-  Widget _buildStaticResultList(
-    BuildContext context,
-    List<CheckInResultDisplay> displays,
-    AsyncValue<dynamic> tasksAsync,
+    List<CheckInResultDisplay> filtered,
+    AsyncValue<List<CheckInTask>> tasksAsync,
+    bool isWide,
   ) {
     final tasks = tasksAsync.valueOrNull ?? [];
     if (tasks.isEmpty) {
@@ -423,8 +322,6 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
         ),
       );
     }
-
-    var filtered = _filterResults(displays);
 
     if (filtered.isEmpty) {
       return const SizedBox(
@@ -442,12 +339,29 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
       padding: const EdgeInsets.symmetric(vertical: 4),
       itemCount: filtered.length,
       itemBuilder: (context, index) {
+        final display = filtered[index];
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
-          child: CheckInResultCard(display: filtered[index]),
+          child: _TappableResultCard(
+            display: display,
+            onTap: () => _openDetail(display.result.accountId, isWide),
+          ),
         );
       },
     );
+  }
+
+  void _openDetail(String accountId, bool isWide) {
+    if (isWide) {
+      ref.read(selectedAccountIdProvider.notifier).state = accountId;
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CheckInAccountDetailPage(accountId: accountId),
+        ),
+      );
+    }
   }
 
   /// Filters results by selected status and search query.
@@ -456,14 +370,12 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
   ) {
     var filtered = displays;
 
-    // Status filter.
     if (_selectedFilter != null) {
       filtered = filtered
           .where((d) => d.result.status == _selectedFilter)
           .toList();
     }
 
-    // Search filter.
     if (_searchQuery.isNotEmpty) {
       final query = _searchQuery.toLowerCase();
       filtered = filtered.where((d) {
@@ -484,7 +396,6 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
 
       if (!mounted) return;
 
-      // Compute summary.
       final success = results
           .where((r) => r?.status == CheckInStatus.success)
           .length;
@@ -507,5 +418,54 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
         setState(() => _isExecuting = false);
       }
     }
+  }
+}
+
+/// Tappable wrapper around [CheckInResultCard] with ink ripple.
+///
+/// Kept private to this page so `CheckInResultCard` stays pure/non-tappable
+/// when reused in the detail list.
+class _TappableResultCard extends StatelessWidget {
+  final CheckInResultDisplay display;
+  final VoidCallback onTap;
+
+  const _TappableResultCard({required this.display, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(AppRadius.lg),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        child: CheckInResultCard(display: display),
+      ),
+    );
+  }
+}
+
+/// Right-hand detail pane for the wide-screen master-detail layout.
+///
+/// Binds to [selectedAccountIdProvider]; shows a placeholder when no account
+/// is selected, otherwise hosts [CheckInDetailView] for that account.
+class _CheckInDetailPanel extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedId = ref.watch(selectedAccountIdProvider);
+    if (selectedId == null) {
+      return const AppEmptyState(
+        icon: Icons.touch_app_outlined,
+        message: '请在左侧选择一个账号查看签到历史',
+      );
+    }
+    return CheckInDetailView(
+      accountId: selectedId,
+      onCleared: () {
+        // After clear, pop selection back to the placeholder. The master
+        // list refreshes automatically via clearAll's invalidation.
+        ref.read(selectedAccountIdProvider.notifier).state = null;
+      },
+    );
   }
 }

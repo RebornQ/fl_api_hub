@@ -4,9 +4,11 @@
 /// - [checkInProvider] for task list management.
 /// - [latestCheckInResultProvider] for the most recent result per task.
 /// - [checkInResultsProvider] for the full result history per task.
-/// - [allCheckInResultsProvider] for all results across tasks (dashboard).
+/// - [latestResultPerAccountProvider] for the newest result per account.
+/// - [checkInAccountSummariesProvider] for the master-list view (latest per
+///   account, enriched with account names).
 /// - [checkInStatsProvider] for aggregate dashboard statistics.
-/// - [checkInDashboardProvider] for results enriched with account names.
+/// - [selectedAccountIdProvider] for wide-screen master-detail selection.
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,6 +23,7 @@ import '../../domain/repositories/check_in_repository.dart';
 import '../../domain/services/account_check_in_sync_service.dart';
 import 'check_in_notifier.dart';
 
+export 'account_check_in_history_notifier.dart';
 export 'check_in_notifier.dart';
 export 'scheduler_providers.dart';
 
@@ -87,17 +90,70 @@ final allCheckInResultsProvider = FutureProvider<List<CheckInResult>>((
   return result.dataOrNull ?? [];
 });
 
+/// The latest [CheckInResult] for each account that has at least one record,
+/// newest first.
+///
+/// Drives the main check-in list ("one card per account, showing the most
+/// recent result"). Accounts with zero records are absent from this list.
+final latestResultPerAccountProvider = FutureProvider<List<CheckInResult>>((
+  ref,
+) async {
+  final repo = ref.watch(checkInRepositoryProvider);
+  final result = await repo.getLatestResultPerAccount();
+  return result.dataOrNull ?? [];
+});
+
 /// Computed aggregate statistics for the check-in dashboard.
+///
+/// Sourced from [latestResultPerAccountProvider] so the numbers match what
+/// the user sees in the master list (one row per account).
 final checkInStatsProvider = Provider<CheckInDashboardStats>((ref) {
   final tasks = ref.watch(checkInProvider).valueOrNull ?? [];
-  final results = ref.watch(allCheckInResultsProvider).valueOrNull ?? [];
+  final results = ref.watch(latestResultPerAccountProvider).valueOrNull ?? [];
   return CheckInDashboardStats.from(tasks: tasks, results: results);
 });
+
+/// Latest-per-account results enriched with account names.
+///
+/// Drops records whose `accountId` no longer maps to an existing account so
+/// orphan entries do not surface in the master list. This is the main list
+/// provider consumed by [CheckInPage] — the old `checkInDashboardProvider`
+/// is retained for transition but will be removed once all callers migrate.
+final checkInAccountSummariesProvider =
+    Provider<AsyncValue<List<CheckInResultDisplay>>>((ref) {
+      final resultsAsync = ref.watch(latestResultPerAccountProvider);
+      final accounts = ref.watch(accountsProvider).valueOrNull ?? [];
+      final accountMap = {for (final a in accounts) a.id: a.name};
+
+      return resultsAsync.whenData(
+        (results) => results
+            .where((r) => accountMap.containsKey(r.accountId))
+            .map(
+              (r) => CheckInResultDisplay(
+                result: r,
+                accountName: accountMap[r.accountId]!,
+              ),
+            )
+            .toList(),
+      );
+    });
+
+/// Selected account id for the wide-screen master-detail view.
+///
+/// `null` means "no selection" → the detail pane renders its placeholder.
+/// Kept in a global [StateProvider] so it survives `LayoutBuilder` rebuilds
+/// when the window resizes. Mobile navigation does not use this — it pushes
+/// a dedicated [CheckInAccountDetailPage] instead.
+final selectedAccountIdProvider = StateProvider<String?>((_) => null);
 
 /// Results enriched with account names for display in the dashboard.
 ///
 /// Joins each [CheckInResult] with its account name by looking up
 /// [accountId] in the accounts list.
+@Deprecated(
+  'Use checkInAccountSummariesProvider for the per-account master list. '
+  'Kept for transition / existing tests; will be removed.',
+)
 final checkInDashboardProvider =
     Provider<AsyncValue<List<CheckInResultDisplay>>>((ref) {
       final resultsAsync = ref.watch(allCheckInResultsProvider);

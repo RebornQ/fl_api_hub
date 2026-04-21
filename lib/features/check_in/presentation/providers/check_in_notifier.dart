@@ -266,8 +266,11 @@ class CheckInNotifier extends AsyncNotifier<List<CheckInTask>> {
       results.addAll(chunkResults);
     }
 
-    // Invalidate results provider so dashboard refreshes.
-    ref.invalidate(allCheckInResultsProvider);
+    // Invalidate the master-list provider so the per-account summary
+    // refreshes after a batch run. Downstream consumers
+    // ([checkInStatsProvider], [checkInAccountSummariesProvider]) recompute
+    // transitively.
+    ref.invalidate(latestResultPerAccountProvider);
 
     return results;
   }
@@ -287,7 +290,7 @@ class CheckInNotifier extends AsyncNotifier<List<CheckInTask>> {
       results.addAll(chunkResults);
     }
 
-    ref.invalidate(allCheckInResultsProvider);
+    ref.invalidate(latestResultPerAccountProvider);
 
     return results;
   }

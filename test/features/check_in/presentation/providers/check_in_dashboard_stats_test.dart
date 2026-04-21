@@ -1,8 +1,14 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 
+import 'package:all_api_hub_flutter/core/result/result.dart';
 import 'package:all_api_hub_flutter/features/check_in/domain/entities/check_in_result.dart';
 import 'package:all_api_hub_flutter/features/check_in/domain/entities/check_in_task.dart';
+import 'package:all_api_hub_flutter/features/check_in/domain/repositories/check_in_repository.dart';
 import 'package:all_api_hub_flutter/features/check_in/presentation/providers/check_in_providers.dart';
+
+class _MockCheckInRepository extends Mock implements CheckInRepository {}
 
 void main() {
   group('CheckInDashboardStats', () {
@@ -336,5 +342,70 @@ void main() {
         expect(stats.overallStatus, CheckInOverallStatus.none);
       });
     });
+  });
+
+  group('checkInStatsProvider', () {
+    late _MockCheckInRepository repo;
+
+    setUp(() {
+      repo = _MockCheckInRepository();
+      // CheckInNotifier.build() pulls tasks via getAllTasks() — default to an
+      // empty list so the provider hydrates cleanly.
+      when(
+        () => repo.getAllTasks(),
+      ).thenAnswer((_) async => const Success<List<CheckInTask>>([]));
+    });
+
+    test(
+      'reflects the "latest per account" aggregation (2 success, 1 failed)',
+      () async {
+        // Three accounts' latest results: 2 success, 1 failed.
+        final latest = <CheckInResult>[
+          CheckInResult(
+            id: 'r1',
+            taskId: 't1',
+            accountId: 'a1',
+            status: CheckInStatus.success,
+            executedAt: DateTime(2026, 4, 22, 9),
+          ),
+          CheckInResult(
+            id: 'r2',
+            taskId: 't2',
+            accountId: 'a2',
+            status: CheckInStatus.success,
+            executedAt: DateTime(2026, 4, 22, 9, 5),
+          ),
+          CheckInResult(
+            id: 'r3',
+            taskId: 't3',
+            accountId: 'a3',
+            status: CheckInStatus.failed,
+            executedAt: DateTime(2026, 4, 22, 9, 10),
+          ),
+        ];
+
+        when(
+          () => repo.getLatestResultPerAccount(),
+        ).thenAnswer((_) async => Success(latest));
+
+        final container = ProviderContainer(
+          overrides: [checkInRepositoryProvider.overrideWithValue(repo)],
+        );
+        addTearDown(container.dispose);
+
+        // Warm up the async deps the aggregator reads from.
+        await container.read(checkInProvider.future);
+        await container.read(latestResultPerAccountProvider.future);
+
+        final stats = container.read(checkInStatsProvider);
+
+        expect(stats.successCount, 2);
+        expect(stats.failedCount, 1);
+        expect(stats.skippedCount, 0);
+        // executed counts distinct task ids in the results set.
+        expect(stats.executed, 3);
+        expect(stats.overallStatus, CheckInOverallStatus.partial);
+      },
+    );
   });
 }

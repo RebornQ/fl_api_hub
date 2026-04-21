@@ -1689,3 +1689,80 @@ Account.userId (-1 sentinel / >0 实际值)
 ### Next Steps
 
 - None - task complete
+
+
+## Session 22: Check-in userId header + auto-sync tasks from account config
+
+**Date**: 2026-04-22
+**Task**: Check-in userId header + auto-sync tasks from account config
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+### Summary
+Fix silently-broken check-in requests (missing `New-API-User` header) and bridge
+account-level `autoCheckInEnabled` config to the scheduler's task list so that
+flipping the account switch actually drives execution.
+
+### Main Changes
+
+| Area | Description |
+|------|-------------|
+| Infra (adapter pattern) | Rename `CommonApiAdapter._request` to `@protected performRequest<T>` so site-specific subclasses can override individual endpoints without duplicating Dio/envelope plumbing. Add `meta: ^1.17.0` as a direct dependency. |
+| Veloera check-in | New `VeloeraApiAdapter` that overrides `checkIn` to POST `/api/user/check_in` (snake_case), registered in `site_adapter_provider` for `SiteType.veloera`. Fallback for Veloera previously hit `/api/user/checkin`. |
+| userId forwarding | `CheckInNotifier.executeCheckIn` now passes `account.userId` into `ApiRequest`, letting `AuthInterceptor` inject the `New-API-User` header required by strict New-API forks. Sentinel `userId <= 0` short-circuits with a `CheckInStatus.skipped` result + concrete refresh prompt. |
+| Account → Task sync | New `AccountCheckInSyncService` performs an idempotent, non-destructive upsert: opt-in + no task → create at 09:00; opt-in + existing → force `enabled=true` (preserve scheduleTime/history); opt-out + existing → force `enabled=false` (never delete); opt-out + no task → no-op. Wired via `accountCheckInSyncServiceProvider` and invoked at the top of `executeAll` before the concurrency pool. |
+| Unsupported sites guard | `executeCheckIn` shortcircuits AnyRouter / Wong / Sub2API with `CheckInStatus.skipped` + "暂不支持自动签到" message instead of misrouting to `CommonApiAdapter`. |
+| Spec | `backend/directory-structure.md` documents the adapter inheritance contract (`@protected performRequest` hook + error matrix for forgetting to update the provider map) and the new `domain/services/` layer with the "no delete, no history loss" invariant. |
+
+### Updated Files
+
+- `lib/core/network/adapters/common_api_adapter.dart`
+- `lib/core/network/adapters/veloera_api_adapter.dart` (new)
+- `lib/core/network/site_adapter_provider.dart`
+- `lib/features/check_in/presentation/providers/check_in_notifier.dart`
+- `lib/features/check_in/presentation/providers/check_in_providers.dart`
+- `lib/features/check_in/domain/services/account_check_in_sync_service.dart` (new)
+- `test/core/network/adapters/veloera_api_adapter_test.dart` (new)
+- `test/features/check_in/presentation/providers/check_in_notifier_userid_test.dart` (new)
+- `test/features/check_in/domain/services/account_check_in_sync_service_test.dart` (new)
+- `.trellis/spec/backend/directory-structure.md`
+- `pubspec.yaml` / `pubspec.lock`
+
+### Testing
+
+- [OK] `flutter analyze` — No issues found!
+- [OK] `flutter test` — 345 / 345 passed (13 new tests: 3 + 3 + 7)
+- [OK] `dart format --set-exit-if-changed .` — clean
+
+### Status
+[OK] Completed
+
+### Next Steps
+- Manual verification on a device: toggle `autoCheckInEnabled` on an account, tap the check-in page FAB, confirm tasks sync + `New-API-User` header appears on the request.
+- Remaining `SiteType` adapters (AnyRouter / Wong / Sub2API) are now explicit skipped branches — when their protocols get implemented, just drop new `*_api_adapter.dart` files following the Veloera pattern and flip the guard.
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `a45e2b6` | (see git log) |
+| `46d897b` | (see git log) |
+| `9848dac` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

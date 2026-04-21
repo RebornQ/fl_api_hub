@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 21
+- **Total Sessions**: 22
 - **Last Active**: 2026-04-22
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1691 | Active |
+| `journal-1.md` | ~1768 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 22 | 2026-04-22 | Check-in userId header + auto-sync tasks from account config | `a45e2b6`, `46d897b`, `9848dac` | `main` |
 | 21 | 2026-04-22 | Fix account info refresh via derived balance and New-API-User header | `6353832` | `main` |
 | 20 | 2026-04-22 | Fix Hero tag collision + enforce required site-info fields with SiteType.unknown default | `3d8e6ab`, `b6ff492`, `e9f4351`, `77a2add` | `main` |
 | 19 | 2026-04-22 | 账号弹窗重构的 code-spec 沉淀 | `9875197` | `main` |

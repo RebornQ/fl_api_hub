@@ -46,8 +46,10 @@ void main() {
       expect(account.enabled, true);
       expect(account.notes, isNull);
       expect(account.balance, isNull);
-      expect(account.username, isNull);
-      expect(account.userId, isNull);
+      // Username / userId are non-nullable with sentinel defaults
+      // representing "unfilled" — `''` and `-1` respectively.
+      expect(account.username, equals(''));
+      expect(account.userId, equals(-1));
       expect(account.exchangeRate, kDefaultUsdToCnyRate);
       expect(account.manualBalanceUsd, isNull);
       expect(account.excludeFromTotalBalance, false);

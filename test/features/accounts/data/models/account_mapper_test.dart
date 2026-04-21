@@ -34,8 +34,10 @@ void main() {
         enabled: enabled,
         notes: notes,
         balance: balance,
-        username: username,
-        userId: userId,
+        // Username / userId became non-nullable on the entity; null here is
+        // translated to the "unfilled" sentinels the entity defines.
+        username: username ?? '',
+        userId: userId ?? -1,
         exchangeRate: exchangeRate,
         manualBalanceUsd: manualBalanceUsd,
         excludeFromTotalBalance: excludeFromTotalBalance,
@@ -120,8 +122,10 @@ void main() {
 
         expect(map['notes'], isNull);
         expect(map['balance'], isNull);
-        expect(map['username'], isNull);
-        expect(map['userId'], isNull);
+        // Username / userId are non-nullable on the entity; unfilled values
+        // round-trip as the sentinel (`''` and `-1`) rather than null.
+        expect(map['username'], equals(''));
+        expect(map['userId'], equals(-1));
         expect(map['manualBalanceUsd'], isNull);
         expect(map['redemptionUrl'], isNull);
       });
@@ -229,8 +233,11 @@ void main() {
 
         final account = AccountMapper.fromMap(legacyMap);
 
-        expect(account.username, isNull);
-        expect(account.userId, isNull);
+        // Legacy payloads predate the required username / userId fields;
+        // they rehydrate with the entity sentinels so the editor can
+        // prompt the user to backfill them.
+        expect(account.username, equals(''));
+        expect(account.userId, equals(-1));
         expect(account.exchangeRate, kDefaultUsdToCnyRate);
         expect(account.manualBalanceUsd, isNull);
         expect(account.excludeFromTotalBalance, isFalse);
@@ -303,6 +310,24 @@ void main() {
           final account = AccountMapper.fromMap(map);
           expect(account.authType, equals(authType));
         }
+      });
+
+      test('coerces unknown siteType string to SiteType.unknown', () {
+        // Legacy records or retired backends may carry a siteType value that
+        // no longer matches any enum entry; the mapper must fall back to
+        // SiteType.unknown instead of throwing.
+        final map = <String, dynamic>{
+          'id': 'acc-legacy-type',
+          'name': 'Retired Backend',
+          'baseUrl': 'https://legacy.example.com',
+          'siteType': 'this-backend-no-longer-exists',
+          'authType': 'accessToken',
+          'createdAt': fixedCreatedAt.toIso8601String(),
+          'updatedAt': fixedUpdatedAt.toIso8601String(),
+        };
+
+        final account = AccountMapper.fromMap(map);
+        expect(account.siteType, equals(SiteType.unknown));
       });
     });
 

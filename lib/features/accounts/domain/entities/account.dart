@@ -40,11 +40,21 @@ class Account {
   /// `null` if never synced.
   final double? balance;
 
-  /// Optional account username as reported by the upstream site.
-  final String? username;
+  /// Account username as reported by the upstream site.
+  ///
+  /// Empty string `''` is the sentinel for "not yet filled" — the editor
+  /// treats this as an unfilled field and requires the user to enter a
+  /// real value before saving. Legacy records that predate the required
+  /// username field are rehydrated with this sentinel by [AccountMapper].
+  final String username;
 
-  /// Optional account user id as reported by the upstream site.
-  final int? userId;
+  /// Account user id as reported by the upstream site.
+  ///
+  /// `-1` is the sentinel for "not yet filled" — the editor treats any
+  /// non-positive value as unfilled and requires the user to enter a
+  /// positive id before saving. Legacy records that predate the required
+  /// user id are rehydrated with this sentinel by [AccountMapper].
+  final int userId;
 
   /// Exchange rate used to convert USD balances into CNY for display.
   /// Defaults to [kDefaultUsdToCnyRate] when the site does not provide one.
@@ -94,8 +104,8 @@ class Account {
     this.enabled = true,
     this.notes,
     this.balance,
-    this.username,
-    this.userId,
+    this.username = '',
+    this.userId = -1,
     this.exchangeRate = kDefaultUsdToCnyRate,
     this.manualBalanceUsd,
     this.excludeFromTotalBalance = false,

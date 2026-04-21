@@ -168,5 +168,53 @@ void main() {
         expect((result as Failure<void>).exception, isA<StorageException>());
       });
     });
+
+    group('removeTagFromAllAccounts', () {
+      test(
+        'updates only accounts that reference the tag and returns the count',
+        () async {
+          final withTag = testAccount.copyWith(
+            id: 'acc-with-tag',
+            tagIds: ['keep-me', 'target-tag'],
+          );
+          final withoutTag = testAccount.copyWith(
+            id: 'acc-clean',
+            tagIds: ['keep-me'],
+          );
+          when(() => mockLocal.getAll()).thenReturn([withTag, withoutTag]);
+          when(() => mockLocal.save(any())).thenAnswer((_) async {});
+
+          final result = await repository.removeTagFromAllAccounts(
+            'target-tag',
+          );
+
+          expect(result, isA<Success<int>>());
+          expect((result as Success<int>).data, 1);
+          verify(
+            () => mockLocal.save(
+              any(
+                that: isA<Account>()
+                    .having((a) => a.id, 'id', 'acc-with-tag')
+                    .having((a) => a.tagIds, 'tagIds', ['keep-me']),
+              ),
+            ),
+          ).called(1);
+          verifyNever(
+            () => mockLocal.save(
+              any(that: isA<Account>().having((a) => a.id, 'id', 'acc-clean')),
+            ),
+          );
+        },
+      );
+
+      test('returns Failure with StorageException on error', () async {
+        when(() => mockLocal.getAll()).thenThrow(Exception('read failed'));
+
+        final result = await repository.removeTagFromAllAccounts('x');
+
+        expect(result, isA<Failure<int>>());
+        expect((result as Failure<int>).exception, isA<StorageException>());
+      });
+    });
   });
 }

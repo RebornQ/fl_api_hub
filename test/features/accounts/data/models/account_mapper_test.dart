@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:all_api_hub_flutter/core/config/app_defaults.dart';
 import 'package:all_api_hub_flutter/core/network/site_type.dart';
 import 'package:all_api_hub_flutter/features/accounts/data/models/account_mapper.dart';
 import 'package:all_api_hub_flutter/features/accounts/domain/entities/account.dart';
+import 'package:all_api_hub_flutter/features/accounts/domain/entities/check_in_config.dart';
 
 void main() {
   group('AccountMapper', () {
@@ -14,6 +16,14 @@ void main() {
       double? balance = 99.5,
       SiteType siteType = SiteType.newApi,
       AuthType authType = AuthType.accessToken,
+      String? username,
+      int? userId,
+      double exchangeRate = kDefaultUsdToCnyRate,
+      double? manualBalanceUsd,
+      bool excludeFromTotalBalance = false,
+      List<String> tagIds = const [],
+      CheckInConfig checkIn = CheckInConfig.disabled,
+      String? redemptionUrl,
     }) {
       return Account(
         id: 'acc-001',
@@ -24,6 +34,14 @@ void main() {
         enabled: enabled,
         notes: notes,
         balance: balance,
+        username: username,
+        userId: userId,
+        exchangeRate: exchangeRate,
+        manualBalanceUsd: manualBalanceUsd,
+        excludeFromTotalBalance: excludeFromTotalBalance,
+        tagIds: tagIds,
+        checkIn: checkIn,
+        redemptionUrl: redemptionUrl,
         createdAt: fixedCreatedAt,
         updatedAt: fixedUpdatedAt,
       );
@@ -56,8 +74,44 @@ void main() {
         expect(map['enabled'], isTrue);
         expect(map['notes'], equals('some notes'));
         expect(map['balance'], equals(99.5));
+        expect(map['exchangeRate'], equals(kDefaultUsdToCnyRate));
+        expect(map['excludeFromTotalBalance'], isFalse);
+        expect(map['tagIds'], isEmpty);
+        expect(map['checkIn'], isMap);
+        expect((map['checkIn'] as Map)['autoCheckInEnabled'], isFalse);
         expect(map['createdAt'], equals(fixedCreatedAt.toIso8601String()));
         expect(map['updatedAt'], equals(fixedUpdatedAt.toIso8601String()));
+      });
+
+      test('serializes extended fields correctly', () {
+        final account = createTestAccount(
+          username: 'admin',
+          userId: 99,
+          exchangeRate: 7.5,
+          manualBalanceUsd: 12.5,
+          excludeFromTotalBalance: true,
+          tagIds: const ['tag-1', 'tag-2'],
+          checkIn: const CheckInConfig(
+            autoCheckInEnabled: true,
+            customCheckInUrl: 'https://welfare.example.com',
+          ),
+          redemptionUrl: 'https://redeem.example.com',
+        );
+        final map = AccountMapper.toMap(account);
+
+        expect(map['username'], equals('admin'));
+        expect(map['userId'], equals(99));
+        expect(map['exchangeRate'], equals(7.5));
+        expect(map['manualBalanceUsd'], equals(12.5));
+        expect(map['excludeFromTotalBalance'], isTrue);
+        expect(map['tagIds'], equals(['tag-1', 'tag-2']));
+        final checkIn = map['checkIn'] as Map;
+        expect(checkIn['autoCheckInEnabled'], isTrue);
+        expect(
+          checkIn['customCheckInUrl'],
+          equals('https://welfare.example.com'),
+        );
+        expect(map['redemptionUrl'], equals('https://redeem.example.com'));
       });
 
       test('serializes nullable fields as null', () {
@@ -66,6 +120,10 @@ void main() {
 
         expect(map['notes'], isNull);
         expect(map['balance'], isNull);
+        expect(map['username'], isNull);
+        expect(map['userId'], isNull);
+        expect(map['manualBalanceUsd'], isNull);
+        expect(map['redemptionUrl'], isNull);
       });
     });
 
@@ -80,6 +138,17 @@ void main() {
           'enabled': true,
           'notes': 'some notes',
           'balance': 99.5,
+          'username': 'admin',
+          'userId': 88291,
+          'exchangeRate': 7.5,
+          'manualBalanceUsd': 12.5,
+          'excludeFromTotalBalance': true,
+          'tagIds': ['tag-1', 'tag-2'],
+          'checkIn': {
+            'autoCheckInEnabled': true,
+            'customCheckInUrl': 'https://welfare.example.com',
+          },
+          'redemptionUrl': 'https://redeem.example.com',
           'createdAt': fixedCreatedAt.toIso8601String(),
           'updatedAt': fixedUpdatedAt.toIso8601String(),
         };
@@ -94,6 +163,18 @@ void main() {
         expect(account.enabled, isTrue);
         expect(account.notes, equals('some notes'));
         expect(account.balance, equals(99.5));
+        expect(account.username, equals('admin'));
+        expect(account.userId, equals(88291));
+        expect(account.exchangeRate, equals(7.5));
+        expect(account.manualBalanceUsd, equals(12.5));
+        expect(account.excludeFromTotalBalance, isTrue);
+        expect(account.tagIds, equals(['tag-1', 'tag-2']));
+        expect(account.checkIn.autoCheckInEnabled, isTrue);
+        expect(
+          account.checkIn.customCheckInUrl,
+          equals('https://welfare.example.com'),
+        );
+        expect(account.redemptionUrl, equals('https://redeem.example.com'));
         expect(account.createdAt, equals(fixedCreatedAt));
         expect(account.updatedAt, equals(fixedUpdatedAt));
       });
@@ -132,6 +213,60 @@ void main() {
 
         expect(account.notes, isNull);
         expect(account.balance, isNull);
+      });
+
+      test('deserializes legacy payload without extended fields', () {
+        final legacyMap = <String, dynamic>{
+          'id': 'legacy',
+          'name': 'Legacy',
+          'baseUrl': 'https://legacy.example.com',
+          'siteType': 'new-api',
+          'authType': 'accessToken',
+          'enabled': true,
+          'createdAt': fixedCreatedAt.toIso8601String(),
+          'updatedAt': fixedUpdatedAt.toIso8601String(),
+        };
+
+        final account = AccountMapper.fromMap(legacyMap);
+
+        expect(account.username, isNull);
+        expect(account.userId, isNull);
+        expect(account.exchangeRate, kDefaultUsdToCnyRate);
+        expect(account.manualBalanceUsd, isNull);
+        expect(account.excludeFromTotalBalance, isFalse);
+        expect(account.tagIds, isEmpty);
+        expect(account.checkIn, CheckInConfig.disabled);
+        expect(account.redemptionUrl, isNull);
+      });
+
+      test('parses stringified userId for forward compatibility', () {
+        final map = <String, dynamic>{
+          'id': 'acc-str-id',
+          'name': 'String UserId',
+          'baseUrl': 'https://example.com',
+          'siteType': 'new-api',
+          'authType': 'accessToken',
+          'userId': '4242',
+          'createdAt': fixedCreatedAt.toIso8601String(),
+          'updatedAt': fixedUpdatedAt.toIso8601String(),
+        };
+        final account = AccountMapper.fromMap(map);
+        expect(account.userId, equals(4242));
+      });
+
+      test('tolerates malformed tagIds by returning an empty list', () {
+        final map = <String, dynamic>{
+          'id': 'acc-bad-tags',
+          'name': 'Bad Tags',
+          'baseUrl': 'https://example.com',
+          'siteType': 'new-api',
+          'authType': 'accessToken',
+          'tagIds': 'not-a-list',
+          'createdAt': fixedCreatedAt.toIso8601String(),
+          'updatedAt': fixedUpdatedAt.toIso8601String(),
+        };
+        final account = AccountMapper.fromMap(map);
+        expect(account.tagIds, isEmpty);
       });
 
       test('deserializes all SiteType values', () {
@@ -173,20 +308,23 @@ void main() {
 
     group('roundtrip', () {
       test('toMap then fromMap preserves all fields', () {
-        final original = createTestAccount();
+        final original = createTestAccount(
+          username: 'admin',
+          userId: 99,
+          exchangeRate: 7.9,
+          manualBalanceUsd: 5.5,
+          excludeFromTotalBalance: true,
+          tagIds: const ['t1', 't2'],
+          checkIn: const CheckInConfig(
+            autoCheckInEnabled: true,
+            customCheckInUrl: 'https://welfare.example.com',
+          ),
+          redemptionUrl: 'https://redeem.example.com',
+        );
         final map = AccountMapper.toMap(original);
         final restored = AccountMapper.fromMap(map);
 
-        expect(restored.id, equals(original.id));
-        expect(restored.name, equals(original.name));
-        expect(restored.baseUrl, equals(original.baseUrl));
-        expect(restored.siteType, equals(original.siteType));
-        expect(restored.authType, equals(original.authType));
-        expect(restored.enabled, equals(original.enabled));
-        expect(restored.notes, equals(original.notes));
-        expect(restored.balance, equals(original.balance));
-        expect(restored.createdAt, equals(original.createdAt));
-        expect(restored.updatedAt, equals(original.updatedAt));
+        expect(restored.deepEquals(original), isTrue);
       });
 
       test(

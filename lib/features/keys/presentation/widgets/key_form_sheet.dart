@@ -148,8 +148,7 @@ class _KeyFormSheetState extends ConsumerState<KeyFormSheet> {
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
                     ),
-                    onPressed: () =>
-                        setState(() => _obscureKey = !_obscureKey),
+                    onPressed: () => setState(() => _obscureKey = !_obscureKey),
                   ),
                 ),
                 obscureText: _obscureKey,

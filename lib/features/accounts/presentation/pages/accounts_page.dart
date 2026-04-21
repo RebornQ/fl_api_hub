@@ -17,7 +17,7 @@ import '../../domain/entities/account.dart';
 import '../providers/accounts_filter_providers.dart';
 import '../providers/accounts_providers.dart';
 import '../widgets/account_card.dart';
-import '../widgets/account_form_sheet.dart';
+import 'account_edit_page.dart';
 
 /// Debounce window for the search field. Keeps the derived provider from
 /// rebuilding on every keystroke while still feeling immediate to users.
@@ -186,7 +186,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
         elevation: 4,
         shadowColor: colorScheme.primary.withValues(alpha: 0.4),
         child: InkWell(
-          onTap: () => AccountFormSheet.show(context),
+          onTap: () => AccountEditPage.push(context),
           borderRadius: BorderRadius.circular(16),
           splashColor: colorScheme.onPrimary.withValues(alpha: 0.24),
           highlightColor: colorScheme.onPrimary.withValues(alpha: 0.12),
@@ -332,7 +332,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
             icon: Icons.manage_accounts_outlined,
             message: '还没有添加任何账号',
             actionLabel: '添加账号',
-            onAction: () => AccountFormSheet.show(context),
+            onAction: () => AccountEditPage.push(context),
           ),
         ),
       );
@@ -379,7 +379,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
           ),
           child: AccountCard(
             account: account,
-            onTap: () => AccountFormSheet.show(context, account: account),
+            onTap: () => AccountEditPage.push(context, account: account),
             onLongPress: () => _confirmDelete(context, ref, account),
           ),
         );

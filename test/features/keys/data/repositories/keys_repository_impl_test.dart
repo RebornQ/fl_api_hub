@@ -96,16 +96,21 @@ void main() {
     });
 
     group('create', () {
-      test('returns Success with created api key carrying the secret', () async {
-        when(() => mockLocal.save(any())).thenAnswer((_) async {});
+      test(
+        'returns Success with created api key carrying the secret',
+        () async {
+          when(() => mockLocal.save(any())).thenAnswer((_) async {});
 
-        final keyWithSecret = testApiKey.copyWith(keyValue: 'sk-secret-value');
-        final result = await repository.create(keyWithSecret);
+          final keyWithSecret = testApiKey.copyWith(
+            keyValue: 'sk-secret-value',
+          );
+          final result = await repository.create(keyWithSecret);
 
-        expect(result, isA<Success<ApiKey>>());
-        expect((result as Success<ApiKey>).data, keyWithSecret);
-        verify(() => mockLocal.save(keyWithSecret)).called(1);
-      });
+          expect(result, isA<Success<ApiKey>>());
+          expect((result as Success<ApiKey>).data, keyWithSecret);
+          verify(() => mockLocal.save(keyWithSecret)).called(1);
+        },
+      );
 
       test('returns Success without secret on the entity', () async {
         when(() => mockLocal.save(any())).thenAnswer((_) async {});
@@ -127,16 +132,19 @@ void main() {
     });
 
     group('update', () {
-      test('returns Success with updated api key carrying the secret', () async {
-        when(() => mockLocal.save(any())).thenAnswer((_) async {});
+      test(
+        'returns Success with updated api key carrying the secret',
+        () async {
+          when(() => mockLocal.save(any())).thenAnswer((_) async {});
 
-        final keyWithSecret = testApiKey.copyWith(keyValue: 'new-secret');
-        final result = await repository.update(keyWithSecret);
+          final keyWithSecret = testApiKey.copyWith(keyValue: 'new-secret');
+          final result = await repository.update(keyWithSecret);
 
-        expect(result, isA<Success<ApiKey>>());
-        expect((result as Success<ApiKey>).data, keyWithSecret);
-        verify(() => mockLocal.save(keyWithSecret)).called(1);
-      });
+          expect(result, isA<Success<ApiKey>>());
+          expect((result as Success<ApiKey>).data, keyWithSecret);
+          verify(() => mockLocal.save(keyWithSecret)).called(1);
+        },
+      );
 
       test('returns Failure with StorageException on error', () async {
         when(() => mockLocal.save(any())).thenThrow(Exception('update failed'));

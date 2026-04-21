@@ -268,9 +268,7 @@ void main() {
         when(
           () => mockRepo.getAll(),
         ).thenAnswer((_) async => Success([testAccount]));
-        when(
-          () => mockRepo.update(any()),
-        ).thenAnswer(
+        when(() => mockRepo.update(any())).thenAnswer(
           (_) async => Success(testAccount.copyWith(enabled: false)),
         );
 
@@ -295,9 +293,7 @@ void main() {
         await container.read(accountsProvider.notifier).toggleEnabled('acc-1');
 
         // Verify update was called with enabled=false
-        final captured = verify(
-          () => mockRepo.update(captureAny()),
-        ).captured;
+        final captured = verify(() => mockRepo.update(captureAny())).captured;
 
         final updatedAccount = captured.first as Account;
         expect(updatedAccount.enabled, isFalse);

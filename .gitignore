@@ -49,5 +49,5 @@ app.*.map.json
 .mcp.json
 
 # 临时
-input/
+#input/
 #input/design.pen

@@ -24,4 +24,11 @@ abstract class AccountsRepository {
 
   /// Deletes an account by [id].
   Future<Result<void>> delete(String id);
+
+  /// Removes a tag reference from every account that currently cites it.
+  ///
+  /// Called synchronously from the tag feature's delete flow to guarantee
+  /// there are no orphan tag ids hanging off accounts. Returns the number
+  /// of accounts that were actually modified.
+  Future<Result<int>> removeTagFromAllAccounts(String tagId);
 }

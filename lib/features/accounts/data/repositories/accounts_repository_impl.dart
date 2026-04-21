@@ -97,4 +97,29 @@ class AccountsRepositoryImpl implements AccountsRepository {
       );
     }
   }
+
+  @override
+  Future<Result<int>> removeTagFromAllAccounts(String tagId) async {
+    try {
+      final accounts = _local.getAll();
+      var touched = 0;
+      for (final account in accounts) {
+        if (!account.tagIds.contains(tagId)) continue;
+        final remaining = account.tagIds
+            .where((id) => id != tagId)
+            .toList(growable: false);
+        await _local.save(account.copyWith(tagIds: remaining));
+        touched++;
+      }
+      return Success(touched);
+    } catch (e, st) {
+      return Failure(
+        StorageException(
+          message: 'Failed to remove tag $tagId from accounts: $e',
+          originalError: e,
+          stackTrace: st,
+        ),
+      );
+    }
+  }
 }

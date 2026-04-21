@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+
+<html class="light" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>密钥管理 - All API Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-fixed-variant": "#594400",
+              "surface-variant": "#e6e0e9",
+              "on-error-container": "#93000a",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-highest": "#e6e0e9",
+              "on-primary": "#ffffff",
+              "on-surface": "#1d1b20",
+              "surface-container-low": "#f8f2fa",
+              "error-container": "#ffdad6",
+              "secondary-fixed": "#e8def9",
+              "surface-container-high": "#ece6ee",
+              "primary-container": "#6750a4",
+              "on-tertiary-fixed": "#241a00",
+              "tertiary": "#765b00",
+              "on-tertiary-container": "#503d00",
+              "error": "#ba1a1a",
+              "outline-variant": "#cbc4d2",
+              "secondary": "#625b71",
+              "tertiary-fixed": "#ffdf93",
+              "surface-bright": "#fdf7ff",
+              "on-secondary-container": "#686177",
+              "on-primary-fixed": "#22005d",
+              "on-background": "#1d1b20",
+              "on-primary-container": "#e0d2ff",
+              "surface-tint": "#6750a4",
+              "primary-fixed-dim": "#cfbcff",
+              "on-secondary-fixed-variant": "#4a4358",
+              "outline": "#7a7582",
+              "on-tertiary": "#ffffff",
+              "surface-dim": "#ded8e0",
+              "secondary-fixed-dim": "#ccc2dc",
+              "secondary-container": "#e8def9",
+              "on-secondary-fixed": "#1e192b",
+              "background": "#fdf7ff",
+              "tertiary-fixed-dim": "#e7c365",
+              "primary": "#4f378a",
+              "tertiary-container": "#c9a74d",
+              "inverse-on-surface": "#f5eff7",
+              "primary-fixed": "#e9ddff",
+              "on-secondary": "#ffffff",
+              "surface-container": "#f2ecf4",
+              "on-error": "#ffffff",
+              "inverse-surface": "#322f35",
+              "surface": "#fdf7ff",
+              "on-surface-variant": "#494551",
+              "on-primary-fixed-variant": "#4f378a",
+              "inverse-primary": "#cfbcff"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen pb-40">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#fdf7ff]/85 dark:bg-slate-900/85 backdrop-blur-md shadow-[0_8px_24px_rgba(29,27,32,0.06)] flex items-center justify-between px-6 h-16">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#4f378a] dark:text-[#e8def9]" data-icon="hub" style="">hub</span>
+<span class="text-xl font-bold text-[#4f378a] dark:text-[#e8def9] tracking-tight" style="">All API Hub</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-[#625b71] p-2 hover:bg-[#ece6ee] rounded-full transition-colors" data-icon="search" style="">search</button>
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center overflow-hidden border border-outline-variant/15">
+<img alt="User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1EvMhnXG7eFap2hlxk7k1xy-wTpylVBplUKznD8W7oBJ42lHjBJLNx5LPfFI5JkBY57gkHd0I1ruGNKKkCyPZQH9a407TLBaPoVx89stpQ70kybhZPdZrghOGH-exrZiK4y8TeAmXCAUcWh84XHk5TYFlNsG23DqEOo4EE9y7vyB2VR8nbBva0skPq6SBK4C7sjL3fQCyGc5luxVJvBNfN1uDiUcM1d9ExbGp-DaLc7SjFh1OvbKownZNeHD-f-HAOV3FqD5ryjg" style=""/>
+</div>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-5xl mx-auto">
+<!-- Page Header -->
+<section class="mb-8">
+<h1 class="text-[2rem] font-bold text-on-surface tracking-tight leading-tight" style="">密钥管理</h1>
+<p class="text-body-medium text-secondary mt-1" style="">管理所有中转站账号的 API 密钥，支持一键配置外部工具。</p>
+</section>
+<!-- Account Selection & Search -->
+<div class="space-y-4 mb-8">
+<div>
+<label class="block text-title-small font-bold text-on-surface mb-2" style="">选择账号</label>
+<div class="relative">
+<select class="w-full appearance-none bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-3.5 pr-10 text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none">
+<option selected="">Elysiver</option>
+<option>Default</option>
+<option>Project-Alpha</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-outline" data-icon="unfold_more" style="">unfold_more</span>
+</div>
+<div class="flex gap-4 mt-2 px-1">
+<span class="text-[0.6875rem] text-secondary" style="">总计 4 个密钥</span>
+<span class="text-[0.6875rem] text-secondary" style="">启用 4 个</span>
+<span class="text-[0.6875rem] text-secondary" style="">显示 4 个</span>
+</div>
+</div>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline" data-icon="search" style="">search</span>
+<input class="w-full pl-12 pr-4 py-3.5 bg-surface-container-high border-none rounded-xl focus:ring-2 focus:ring-primary text-on-surface transition-all placeholder:text-outline" placeholder="搜索密钥名称..." type="text"/>
+</div>
+</div>
+<!-- Key Cards List -->
+<div class="space-y-4">
+<!-- Key Card 1 -->
+<div class="bg-surface-container-lowest rounded-2xl p-5 shadow-[0_4px_16px_rgba(29,27,32,0.04)] border border-outline-variant/15 group hover:shadow-md transition-shadow">
+<div class="flex flex-col gap-4">
+<div class="flex items-start justify-between">
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-2">
+<h3 class="text-title-medium font-bold text-on-surface" style="">Gemini</h3>
+<span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[0.625rem] font-bold rounded" style="">启用</span>
+<span class="px-2 py-0.5 bg-surface-container-low text-secondary text-[0.625rem] font-medium rounded border border-outline-variant/20" style="">Elysiver</span>
+</div>
+<p class="text-xs text-outline" style="">管理站点：未知 <span class="ml-1 opacity-60" style="">请先配置管理站点管理员凭据后再进行校验。</span></p>
+</div>
+<div class="flex items-center gap-1">
+<button class="p-2 text-outline hover:text-primary hover:bg-primary-container/10 rounded-full transition-colors" style="">
+<span class="material-symbols-outlined text-xl" data-icon="content_copy" style="">content_copy</span>
+</button>
+<button class="p-2 text-outline hover:text-primary hover:bg-primary-container/10 rounded-full transition-colors" style="">
+<span class="material-symbols-outlined text-xl" data-icon="edit" style="">edit</span>
+</button>
+<button class="p-2 text-outline hover:text-error hover:bg-error-container/20 rounded-full transition-colors" style="">
+<span class="material-symbols-outlined text-xl" data-icon="delete" style="">delete</span>
+</button>
+</div>
+</div>
+<div class="flex items-center gap-3 bg-surface-container-low px-3 py-2 rounded-lg w-full">
+<span class="text-label-small text-outline font-medium" style="">密钥:</span>
+<span class="flex-1 font-mono text-xs text-on-surface-variant tracking-tight truncate" style="">sk-M7pQ********************sBPs</span>
+<button class="material-symbols-outlined text-outline text-lg hover:text-primary" data-icon="visibility" style="">visibility</button>
+</div>
+<div class="grid grid-cols-2 gap-y-3 pt-2 border-t border-outline-variant/10">
+<div>
+<p class="text-[0.625rem] text-outline uppercase font-bold tracking-wider mb-0.5" style="">剩余额度</p>
+<p class="text-sm font-bold text-on-surface" style="">无限额度</p>
+</div>
+<div>
+<p class="text-[0.625rem] text-outline uppercase font-bold tracking-wider mb-0.5" style="">已用额度</p>
+<p class="text-sm font-bold text-on-surface" style="">$6.51</p>
+</div>
+<div>
+<p class="text-[0.625rem] text-outline uppercase font-bold tracking-wider mb-0.5" style="">过期时间</p>
+<p class="text-sm font-bold text-on-surface" style="">永不过期</p>
+</div>
+<div>
+<p class="text-[0.625rem] text-outline uppercase font-bold tracking-wider mb-0.5" style="">创建日期</p>
+<p class="text-sm font-bold text-on-surface" style="">2026/1/10</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Key Card 2 -->
+<div class="bg-surface-container-lowest rounded-2xl p-5 shadow-[0_4px_16px_rgba(29,27,32,0.04)] border border-outline-variant/15 group hover:shadow-md transition-shadow">
+<div class="flex flex-col gap-4">
+<div class="flex items-start justify-between">
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-2">
+<h3 class="text-title-medium font-bold text-on-surface" style="">Codex</h3>
+<span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[0.625rem] font-bold rounded" style="">启用</span>
+<span class="px-2 py-0.5 bg-surface-container-low text-secondary text-[0.625rem] font-medium rounded border border-outline-variant/20" style="">Elysiver</span>
+</div>
+<p class="text-xs text-outline" style="">管理站点：未知 <span class="ml-1 opacity-60" style="">请先配置管理站点管理员凭据后再进行校验。</span></p>
+</div>
+<div class="flex items-center gap-1">
+<button class="p-2 text-outline hover:text-primary hover:bg-primary-container/10 rounded-full transition-colors" style="">
+<span class="material-symbols-outlined text-xl" data-icon="content_copy" style="">content_copy</span>
+</button>
+<button class="p-2 text-outline hover:text-primary hover:bg-primary-container/10 rounded-full transition-colors" style="">
+<span class="material-symbols-outlined text-xl" data-icon="edit" style="">edit</span>
+</button>
+<button class="p-2 text-outline hover:text-error hover:bg-error-container/20 rounded-full transition-colors" style="">
+<span class="material-symbols-outlined text-xl" data-icon="delete" style="">delete</span>
+</button>
+</div>
+</div>
+<div class="flex items-center gap-3 bg-surface-container-low px-3 py-2 rounded-lg w-full">
+<span class="text-label-small text-outline font-medium" style="">密钥:</span>
+<span class="flex-1 font-mono text-xs text-on-surface-variant tracking-tight truncate" style="">sk-X9aR********************vL9z</span>
+<button class="material-symbols-outlined text-outline text-lg hover:text-primary" data-icon="visibility" style="">visibility</button>
+</div>
+<div class="grid grid-cols-2 gap-y-3 pt-2 border-t border-outline-variant/10">
+<div>
+<p class="text-[0.625rem] text-outline uppercase font-bold tracking-wider mb-0.5" style="">剩余额度</p>
+<p class="text-sm font-bold text-on-surface" style="">无限额度</p>
+</div>
+<div>
+<p class="text-[0.625rem] text-outline uppercase font-bold tracking-wider mb-0.5" style="">已用额度</p>
+<p class="text-sm font-bold text-on-surface" style="">$0.00</p>
+</div>
+<div>
+<p class="text-[0.625rem] text-outline uppercase font-bold tracking-wider mb-0.5" style="">过期时间</p>
+<p class="text-sm font-bold text-on-surface" style="">永不过期</p>
+</div>
+<div>
+<p class="text-[0.625rem] text-outline uppercase font-bold tracking-wider mb-0.5" style="">创建日期</p>
+<p class="text-sm font-bold text-on-surface" style="">2026/1/10</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Key Card 3 -->
+<div class="bg-surface-container-lowest rounded-2xl p-5 shadow-[0_4px_16px_rgba(29,27,32,0.04)] border border-outline-variant/15 group hover:shadow-md transition-shadow">
+<div class="flex flex-col gap-4">
+<div class="flex items-start justify-between">
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-2">
+<h3 class="text-title-medium font-bold text-on-surface" style="">Claude Code</h3>
+<span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[0.625rem] font-bold rounded" style="">启用</span>
+<span class="px-2 py-0.5 bg-surface-container-low text-secondary text-[0.625rem] font-medium rounded border border-outline-variant/20" style="">Elysiver</span>
+</div>
+<p class="text-xs text-outline" style="">管理站点：未知 <span class="ml-1 opacity-60" style="">请先配置管理站点管理员凭据后再进行校验。</span></p>
+</div>
+<div class="flex items-center gap-1">
+<button class="p-2 text-outline hover:text-primary hover:bg-primary-container/10 rounded-full transition-colors" style="">
+<span class="material-symbols-outlined text-xl" data-icon="content_copy" style="">content_copy</span>
+</button>
+<button class="p-2 text-outline hover:text-primary hover:bg-primary-container/10 rounded-full transition-colors" style="">
+<span class="material-symbols-outlined text-xl" data-icon="edit" style="">edit</span>
+</button>
+<button class="p-2 text-outline hover:text-error hover:bg-error-container/20 rounded-full transition-colors" style="">
+<span class="material-symbols-outlined text-xl" data-icon="delete" style="">delete</span>
+</button>
+</div>
+</div>
+<div class="flex items-center gap-3 bg-surface-container-low px-3 py-2 rounded-lg w-full">
+<span class="text-label-small text-outline font-medium" style="">密钥:</span>
+<span class="flex-1 font-mono text-xs text-on-surface-variant tracking-tight truncate" style="">sk-ZGkc5********************bd6a</span>
+<button class="material-symbols-outlined text-outline text-lg hover:text-primary" data-icon="visibility" style="">visibility</button>
+</div>
+<div class="grid grid-cols-2 gap-y-3 pt-2 border-t border-outline-variant/10">
+<div>
+<p class="text-[0.625rem] text-outline uppercase font-bold tracking-wider mb-0.5" style="">剩余额度</p>
+<p class="text-sm font-bold text-on-surface" style="">无限额度</p>
+</div>
+<div>
+<p class="text-[0.625rem] text-outline uppercase font-bold tracking-wider mb-0.5" style="">已用额度</p>
+<p class="text-sm font-bold text-on-surface" style="">$2.00</p>
+</div>
+<div>
+<p class="text-[0.625rem] text-outline uppercase font-bold tracking-wider mb-0.5" style="">过期时间</p>
+<p class="text-sm font-bold text-on-surface" style="">永不过期</p>
+</div>
+<div>
+<p class="text-[0.625rem] text-outline uppercase font-bold tracking-wider mb-0.5" style="">创建日期</p>
+<p class="text-sm font-bold text-on-surface" style="">2026/1/10</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Action Buttons -->
+<div class="fixed bottom-28 right-6 flex flex-col gap-4 items-end z-40">
+<!-- Secondary FAB -->
+<button class="w-12 h-12 bg-secondary-container text-on-secondary-container rounded-xl shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-all group overflow-hidden" style="">
+<span class="material-symbols-outlined" data-icon="refresh" style="">refresh</span>
+<span class="absolute right-14 bg-surface-container-highest px-3 py-1 rounded-full text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-sm border border-outline-variant/15" style="">刷新渠道</span>
+</button>
+<!-- Primary FAB -->
+<button class="h-14 px-6 bg-[#6750a4] text-white rounded-2xl shadow-[0_8px_24px_rgba(103,80,164,0.25)] flex items-center justify-center gap-3 hover:scale-105 active:scale-95 transition-all" style="">
+<span class="material-symbols-outlined" data-icon="add" style="">add</span>
+<span class="font-semibold tracking-wide" style="">添加密钥</span>
+</button>
+</div>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-4 pt-3 md:hidden bg-[#ffffff]/85 dark:bg-gray-900/85 backdrop-blur-md rounded-t-2xl shadow-[0_-8px_24px_rgba(29,27,32,0.06)]">
+<a class="flex flex-col items-center justify-center text-[#625b71] dark:text-gray-400" href="#">
+<span class="material-symbols-outlined">event_available</span>
+<span class="font-['Inter'] text-[11px] font-medium">签到</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#625b71] dark:text-gray-400" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="font-['Inter'] text-[11px] font-medium">账号</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#e8def9] dark:bg-[#4f378a] text-[#1d192b] dark:text-white rounded-xl px-5 py-1" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">vpn_key</span>
+<span class="font-['Inter'] text-[11px] font-medium">密钥</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#625b71] dark:text-gray-400" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-['Inter'] text-[11px] font-medium">设置</span>
+</a>
+</nav>
+<!-- Information Toast (System Feedback) -->
+<div class="fixed bottom-32 left-1/2 -translate-x-1/2 z-50">
+<div class="bg-surface-container-highest text-on-surface px-4 py-2 rounded-full flex items-center gap-2 shadow-[0_8px_24px_rgba(29,27,32,0.06)] border border-outline-variant/15 text-label-small" style="">
+<span class="material-symbols-outlined text-sm text-tertiary" data-icon="info" style="">info</span>
+            密钥更新成功
+        </div>
+</div>
+</body></html>

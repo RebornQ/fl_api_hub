@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+
+<html class="light" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>API Hub - 账号管理</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "outline": "#7a7582",
+                        "surface-tint": "#6750a4",
+                        "on-tertiary-container": "#503d00",
+                        "tertiary": "#765b00",
+                        "on-tertiary-fixed-variant": "#594400",
+                        "on-primary-fixed-variant": "#4f378a",
+                        "tertiary-fixed": "#ffdf93",
+                        "on-secondary-container": "#686177",
+                        "error": "#ba1a1a",
+                        "on-background": "#1d1b20",
+                        "inverse-surface": "#322f35",
+                        "surface-variant": "#e6e0e9",
+                        "inverse-on-surface": "#f5eff7",
+                        "secondary": "#625b71",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#cfbcff",
+                        "tertiary-fixed-dim": "#e7c365",
+                        "on-surface": "#1d1b20",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed-dim": "#ccc2dc",
+                        "on-primary": "#ffffff",
+                        "primary-fixed": "#e9ddff",
+                        "on-secondary-fixed": "#1e192b",
+                        "error-container": "#ffdad6",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed": "#22005d",
+                        "background": "#fdf7ff",
+                        "primary-container": "#6750a4",
+                        "primary-fixed-dim": "#cfbcff",
+                        "tertiary-container": "#c9a74d",
+                        "surface-container-low": "#f8f2fa",
+                        "surface": "#fdf7ff",
+                        "on-error": "#ffffff",
+                        "surface-container-high": "#ece6ee",
+                        "surface-dim": "#ded8e0",
+                        "outline-variant": "#cbc4d2",
+                        "on-primary-container": "#e0d2ff",
+                        "primary": "#4f378a",
+                        "secondary-fixed": "#e8def9",
+                        "on-surface-variant": "#494551",
+                        "surface-bright": "#fdf7ff",
+                        "on-tertiary-fixed": "#241a00",
+                        "on-tertiary": "#ffffff",
+                        "surface-container": "#f2ecf4",
+                        "on-secondary-fixed-variant": "#4a4358",
+                        "surface-container-highest": "#e6e0e9",
+                        "secondary-container": "#e8def9"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased min-h-screen pb-24">
+<!-- TopAppBar (Updated to match SCREEN_51 style) -->
+<header class="sticky top-0 z-40 bg-[#fdf7ff] dark:bg-slate-950 flex justify-between items-center w-full px-6 h-14">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#4f378a] dark:text-[#d0bcff]">hub</span>
+<span class="text-[#4f378a] dark:text-[#d0bcff] font-bold text-xl uppercase tracking-widest">API Hub</span>
+</div>
+<div class="flex items-center">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container text-xs font-bold">
+                UP
+            </div>
+</div>
+</header>
+<div class="bg-[#f2ecf4] dark:bg-gray-800 h-px w-full"></div>
+<main class="max-w-4xl mx-auto px-6 mt-6">
+<!-- Header Section (Updated with Large Title and Description) -->
+<section class="mb-6">
+<h1 class="text-3xl md:text-4xl font-bold text-on-surface tracking-tight mb-2">账号管理</h1>
+<p class="text-on-surface-variant">一键管理所有AI中转站</p>
+</section>
+<!-- Search & Filter Section -->
+<section class="space-y-6 mb-4">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full h-14 pl-12 pr-4 bg-surface-container-high border-none rounded-xl text-on-surface placeholder:text-on-surface-variant focus:ring-2 focus:ring-primary transition-all" placeholder="搜索账号、URL 或标签..." type="text"/>
+</div>
+<div class="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
+<button class="px-5 py-2 rounded-full bg-primary text-on-primary font-medium text-sm whitespace-nowrap">全部</button>
+<button class="px-5 py-2 rounded-full bg-surface-container-highest text-on-surface-variant hover:bg-surface-container-high transition-colors font-medium text-sm whitespace-nowrap">已启用</button>
+<button class="px-5 py-2 rounded-full bg-surface-container-highest text-on-surface-variant hover:bg-surface-container-high transition-colors font-medium text-sm whitespace-nowrap">已禁用</button>
+<button class="px-5 py-2 rounded-full bg-surface-container-highest text-on-surface-variant hover:bg-surface-container-high transition-colors font-medium text-sm whitespace-nowrap">已同步</button>
+<button class="px-5 py-2 rounded-full bg-surface-container-highest text-on-surface-variant hover:bg-surface-container-high transition-colors font-medium text-sm whitespace-nowrap">警告</button>
+</div>
+</section>
+<!-- Account List -->
+<div class="space-y-3">
+<!-- Account Card 1 -->
+<div class="bg-surface-container-lowest p-5 rounded-xl transition-all hover:shadow-[0_8px_24px_rgba(29,27,32,0.06)] group relative">
+<div class="flex justify-between items-start">
+<div class="flex gap-3">
+<div class="mt-1.5 w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div>
+<div>
+<div class="flex items-center gap-2">
+<h3 class="text-on-surface font-semibold text-lg leading-tight">Pond Hub</h3>
+<span class="bg-secondary-container text-on-secondary-container text-[0.6875rem] px-2 py-0.5 rounded-md font-medium">[主力]</span>
+</div>
+<p class="text-on-surface-variant text-sm font-medium mt-1">New API</p>
+<p class="text-outline text-xs mt-0.5 opacity-70 truncate max-w-[200px]">https://api.pondhub.net/v1/auth/...</p>
+</div>
+</div>
+<div class="text-right">
+<div class="text-primary font-bold text-xl">$53.39</div>
+<div class="text-emerald-600 text-[0.6875rem] font-bold mt-1">+$2.12 今日</div>
+</div>
+</div>
+</div>
+<!-- Account Card 2 -->
+<div class="bg-surface-container-lowest p-5 rounded-xl transition-all hover:shadow-[0_8px_24px_rgba(29,27,32,0.06)] group relative">
+<div class="flex justify-between items-start">
+<div class="flex gap-3">
+<div class="mt-1.5 w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div>
+<div>
+<div class="flex items-center gap-2">
+<h3 class="text-on-surface font-semibold text-lg leading-tight">Soul 公益站</h3>
+<span class="bg-surface-container-highest text-on-surface-variant text-[0.6875rem] px-2 py-0.5 rounded-md font-medium">[测试]</span>
+</div>
+<p class="text-on-surface-variant text-sm font-medium mt-1">Veloera</p>
+<p class="text-outline text-xs mt-0.5 opacity-70 truncate max-w-[200px]">https://soul-api.xyz/v1/user/keys</p>
+</div>
+</div>
+<div class="text-right">
+<div class="text-on-surface font-bold text-xl">$12.00</div>
+<div class="text-on-surface-variant text-[0.6875rem] font-medium mt-1">-$0.00 今日</div>
+</div>
+</div>
+</div>
+<!-- Account Card 3 (Warning State) -->
+<div class="bg-surface-container-lowest p-5 rounded-xl transition-all hover:shadow-[0_8px_24px_rgba(29,27,32,0.06)] group relative">
+<div class="flex justify-between items-start">
+<div class="flex gap-3">
+<div class="mt-1.5 w-2.5 h-2.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.4)]"></div>
+<div>
+<div class="flex items-center gap-2">
+<h3 class="text-on-surface font-semibold text-lg leading-tight">DeepCloud API</h3>
+<span class="bg-surface-container-highest text-on-surface-variant text-[0.6875rem] px-2 py-0.5 rounded-md font-medium">[备用]</span>
+</div>
+<p class="text-on-surface-variant text-sm font-medium mt-1">One API</p>
+<p class="text-outline text-xs mt-0.5 opacity-70 truncate max-w-[200px]">https://deepcloud.io/api/v1/dashboard</p>
+</div>
+</div>
+<div class="text-right">
+<div class="text-error font-bold text-xl">$0.42</div>
+<div class="text-error text-[0.6875rem] font-bold mt-1">余额不足</div>
+</div>
+</div>
+</div>
+<!-- Account Card 4 -->
+<div class="bg-surface-container-lowest p-5 rounded-xl transition-all hover:shadow-[0_8px_24px_rgba(29,27,32,0.06)] group relative">
+<div class="flex justify-between items-start">
+<div class="flex gap-3">
+<div class="mt-1.5 w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div>
+<div>
+<div class="flex items-center gap-2">
+<h3 class="text-on-surface font-semibold text-lg leading-tight">Nebula Key</h3>
+<span class="bg-secondary-container text-on-secondary-container text-[0.6875rem] px-2 py-0.5 rounded-md font-medium">[主力]</span>
+</div>
+<p class="text-on-surface-variant text-sm font-medium mt-1">Proxy</p>
+<p class="text-outline text-xs mt-0.5 opacity-70 truncate max-w-[200px]">https://nebula.api/v1/tokens</p>
+</div>
+</div>
+<div class="text-right">
+<div class="text-primary font-bold text-xl">$1,240.00</div>
+<div class="text-emerald-600 text-[0.6875rem] font-bold mt-1">+$45.50 今日</div>
+</div>
+</div>
+</div>
+<!-- Account Card 5 (Disabled State) -->
+<div class="bg-surface-container-low p-5 rounded-xl transition-all opacity-60 group relative grayscale">
+<div class="flex justify-between items-start">
+<div class="flex gap-3">
+<div class="mt-1.5 w-2.5 h-2.5 rounded-full bg-slate-400"></div>
+<div>
+<div class="flex items-center gap-2">
+<h3 class="text-on-surface font-semibold text-lg leading-tight">Legacy Store</h3>
+</div>
+<p class="text-on-surface-variant text-sm font-medium mt-1">Direct</p>
+<p class="text-outline text-xs mt-0.5 opacity-70 truncate max-w-[200px]">https://old-api.com/v1</p>
+</div>
+</div>
+<div class="text-right">
+<div class="text-on-surface font-bold text-xl">$0.00</div>
+<div class="text-on-surface-variant text-[0.6875rem] font-medium mt-1">已禁用</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- FAB Group -->
+<div class="fixed bottom-24 right-6 flex flex-col items-center gap-4 z-50">
+<!-- Secondary FAB -->
+<button class="w-12 h-12 rounded-2xl bg-secondary-container text-on-secondary-container shadow-[0_8px_24px_rgba(29,27,32,0.06)] flex items-center justify-center hover:scale-105 transition-transform active:scale-95" title="扫描重复">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+<!-- Main FAB -->
+<button class="w-16 h-16 rounded-3xl bg-gradient-to-br from-[#4f378a] to-[#6750a4] text-white shadow-[0_8px_24px_rgba(79,55,138,0.25)] flex items-center justify-center hover:scale-105 transition-transform active:scale-95" title="新增账号">
+<span class="material-symbols-outlined text-3xl" data-icon="add">add</span>
+</button>
+</div>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-4 pt-3 md:hidden bg-[#ffffff]/85 dark:bg-gray-900/85 backdrop-blur-md rounded-t-2xl shadow-[0_-8px_24px_rgba(29,27,32,0.06)]">
+<div class="flex flex-col items-center justify-center text-[#625b71] dark:text-gray-400"><span class="material-symbols-outlined">event_available</span><span class="font-['Inter'] text-[11px] font-medium">签到</span></div>
+<div class="flex flex-col items-center justify-center bg-[#e8def9] dark:bg-[#4f378a] text-[#1d192b] dark:text-white rounded-xl px-5 py-1"><span class="material-symbols-outlined">account_balance_wallet</span><span class="font-['Inter'] text-[11px] font-medium">账号</span></div>
+<div class="flex flex-col items-center justify-center text-[#625b71] dark:text-gray-400"><span class="material-symbols-outlined">vpn_key</span><span class="font-['Inter'] text-[11px] font-medium">密钥</span></div>
+<div class="flex flex-col items-center justify-center text-[#625b71] dark:text-gray-400">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-['Inter'] text-[11px] font-medium">设置</span>
+</div>
+</nav>
+<!-- Content Decorative Background -->
+<div class="fixed top-0 left-0 w-full h-full -z-10 bg-surface pointer-events-none overflow-hidden">
+<div class="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-primary/5 blur-[120px]"></div>
+<div class="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-secondary/5 blur-[120px]"></div>
+</div>
+</body></html>

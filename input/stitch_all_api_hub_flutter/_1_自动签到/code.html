@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+
+<html class="light" lang="zh"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>自动签到管理 | API Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-variant": "#e6e0e9",
+                        "on-secondary-container": "#686177",
+                        "error": "#ba1a1a",
+                        "background": "#fdf7ff",
+                        "on-error": "#ffffff",
+                        "on-tertiary-container": "#503d00",
+                        "surface-tint": "#6750a4",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#1d1b20",
+                        "inverse-primary": "#cfbcff",
+                        "on-tertiary-fixed": "#241a00",
+                        "on-secondary-fixed-variant": "#4a4358",
+                        "tertiary-fixed-dim": "#e7c365",
+                        "secondary-fixed": "#e8def9",
+                        "primary-container": "#6750a4",
+                        "outline": "#7a7582",
+                        "on-secondary": "#ffffff",
+                        "outline-variant": "#cbc4d2",
+                        "inverse-surface": "#322f35",
+                        "on-primary-fixed": "#22005d",
+                        "tertiary": "#765b00",
+                        "on-primary-fixed-variant": "#4f378a",
+                        "on-background": "#1d1b20",
+                        "secondary": "#625b71",
+                        "on-secondary-fixed": "#1e192b",
+                        "on-primary-container": "#e0d2ff",
+                        "surface-container": "#f2ecf4",
+                        "surface-container-low": "#f8f2fa",
+                        "tertiary-fixed": "#ffdf93",
+                        "primary-fixed-dim": "#cfbcff",
+                        "surface-bright": "#fdf7ff",
+                        "error-container": "#ffdad6",
+                        "secondary-container": "#e8def9",
+                        "surface-container-highest": "#e6e0e9",
+                        "on-primary": "#ffffff",
+                        "inverse-on-surface": "#f5eff7",
+                        "surface-dim": "#ded8e0",
+                        "secondary-fixed-dim": "#ccc2dc",
+                        "on-error-container": "#93000a",
+                        "primary": "#4f378a",
+                        "on-surface-variant": "#494551",
+                        "on-tertiary-fixed-variant": "#594400",
+                        "surface-container-high": "#ece6ee",
+                        "surface": "#fdf7ff",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#c9a74d",
+                        "primary-fixed": "#e9ddff"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style></head>
+<body class="bg-background text-on-background min-h-screen pb-24 md:pb-0">
+<!-- Top App Bar -->
+<header class="w-full top-0 sticky z-40 bg-[#fdf7ff] dark:bg-gray-950 flex justify-between items-center px-6 py-3 max-w-full">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#4f378a] dark:text-[#d0bcff]" style="">hub</span>
+<span class="text-[#4f378a] dark:text-[#d0bcff] font-bold text-xl uppercase tracking-widest" style="">API Hub</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container text-xs font-bold" style="">
+                UP
+            </div>
+</div>
+</header>
+<div class="bg-[#f2ecf4] dark:bg-gray-800 h-px w-full"></div>
+<div class="flex min-h-screen">
+<!-- Navigation Drawer (Desktop) -->
+<aside class="hidden md:flex fixed left-0 top-0 bottom-0 w-72 flex-col p-4 h-full border-r border-[#ece6ee]/15 dark:border-gray-800 bg-[#fdf7ff] dark:bg-gray-950 z-30 pt-20">
+<div class="mb-6 px-4">
+<p class="text-xs font-bold text-on-surface-variant tracking-widest uppercase" style="">自动化引擎</p>
+</div>
+<nav class="space-y-1">
+<a class="flex items-center gap-4 px-4 py-3 text-[#49454f] dark:text-gray-400 hover:bg-[#f2ecf4] dark:hover:bg-gray-900 rounded-r-full transition-all duration-200" href="#" style="">
+<span class="material-symbols-outlined" style="">dashboard</span>
+<span class="font-medium text-sm" style="">仪表板</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 bg-[#e8def9] dark:bg-[#4f378a]/30 text-[#1d192b] dark:text-[#e6e0e9] rounded-r-full font-semibold transition-all duration-200" href="#" style="">
+<span class="material-symbols-outlined" style="">event_available</span>
+<span class="font-medium text-sm" style="">签到日志</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-[#49454f] dark:text-gray-400 hover:bg-[#f2ecf4] dark:hover:bg-gray-900 rounded-r-full transition-all duration-200" href="#" style="">
+<span class="material-symbols-outlined" style="">group</span>
+<span class="font-medium text-sm" style="">账号</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-[#49454f] dark:text-gray-400 hover:bg-[#f2ecf4] dark:hover:bg-gray-900 rounded-r-full transition-all duration-200" href="#" style="">
+<span class="material-symbols-outlined" style="">settings</span>
+<span class="font-medium text-sm" style="">设置</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 md:ml-72 p-4 md:p-8 max-w-7xl mx-auto w-full">
+<!-- Header Section -->
+<section class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
+<div>
+<h1 class="text-3xl md:text-4xl font-bold text-on-surface tracking-tight mb-2" style="">自动签到</h1>
+<p class="text-on-surface-variant" style=""><p data-pm-slice="0 0 []">多账号自动签到任务调度器</p></p>
+</div>
+</section>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Sidebar/Top Stats Panel -->
+<div class="lg:col-span-4 space-y-6">
+<!-- Summary Card -->
+<div class="bg-surface-container-lowest rounded-xl shadow-[0_8px_24px_rgba(29,27,32,0.06)] p-4">
+<div class="flex justify-between items-start mb-3">
+<div>
+<h3 class="text-sm font-medium text-on-surface-variant mb-1 uppercase tracking-wider" style="">上次运行</h3>
+<div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-tertiary-fixed text-on-tertiary-fixed" style="">部分成功</div>
+</div>
+<span class="material-symbols-outlined text-primary text-3xl" style="">insights</span>
+</div>
+<div class="space-y-1.5">
+<div class="flex justify-between items-center border-b border-outline-variant/15 py-1">
+<span class="text-sm text-on-surface-variant" style="">下次运行</span>
+<span class="text-sm font-semibold text-on-surface" style="">2026/03/23 08:00</span>
+</div>
+<div class="flex justify-between items-center py-1">
+<span class="text-sm text-on-surface-variant" style="">上次运行</span>
+<span class="text-sm font-semibold text-on-surface" style="">2026/03/22 08:05</span>
+</div>
+</div>
+</div>
+<!-- Detailed Stats Grid -->
+<div class="grid grid-cols-2 gap-3">
+<div class="bg-surface-container-low px-4 py-2.5 rounded-xl">
+<p class="text-[11px] text-on-surface-variant font-medium mb-0.5 uppercase tracking-wide" style="">可参与</p>
+<p class="text-xl font-bold text-on-surface" style="">67</p>
+</div>
+<div class="bg-surface-container-low px-4 py-2.5 rounded-xl">
+<p class="text-[11px] text-on-surface-variant font-medium mb-0.5 uppercase tracking-wide" style="">已执行</p>
+<p class="text-xl font-bold text-on-surface" style="">62</p>
+</div>
+<div class="bg-surface-container-low px-4 py-2.5 rounded-xl border-l-4 border-green-500">
+<p class="text-[11px] text-green-700 font-semibold mb-0.5 uppercase tracking-wide" style="">成功</p>
+<p class="text-xl font-bold text-on-surface" style="">58</p>
+</div>
+<div class="bg-surface-container-low px-4 py-2.5 rounded-xl border-l-4 border-error">
+<p class="text-[11px] text-error font-semibold mb-0.5 uppercase tracking-wide" style="">失败</p>
+<p class="text-xl font-bold text-on-surface" style="">4</p>
+</div>
+<div class="bg-surface-container-low px-4 py-2.5 rounded-xl col-span-2">
+<p class="text-[11px] text-on-surface-variant font-medium mb-0.5 uppercase tracking-wide" style="">已跳过</p>
+<p class="text-xl font-bold text-on-surface" style="">5</p>
+</div>
+</div>
+</div>
+<!-- List Section -->
+<div class="lg:col-span-8 space-y-6">
+<!-- Filters & Search -->
+<div class="flex flex-col gap-4">
+<div class="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+<button class="px-5 py-2 rounded-full bg-primary text-on-primary text-sm font-medium whitespace-nowrap" style="">全部 (110)</button>
+<button class="px-5 py-2 rounded-full bg-surface-container-high text-on-surface-variant text-sm font-medium whitespace-nowrap hover:bg-surface-container-highest transition-colors" style="">成功 (58)</button>
+<button class="px-5 py-2 rounded-full bg-surface-container-high text-on-surface-variant text-sm font-medium whitespace-nowrap hover:bg-surface-container-highest transition-colors" style="">失败 (4) </button>
+<button class="px-5 py-2 rounded-full bg-surface-container-high text-on-surface-variant text-sm font-medium whitespace-nowrap hover:bg-surface-container-highest transition-colors" style="">已跳过 (48)</button>
+</div>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors" style="">search</span>
+<input class="w-full bg-surface-container-high border-none rounded-xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-primary text-on-surface placeholder:text-on-surface-variant/60 transition-all" placeholder="搜索账号名称或消息..." type="text"/>
+</div>
+</div>
+<!-- Account List -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm">
+<div class="divide-y divide-outline-variant/10">
+<!-- List Item 1 -->
+<div class="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-surface-container-low transition-colors">
+<div class="flex items-start gap-3 w-full">
+<div class="flex-1 flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="font-semibold text-on-surface" style="">ZenscaleAi - linuxdo_397</span>
+<span class="material-symbols-outlined text-xs text-primary cursor-pointer" style="">open_in_new</span>
+</div>
+<p class="text-sm text-on-surface-variant font-medium" style="">消息: <span class="text-tertiary" style="">+200 积分</span></p>
+<div class="flex flex-col items-start gap-1 mt-0.5">
+<div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700" style="">成功</div>
+<p class="text-[11px] text-on-surface-variant ml-0.5" style="">2026/03/22 08:05:12</p>
+</div>
+</div>
+</div>
+</div>
+<!-- List Item 2 -->
+<div class="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-surface-container-low transition-colors">
+<div class="flex items-start gap-3 w-full">
+<div class="flex-1 flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="font-semibold text-on-surface" style="">DevNexus - prod_api_02</span>
+<span class="material-symbols-outlined text-xs text-primary cursor-pointer" style="">open_in_new</span>
+</div>
+<p class="text-sm text-on-surface-variant font-medium" style="">消息: <span class="text-on-surface-variant" style="">账号已禁用</span></p>
+<div class="flex flex-col items-start gap-1 mt-0.5">
+<div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-secondary-fixed text-on-secondary-fixed" style="">已跳过</div>
+<p class="text-[11px] text-on-surface-variant ml-0.5" style="">2026/03/22 07:42:01</p>
+</div>
+</div>
+</div>
+</div>
+<!-- List Item 3 -->
+<div class="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-surface-container-low transition-colors">
+<div class="flex items-start gap-3 w-full">
+<div class="flex-1 flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="font-semibold text-on-surface" style="">AlphaNode - internal_49</span>
+<span class="material-symbols-outlined text-xs text-primary cursor-pointer" style="">open_in_new</span>
+</div>
+<p class="text-sm text-on-surface-variant font-medium" style="">消息: <span class="text-error" style="">连接超时</span></p>
+<div class="flex flex-col items-start gap-1 mt-0.5">
+<div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-error-container text-on-error-container" style="">失败</div>
+<p class="text-[11px] text-on-surface-variant ml-0.5" style="">2026/03/22 07:30:15</p>
+</div>
+</div>
+</div>
+</div>
+<!-- List Item 4 -->
+<div class="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-surface-container-low transition-colors">
+<div class="flex items-start gap-3 w-full">
+<div class="flex-1 flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="font-semibold text-on-surface" style="">SkyNet - bot_cluster_A</span>
+<span class="material-symbols-outlined text-xs text-primary cursor-pointer" style="">open_in_new</span>
+</div>
+<p class="text-sm text-on-surface-variant font-medium" style="">消息: <span class="text-tertiary" style="">+150 积分</span></p>
+<div class="flex flex-col items-start gap-1 mt-0.5">
+<div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700" style="">成功</div>
+<p class="text-[11px] text-on-surface-variant ml-0.5" style="">2026/03/22 07:15:44</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination / Load More -->
+<div class="flex justify-center pt-4">
+<button class="text-primary font-semibold text-sm hover:underline" style="">查看历史日志</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Bottom Navigation Bar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-4 pt-3 md:hidden bg-[#ffffff]/85 dark:bg-gray-900/85 backdrop-blur-md rounded-t-2xl shadow-[0_-8px_24px_rgba(29,27,32,0.06)]">
+<div class="flex flex-col items-center justify-center bg-[#e8def9] dark:bg-[#4f378a] text-[#1d192b] dark:text-white rounded-xl px-5 py-1">
+<span class="material-symbols-outlined">event_available</span>
+<span class="font-['Inter'] text-[11px] font-medium">签到</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#625b71] dark:text-gray-400">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="font-['Inter'] text-[11px] font-medium">账号</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#625b71] dark:text-gray-400">
+<span class="material-symbols-outlined">vpn_key</span>
+<span class="font-['Inter'] text-[11px] font-medium">密钥</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#625b71] dark:text-gray-400">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-['Inter'] text-[11px] font-medium">设置</span>
+</div>
+</nav>
+<!-- Floating Action Buttons -->
+<div class="fixed bottom-24 right-6 md:right-12 flex flex-col gap-4 items-center z-50">
+<!-- Secondary FAB (Refresh) -->
+<button class="w-12 h-12 rounded-xl bg-surface-container-high text-primary flex items-center justify-center shadow-lg active:scale-90 transition-transform" style="">
+<span class="material-symbols-outlined" data-icon="refresh" style="">refresh</span>
+</button>
+<!-- Primary FAB (Run Now) -->
+<button class="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary-container text-on-primary flex items-center justify-center shadow-xl active:scale-90 transition-transform" style="">
+<span class="material-symbols-outlined text-3xl" data-icon="play_arrow" style='font-variation-settings: "FILL" 1;'>play_arrow</span>
+</button>
+</div>
+<!-- Floating Info Toast -->
+<div class="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 bg-surface-container-highest text-on-surface text-xs font-medium py-2 px-6 rounded-full shadow-[0_8px_24px_rgba(29,27,32,0.06)] flex items-center gap-2 z-50 mb-4" style=""><span class="material-symbols-outlined text-sm text-primary" style='font-variation-settings: "FILL" 1;'>info</span> 最后同步: 2 分钟前</div>
+</body></html>

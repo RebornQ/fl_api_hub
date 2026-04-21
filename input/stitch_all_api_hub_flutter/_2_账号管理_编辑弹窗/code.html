@@ -1,0 +1,252 @@
+<!DOCTYPE html><html class="light" lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>编辑账号 - All API Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error": "#ffffff",
+                        "tertiary-fixed": "#ffd9e3",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed": "#e8def9",
+                        "inverse-primary": "#cfbcff",
+                        "tertiary": "#633b48",
+                        "surface-bright": "#fdf7ff",
+                        "primary": "#6750A4",
+                        "outline-variant": "#cbc4d2",
+                        "surface-container-high": "#ece6ee",
+                        "on-tertiary-fixed": "#31111d",
+                        "secondary-container": "#e8def9",
+                        "surface-container": "#f2ecf4",
+                        "on-surface-variant": "#494551",
+                        "primary-fixed-dim": "#cfbcff",
+                        "on-secondary-fixed": "#1e192b",
+                        "on-primary-container": "#e0d2ff",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#eeb8c8",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed-dim": "#ccc2dc",
+                        "on-error-container": "#93000a",
+                        "on-secondary-container": "#686177",
+                        "primary-fixed": "#e9ddff",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#e6e0e9",
+                        "on-primary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "background": "#fdf7ff",
+                        "tertiary-container": "#7d5260",
+                        "on-tertiary-fixed-variant": "#633b48",
+                        "on-primary-fixed-variant": "#4f378a",
+                        "outline": "#7a7582",
+                        "inverse-surface": "#322f35",
+                        "surface-tint": "#6750a4",
+                        "inverse-on-surface": "#f5eff7",
+                        "on-primary-fixed": "#22005d",
+                        "surface-container-low": "#f8f2fa",
+                        "secondary": "#625b71",
+                        "surface-dim": "#ded8e0",
+                        "surface": "#fdf7ff",
+                        "on-tertiary-container": "#ffcbda",
+                        "on-background": "#1d1b20",
+                        "primary-container": "#6750a4",
+                        "on-surface": "#1d1b20",
+                        "on-secondary-fixed-variant": "#4a4358",
+                        "surface-variant": "#e6e0e9"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-background font-body text-on-background min-h-screen pb-32">
+<!-- Top App Bar -->
+<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-4 h-16 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 shadow-sm font-['Inter'] antialiased">
+<div class="flex items-center gap-4">
+<button class="text-zinc-600 dark:text-zinc-400 p-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors rounded-full active:scale-95 transition-transform duration-100" style="">
+<span class="material-symbols-outlined" data-icon="close" style="">close</span>
+</button>
+<h1 class="text-xl font-bold tracking-tight text-[#6750A4] dark:text-[#D0BCFF]" style="">编辑账号</h1>
+</div>
+</header>
+<main class="mt-16 px-4 py-6 max-w-2xl mx-auto space-y-6">
+<!-- Site Info Section -->
+<section class="bg-surface-container-low rounded-xl p-4 space-y-4">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary text-[20px]" data-icon="language" style="">language</span>
+<h2 class="text-sm font-semibold uppercase tracking-wider text-secondary" style="">站点信息</h2>
+</div>
+<div class="space-y-4">
+<div class="relative">
+<label class="text-xs font-medium text-outline absolute -top-2 left-3 bg-surface-container-low px-1" style="">站点 URL</label>
+<input class="w-full px-4 py-3 rounded-lg border border-outline-variant bg-transparent focus:ring-2 focus:ring-primary/20 outline-none" type="url" value="https://api.example-provider.com/v1">
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="relative">
+<label class="text-xs font-medium text-primary absolute -top-2 left-3 bg-surface-container-low px-1" style="">站点名称</label>
+<input class="w-full px-4 py-3 rounded-lg border border-primary bg-transparent focus:ring-2 focus:ring-primary/20 outline-none" type="text" value="Production Gateway">
+</div>
+<div class="relative">
+<label class="text-xs font-medium text-outline absolute -top-2 left-3 bg-surface-container-low px-1" style="">站点类型</label>
+<select class="w-full px-4 py-3 rounded-lg border border-outline-variant bg-transparent appearance-none">
+<option>OpenAI Proxy</option>
+<option>Claude API</option>
+<option>Azure Endpoint</option>
+</select>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="relative">
+<label class="text-xs font-medium text-outline absolute -top-2 left-3 bg-surface-container-low px-1" style="">用户名</label>
+<input class="w-full px-4 py-3 rounded-lg border border-outline-variant bg-transparent" type="text" value="admin_dev">
+</div>
+<div class="relative">
+<label class="text-xs font-medium text-outline absolute -top-2 left-3 bg-surface-container-low px-1" style="">用户 ID</label>
+<input class="w-full px-4 py-3 rounded-lg border border-outline-variant bg-transparent" type="number" value="88291">
+</div>
+</div>
+<div class="relative">
+<label class="text-xs font-medium text-outline absolute -top-2 left-3 bg-surface-container-low px-1" style="">充值比例</label>
+<div class="flex items-center gap-2">
+<input class="w-full px-4 py-3 rounded-lg border border-outline-variant bg-transparent" type="text" value="7.24">
+<span class="text-xs font-medium text-outline-variant whitespace-nowrap" style="">USD/CNY</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Credentials Section -->
+<section class="bg-surface-container-low rounded-xl p-4 space-y-4">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary text-[20px]" data-icon="key" style="">key</span>
+<h2 class="text-sm font-semibold uppercase tracking-wider text-secondary" style="">认证凭据</h2>
+</div>
+<div class="relative">
+<label class="text-xs font-medium text-outline absolute -top-2 left-3 bg-surface-container-low px-1" style="">访问令牌</label>
+<div class="flex items-center border border-outline-variant rounded-lg overflow-hidden focus-within:border-primary">
+<input class="w-full px-4 py-3 bg-transparent border-none focus:ring-0" type="password" value="sk-proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6">
+<button class="px-3 text-outline hover:text-primary" style="">
+<span class="material-symbols-outlined" data-icon="visibility" style="">visibility</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Check-in Config Section -->
+<section class="bg-surface-container-low rounded-xl p-4 space-y-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]" data-icon="event_available" style="">event_available</span>
+<h2 class="text-sm font-semibold uppercase tracking-wider text-secondary" style="">签到配置</h2>
+</div>
+<label class="relative inline-flex items-center cursor-pointer" style="">
+<input class="sr-only peer" type="checkbox">
+<div class="w-11 h-6 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+<span class="ms-3 text-xs font-medium text-on-surface" style="">启用每日自动签到</span>
+</label>
+</div>
+<div class="space-y-4">
+<div class="relative">
+<label class="text-xs font-medium text-outline absolute -top-2 left-3 bg-surface-container-low px-1" style="">签到 URL</label>
+<input class="w-full px-4 py-3 rounded-lg border border-outline-variant bg-transparent" type="url" value="https://api.example.com/user/checkin">
+</div>
+<div class="relative">
+<label class="text-xs font-medium text-outline absolute -top-2 left-3 bg-surface-container-low px-1" style="">兑换 URL</label>
+<input class="w-full px-4 py-3 rounded-lg border border-outline-variant bg-transparent placeholder:text-outline-variant" placeholder="https://..." type="url">
+</div>
+</div>
+</section>
+<!-- Metadata Section -->
+<section class="bg-surface-container-low rounded-xl p-4 space-y-4">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary text-[20px]" data-icon="label_important" style="">label_important</span>
+<h2 class="text-sm font-semibold uppercase tracking-wider text-secondary" style="">元数据</h2>
+</div>
+<div class="space-y-4">
+<div class="relative">
+<label class="text-xs font-medium text-outline absolute -top-2 left-3 bg-surface-container-low px-1" style="">标签</label>
+<div class="w-full px-2 py-2 min-h-[48px] rounded-lg border border-outline-variant flex flex-wrap gap-2 items-center">
+<span class="px-2 py-1 bg-secondary-container text-on-secondary-container rounded-md text-xs flex items-center gap-1" style="">
+                        Production <span class="material-symbols-outlined text-[14px]" data-icon="close" style="">close</span>
+</span>
+<span class="px-2 py-1 bg-secondary-container text-on-secondary-container rounded-md text-xs flex items-center gap-1" style="">
+                        Priority <span class="material-symbols-outlined text-[14px]" data-icon="close" style="">close</span>
+</span>
+<button class="text-primary text-xs font-medium px-2" style="">添加标签</button>
+</div>
+</div>
+<div class="relative">
+<label class="text-xs font-medium text-outline absolute -top-2 left-3 bg-surface-container-low px-1" style="">备注</label>
+<textarea class="w-full px-4 py-3 rounded-lg border border-outline-variant bg-transparent resize-none" rows="3">Primary gateway for all production LLM calls. Rate limit: 50RPM.</textarea>
+</div>
+<div class="flex items-center justify-between p-2 bg-surface-container-highest/30 rounded-lg">
+<div class="flex flex-col">
+<span class="text-sm font-medium" style="">不计入总余额</span>
+<span class="text-[11px] text-outline" style="">此站点的额度将不计入仪表板的总余额统计中</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer" style="">
+<input class="sr-only peer" type="checkbox">
+<div class="w-11 h-6 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer Actions -->
+<div class="fixed bottom-0 left-0 w-full bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 p-4 z-50 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+<div class="max-w-2xl mx-auto flex items-center gap-3">
+<button class="flex-1 py-3 px-4 rounded-full border border-outline-variant text-primary font-semibold text-sm hover:bg-surface-container-low transition-colors active:scale-95" style="">
+            重新识别
+        </button>
+<button class="flex-[2] py-3 px-6 rounded-full bg-primary text-on-primary font-semibold text-sm hover:opacity-90 shadow-md active:scale-95 transition-all" style="">
+            保存更改
+        </button>
+<button class="w-12 h-12 flex items-center justify-center rounded-full bg-tertiary-container text-on-tertiary hover:opacity-90 active:scale-95 transition-all shadow-md" title="保存并配置到 New API" style="">
+<span class="material-symbols-outlined" data-icon="rocket_launch" style="">rocket_launch</span>
+</button>
+</div>
+</div>
+<!-- Navigation Shell (Bottom Bar) - Context Only -->
+<nav class="fixed bottom-0 left-0 w-full z-40 flex justify-around items-center h-20 pb-safe px-2 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800 shadow-[0_-1px_3px_rgba(0,0,0,0.05)] md:hidden pointer-events-none opacity-20">
+<div class="flex flex-col items-center justify-center text-zinc-500 dark:text-zinc-400">
+<span class="material-symbols-outlined" data-icon="dashboard" style="">dashboard</span>
+<span class="font-['Inter'] text-[12px] font-medium" style="">Dashboard</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#EADDFF] dark:bg-[#4F378B] text-[#21005D] dark:text-[#EADDFF] rounded-2xl px-5 py-1">
+<span class="material-symbols-outlined" data-icon="manage_accounts" style="">manage_accounts</span>
+<span class="font-['Inter'] text-[12px] font-medium" style="">Accounts</span>
+</div>
+<div class="flex flex-col items-center justify-center text-zinc-500 dark:text-zinc-400">
+<span class="material-symbols-outlined" data-icon="history_edu" style="">history_edu</span>
+<span class="font-['Inter'] text-[12px] font-medium" style="">Logs</span>
+</div>
+<div class="flex flex-col items-center justify-center text-zinc-500 dark:text-zinc-400">
+<span class="material-symbols-outlined" data-icon="settings" style="">settings</span>
+<span class="font-['Inter'] text-[12px] font-medium" style="">Settings</span>
+</div>
+</nav>
+</body></html>

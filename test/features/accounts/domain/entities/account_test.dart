@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:all_api_hub_flutter/core/config/app_defaults.dart';
 import 'package:all_api_hub_flutter/core/network/site_type.dart';
 import 'package:all_api_hub_flutter/features/accounts/domain/entities/account.dart';
+import 'package:all_api_hub_flutter/features/accounts/domain/entities/check_in_config.dart';
 
 void main() {
   group('Account', () {
@@ -30,7 +32,7 @@ void main() {
       expect(testAccount.authType, AuthType.accessToken);
     });
 
-    test('constructs with default values', () {
+    test('constructs with default values for extended fields', () {
       final account = Account(
         id: 'id',
         name: 'name',
@@ -44,6 +46,14 @@ void main() {
       expect(account.enabled, true);
       expect(account.notes, isNull);
       expect(account.balance, isNull);
+      expect(account.username, isNull);
+      expect(account.userId, isNull);
+      expect(account.exchangeRate, kDefaultUsdToCnyRate);
+      expect(account.manualBalanceUsd, isNull);
+      expect(account.excludeFromTotalBalance, false);
+      expect(account.tagIds, isEmpty);
+      expect(account.checkIn, CheckInConfig.disabled);
+      expect(account.redemptionUrl, isNull);
     });
 
     test('copyWith replaces specified fields', () {
@@ -60,6 +70,28 @@ void main() {
       expect(updated.id, testAccount.id);
       expect(updated.baseUrl, testAccount.baseUrl);
       expect(updated.siteType, testAccount.siteType);
+    });
+
+    test('copyWith replaces extended fields', () {
+      final updated = testAccount.copyWith(
+        username: 'admin',
+        userId: 42,
+        exchangeRate: 7.5,
+        manualBalanceUsd: 9.9,
+        excludeFromTotalBalance: true,
+        tagIds: ['tag-1', 'tag-2'],
+        checkIn: const CheckInConfig(autoCheckInEnabled: true),
+        redemptionUrl: 'https://redeem.example.com',
+      );
+
+      expect(updated.username, 'admin');
+      expect(updated.userId, 42);
+      expect(updated.exchangeRate, 7.5);
+      expect(updated.manualBalanceUsd, 9.9);
+      expect(updated.excludeFromTotalBalance, true);
+      expect(updated.tagIds, ['tag-1', 'tag-2']);
+      expect(updated.checkIn.autoCheckInEnabled, true);
+      expect(updated.redemptionUrl, 'https://redeem.example.com');
     });
 
     test('equality is based on id', () {
@@ -83,11 +115,86 @@ void main() {
       expect(testAccount.hashCode, same.hashCode);
     });
 
+    test('deepEquals detects field-level changes', () {
+      final same = Account(
+        id: testAccount.id,
+        name: testAccount.name,
+        baseUrl: testAccount.baseUrl,
+        siteType: testAccount.siteType,
+        authType: testAccount.authType,
+        enabled: testAccount.enabled,
+        notes: testAccount.notes,
+        balance: testAccount.balance,
+        createdAt: testAccount.createdAt,
+        updatedAt: testAccount.updatedAt,
+      );
+      expect(testAccount.deepEquals(same), isTrue);
+
+      final renamed = testAccount.copyWith(name: 'Different');
+      expect(testAccount.deepEquals(renamed), isFalse);
+
+      final tagChanged = testAccount.copyWith(tagIds: ['t1']);
+      expect(testAccount.deepEquals(tagChanged), isFalse);
+
+      final checkInChanged = testAccount.copyWith(
+        checkIn: const CheckInConfig(autoCheckInEnabled: true),
+      );
+      expect(testAccount.deepEquals(checkInChanged), isFalse);
+    });
+
     test('toString includes key fields', () {
       final str = testAccount.toString();
       expect(str, contains('test-id-1'));
       expect(str, contains('Test Site'));
       expect(str, contains('SiteType'));
+    });
+  });
+
+  group('CheckInConfig', () {
+    test('disabled sentinel equals a default constructor instance', () {
+      expect(CheckInConfig.disabled, const CheckInConfig());
+      expect(CheckInConfig.disabled.autoCheckInEnabled, false);
+      expect(CheckInConfig.disabled.customCheckInUrl, isNull);
+    });
+
+    test('copyWith replaces fields', () {
+      const base = CheckInConfig.disabled;
+      final enabled = base.copyWith(autoCheckInEnabled: true);
+      expect(enabled.autoCheckInEnabled, true);
+      expect(enabled.customCheckInUrl, isNull);
+
+      final withUrl = enabled.copyWith(
+        customCheckInUrl: 'https://welfare.example.com',
+      );
+      expect(withUrl.customCheckInUrl, 'https://welfare.example.com');
+      expect(withUrl.autoCheckInEnabled, true);
+    });
+
+    test('withoutCustomCheckInUrl clears the URL explicitly', () {
+      const original = CheckInConfig(
+        autoCheckInEnabled: true,
+        customCheckInUrl: 'https://welfare.example.com',
+      );
+      final cleared = original.withoutCustomCheckInUrl();
+      expect(cleared.customCheckInUrl, isNull);
+      expect(cleared.autoCheckInEnabled, true);
+    });
+
+    test('value equality', () {
+      expect(
+        const CheckInConfig(
+          autoCheckInEnabled: true,
+          customCheckInUrl: 'https://a',
+        ),
+        const CheckInConfig(
+          autoCheckInEnabled: true,
+          customCheckInUrl: 'https://a',
+        ),
+      );
+      expect(
+        const CheckInConfig(autoCheckInEnabled: true),
+        isNot(const CheckInConfig(autoCheckInEnabled: false)),
+      );
     });
   });
 }

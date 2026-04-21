@@ -9,6 +9,7 @@
 library;
 
 import 'package:dio/dio.dart';
+import 'package:meta/meta.dart';
 
 import '../../error/app_exception.dart';
 import '../../error/failure_mapper.dart';
@@ -45,7 +46,7 @@ class CommonApiAdapter implements SiteAdapter {
 
   @override
   Future<Result<UserInfoDto>> fetchAccountInfo(ApiRequest request) async {
-    return _request<UserInfoDto>(
+    return performRequest<UserInfoDto>(
       method: 'GET',
       path: '/api/user/self',
       request: request,
@@ -55,7 +56,7 @@ class CommonApiAdapter implements SiteAdapter {
 
   @override
   Future<Result<SiteStatusDto>> fetchSiteStatus(ApiRequest request) async {
-    return _request<SiteStatusDto>(
+    return performRequest<SiteStatusDto>(
       method: 'GET',
       path: '/api/status',
       request: request,
@@ -67,7 +68,7 @@ class CommonApiAdapter implements SiteAdapter {
 
   @override
   Future<Result<CheckInResultDto>> checkIn(ApiRequest request) async {
-    return _request<CheckInResultDto>(
+    return performRequest<CheckInResultDto>(
       method: 'POST',
       path: '/api/user/checkin',
       request: request,
@@ -80,7 +81,7 @@ class CommonApiAdapter implements SiteAdapter {
     ApiRequest request, {
     required String month,
   }) async {
-    return _request<CheckInStatusDto>(
+    return performRequest<CheckInStatusDto>(
       method: 'GET',
       path: '/api/user/checkin',
       request: request,
@@ -97,7 +98,7 @@ class CommonApiAdapter implements SiteAdapter {
     int page = 0,
     int size = 100,
   }) async {
-    return _request<TokenListDto>(
+    return performRequest<TokenListDto>(
       method: 'GET',
       path: '/api/token/',
       request: request,
@@ -111,7 +112,7 @@ class CommonApiAdapter implements SiteAdapter {
     ApiRequest request, {
     required String name,
   }) async {
-    return _request<TokenDto>(
+    return performRequest<TokenDto>(
       method: 'POST',
       path: '/api/token/',
       request: request,
@@ -149,7 +150,7 @@ class CommonApiAdapter implements SiteAdapter {
     ApiRequest request, {
     required String tokenId,
   }) async {
-    return _request<TokenDto>(
+    return performRequest<TokenDto>(
       method: 'POST',
       path: '/api/token/$tokenId/key',
       request: request,
@@ -161,7 +162,7 @@ class CommonApiAdapter implements SiteAdapter {
 
   @override
   Future<Result<AccessTokenDto>> createAccessToken(ApiRequest request) async {
-    return _request<AccessTokenDto>(
+    return performRequest<AccessTokenDto>(
       method: 'GET',
       path: '/api/user/token',
       request: request,
@@ -174,8 +175,11 @@ class CommonApiAdapter implements SiteAdapter {
   /// Executes a typed API request with standard error handling.
   ///
   /// This is the shared implementation for all methods that return a typed
-  /// DTO from the `ApiResponse.data` field.
-  Future<Result<T>> _request<T>({
+  /// DTO from the `ApiResponse.data` field. Marked [protected] so
+  /// site-specific subclasses (e.g. [VeloeraApiAdapter]) can override
+  /// individual endpoints without duplicating the Dio / envelope plumbing.
+  @protected
+  Future<Result<T>> performRequest<T>({
     required String method,
     required String path,
     required ApiRequest request,

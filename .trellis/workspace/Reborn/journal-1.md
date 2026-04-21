@@ -1579,3 +1579,113 @@ Captured as **Mistake 6 — Non-null Required Field Backed by a Sentinel** in `.
 ### Next Steps
 
 - None - task complete
+
+
+## Session 21: Fix account info refresh via derived balance and New-API-User header
+
+**Date**: 2026-04-22
+**Task**: Fix account info refresh via derived balance and New-API-User header
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## Context
+
+账号管理页面下拉刷新后，每张账号卡片右侧始终显示 `--`，用户感受为"账户信息获取不到"。阅读 `input/API-EndPoint.md` 并追踪代码定位到两个根因：
+
+1. **Balance 字段映射错误** — `UserInfoDto.fromJson` 直接读 `json['balance']`，但 New API / OneHub / DoneHub 共用的 `/api/user/self` 实际只返回 `quota` / `used_quota`（token 单位），真实美元余额需用 `quota_per_unit` 换算。
+2. **New-API-User header 缺失** — 严格的 New API 部署要求请求在 `New-API-User` header 上回显 upstream 用户 id（Bearer token 单独不够）；应用此前完全未注入此 header。
+3. **字段同步不完整** — `AccountsNotifier._checkSingle` 仅 `_persistBalance`，`username` / `userId` 从不从 API 回填。
+
+## Changes Summary
+
+| Batch | Commit | Description |
+|-------|--------|-------------|
+| Single | `6353832` | Derived-balance + New-API-User header + field sync + spec |
+
+单批次交付，内部按 6 个 Trellis 任务串行执行（`kDefaultQuotaPerUnit` 常量 → `SiteStatusDto.quotaPerUnit` → `AccountApiMapper.computeBalance/extractUserId` → `AccountsNotifier._checkSingle` 改写 + `New-API-User` header 补丁 → 单测 → SubAgent 验证）。
+
+## Cross-Layer Contract Established
+
+**扩展了 `Options.extra` 的 per-request auth 契约**，新增 `apiUserId` 键：
+
+```
+Account.userId (-1 sentinel / >0 实际值)
+  → ApiRequest.userId (int?)
+  → Options.extra['apiUserId']
+  → AuthInterceptor  → options.headers['New-API-User'] = '$userId'  (iff userId > 0)
+```
+
+关键不变式：
+- `AuthInterceptor` 保持无状态，仅依赖 `RequestOptions.extra`；所有 adapter 方法必须通过 `CommonApiAdapter._request` / `_buildOptions` 原子设置全部 extras 键。
+- `New-API-User` 与 `authType` **正交** —— Cookie-auth 的 managed 站点在未来也应注入此 header，不做 authType 过滤。
+- `userId <= 0`（含 sentinel `-1`）、`null`、缺失 → 省略 header，让 backend 尝试 token-only 识别（宽松 fork 上仍可工作）。
+
+该契约已写入 `.trellis/spec/backend/error-handling.md` 的 **Per-Request Auth Error Flow** 节，含 extras 契约表、header 注入矩阵、Good/Base/Bad 三例、validation 规则、必需测试与断言点。
+
+## Design Decisions (from interview)
+
+- **quota_per_unit 来源**：选"从 `/api/status` 动态读取 + 500000 fallback"（社区默认），而非硬编码或让用户配置。每次刷新对每个账号并行 `Future.wait([user-info, status])`（batchSize=4，N 账号 → 2N 并行请求，可接受）。按 baseUrl 缓存留给后续批次。
+- **`/api/status` 失败不降级账号可达性** —— Reachability 仅由 user-info 的 `Result` 决定；status 失败只导致 balance 走默认系数，`ReachabilityRecord.ok(now)` 照常写入。
+- **Sentinel 保留策略** —— API 返回 `username == ''` 或 `id <= 0` 时 **不** 覆盖 Account 已填值，保留用户在编辑页输入的真实值。
+- **Cookie-based 适配器暂不实现** —— `sub2api` / `anyrouter` / `wongGongyi` 继续 fallback 到 `newApi`，本批次聚焦核心修复。
+
+## Updated Files
+
+**Production code**
+- `lib/core/config/app_defaults.dart` — `kDefaultQuotaPerUnit = 500000.0`
+- `lib/core/network/api_request.dart` — `ApiRequest.userId: int?` 新字段
+- `lib/core/network/auth_interceptor.dart` — `apiUserId` → `New-API-User` 注入
+- `lib/core/network/adapters/common_api_adapter.dart` — extras 传 `apiUserId`
+- `lib/core/network/dto/site_status_dto.dart` — `quotaPerUnit` 字段解析 `quota_per_unit`
+- `lib/features/accounts/data/models/account_api_mapper.dart` — `computeBalance(dto, qpu)` + `extractUserId`
+- `lib/features/accounts/presentation/providers/accounts_notifier.dart` — `_checkSingle` 并行取 user-info + status；`_syncAccountInfo` 替代 `_persistBalance`，同步 balance/username/userId
+- `lib/features/accounts/presentation/pages/account_edit_page.dart` — dart format 一行合并（无逻辑变化）
+
+**Tests**
+- `test/core/network/auth_interceptor_test.dart` — `New-API-User header injection` 组 6 个用例（正值/missing/null/-1/0/Cookie+userId 组合）
+- `test/core/network/dto/site_status_dto_test.dart` — `quotaPerUnit` 4 场景
+- `test/features/accounts/data/models/account_api_mapper_test.dart` — `computeBalance` 三分支 + 边界 + `extractUserId`
+- `test/features/accounts/presentation/providers/accounts_notifier_test.dart` — `checkOne (exercises _checkSingle)` 8 个场景（含 userId 透传 + sentinel 保留 + status 失败回退 + deep-equal 跳写 + disabled 跳过）
+- `test/features/accounts/presentation/pages/account_edit_page_test.dart` — dart format（无逻辑变化）
+
+**Spec docs**
+- `.trellis/spec/backend/error-handling.md` — Per-Request Auth Error Flow 节重写，加入 extras 契约表、header 注入矩阵、Good/Base/Bad、validation、测试锚点
+- `.trellis/spec/backend/directory-structure.md` — `api_request.dart` 描述从 `baseUrl + auth` 扩展为 `baseUrl + auth + userId`
+
+## Verification
+
+- `flutter analyze` → **No issues found**
+- `flutter test` → **332 / 332 passed**（比上 session 多 30 个新增用例）
+- `dart format --set-exit-if-changed lib/ test/` → exit 0
+- Manual smoke test on device: **pending（handed off to human）**
+
+## Known Follow-ups
+
+- Cookie-based 站点（`sub2api` / `anyrouter` / `wongGongyi`）仍 fallback 到 `newApi` adapter，Cookie 拼接格式 `session=$token` 对 multi-value cookie 场景不准确，后续批次要补专用 adapter。
+- `quota_per_unit` 按 `baseUrl` 的内存缓存（当前每次 refresh 都重新请求 `/api/status`；账号数多时值得上缓存）。
+- `SiteType.unknown` 账户的"重新识别"引导 UX 仍挂"即将上线"，与 Session 20 的遗留项合并。
+- Balance-only 的错误详情 SnackBar / 错误列表页（目前失败只显示红点，用户看不到 HTTP 状态码）。
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `6353832` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

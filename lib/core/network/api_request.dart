@@ -1,9 +1,11 @@
 /// Per-request API configuration object.
 ///
 /// Immutable bundle carrying the target [baseUrl], authentication credential
-/// [authToken], and the [authType] strategy. Passed from the repository layer
-/// through the remote data source into the [SiteAdapter] so that every remote
-/// call is scoped to a specific account's context.
+/// [authToken], the [authType] strategy, and the upstream [userId] that
+/// New API compatible backends require in the `New-API-User` header. Passed
+/// from the repository layer through the remote data source into the
+/// [SiteAdapter] so that every remote call is scoped to a specific account's
+/// context.
 library;
 
 import 'site_type.dart';
@@ -20,9 +22,19 @@ class ApiRequest {
   /// Authentication strategy to apply for this request.
   final AuthType authType;
 
+  /// Upstream user id reported by the site's `/api/user/self` response.
+  ///
+  /// New API and most of its forks additionally require the caller to echo
+  /// this id back via the `New-API-User` HTTP header — Bearer token alone is
+  /// not enough on stricter deployments. Set to `null` (or any non-positive
+  /// value) when the id is not yet known; the interceptor will then omit the
+  /// header and let the backend fall back to token-based identification.
+  final int? userId;
+
   const ApiRequest({
     required this.baseUrl,
     this.authToken,
     required this.authType,
+    this.userId,
   });
 }

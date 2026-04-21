@@ -198,10 +198,7 @@ void main() {
         find.byKey(const ValueKey('usernameField')),
         'admin',
       );
-      await tester.enterText(
-        find.byKey(const ValueKey('userIdField')),
-        '42',
-      );
+      await tester.enterText(find.byKey(const ValueKey('userIdField')), '42');
       await tester.pump();
 
       await tester.tap(find.byKey(const ValueKey('primarySaveButton')));

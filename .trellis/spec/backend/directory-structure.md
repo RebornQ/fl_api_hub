@@ -41,7 +41,7 @@ lib/
 │   │   │   ├── check_in_status_dto.dart
 │   │   │   ├── token_dto.dart
 │   │   │   └── access_token_dto.dart
-│   │   ├── api_request.dart         # Per-request config (baseUrl + auth)
+│   │   ├── api_request.dart         # Per-request config (baseUrl + auth + userId)
 │   │   ├── auth_interceptor.dart    # Per-request auth injection
 │   │   ├── dio_client.dart          # Shared Dio instance
 │   │   ├── site_adapter.dart        # Abstract adapter interface
@@ -89,7 +89,7 @@ lib/
 - **`core/network/`** — Dio client, per-request auth injection, site adapter interface, DTOs
   - `adapters/` — Concrete site adapter implementations (CommonApiAdapter)
   - `dto/` — API response models (distinct from domain entities and Hive maps)
-  - `api_request.dart` — Immutable per-request config (baseUrl + authToken + authType)
+  - `api_request.dart` — Immutable per-request config (baseUrl + authToken + authType + userId)
 - **`core/error/`** — Sealed `AppException` hierarchy + Dio error mapping
 - **`core/result/`** — `Result<T>` discriminated union (Success/Failure)
 - **`core/storage/`** — Hive (structured data) + SecureStore (credentials)

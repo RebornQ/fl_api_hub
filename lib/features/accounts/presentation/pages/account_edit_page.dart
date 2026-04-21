@@ -644,8 +644,7 @@ class _AccountEditPageState extends ConsumerState<AccountEditPage> {
           : _tokenController.text;
     }
 
-    final parsedUserId =
-        int.tryParse(_userIdController.text.trim()) ?? -1;
+    final parsedUserId = int.tryParse(_userIdController.text.trim()) ?? -1;
     final parsedExchangeRate =
         double.tryParse(_exchangeRateController.text.trim()) ??
         kDefaultUsdToCnyRate;

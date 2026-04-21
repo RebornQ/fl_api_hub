@@ -192,6 +192,7 @@ class CommonApiAdapter implements SiteAdapter {
             'apiBaseUrl': request.baseUrl,
             'apiAuthToken': request.authToken,
             'apiAuthType': request.authType.name,
+            'apiUserId': request.userId,
           },
         ),
         queryParameters: queryParameters,
@@ -233,6 +234,7 @@ class CommonApiAdapter implements SiteAdapter {
         'apiBaseUrl': request.baseUrl,
         'apiAuthToken': request.authToken,
         'apiAuthType': request.authType.name,
+        'apiUserId': request.userId,
       },
     );
   }

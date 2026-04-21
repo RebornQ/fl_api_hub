@@ -14,10 +14,14 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/config/app_defaults.dart';
 import '../../../../core/network/api_request.dart';
+import '../../../../core/network/dto/site_status_dto.dart';
+import '../../../../core/network/dto/user_info_dto.dart';
 import '../../../../core/network/reachability_status.dart';
 import '../../../../core/result/result.dart';
 import '../../data/datasources/accounts_remote_datasource.dart';
+import '../../data/models/account_api_mapper.dart';
 import '../../domain/entities/account.dart';
 import 'account_reachability_providers.dart';
 import 'accounts_providers.dart';
@@ -196,7 +200,12 @@ class AccountsNotifier extends AsyncNotifier<List<Account>> {
   }
 
   /// Fetches account info for [account], updates the reachability cache
-  /// and persists the new balance on success.
+  /// and persists the refreshed account fields on success.
+  ///
+  /// Issues [fetchAccountInfo] and [fetchSiteStatus] in parallel. Reachability
+  /// is driven purely by the user-info result; a failing status call only
+  /// degrades the balance computation to the default quota factor and never
+  /// marks the account as unreachable.
   Future<void> _checkSingle(Account account) async {
     final reachabilityNotifier = ref.read(
       accountReachabilityMapProvider.notifier,
@@ -206,24 +215,29 @@ class AccountsNotifier extends AsyncNotifier<List<Account>> {
       final remote = ref.read(
         accountsRemoteDataSourceProvider(account.siteType),
       );
-      final result = await remote.fetchAccountInfo(
-        ApiRequest(
-          baseUrl: account.baseUrl,
-          authToken: account.accessToken,
-          authType: account.authType,
-        ),
+      final request = ApiRequest(
+        baseUrl: account.baseUrl,
+        authToken: account.accessToken,
+        authType: account.authType,
+        userId: account.userId,
       );
 
+      final results = await Future.wait([
+        remote.fetchAccountInfo(request),
+        remote.fetchSiteStatus(request),
+      ]);
+      final userInfoResult = results[0] as Result<UserInfoDto>;
+      final statusResult = results[1] as Result<SiteStatusDto>;
+
       final now = DateTime.now();
-      switch (result) {
+      switch (userInfoResult) {
         case Success(:final data):
           await reachabilityNotifier.put(
             account.id,
             ReachabilityRecord.ok(now),
           );
-          if (data.balance != null && data.balance != account.balance) {
-            await _persistBalance(account, data.balance!);
-          }
+          final quotaPerUnit = _resolveQuotaPerUnit(statusResult);
+          await _syncAccountInfo(account, data, quotaPerUnit);
         case Failure(:final exception):
           await reachabilityNotifier.put(
             account.id,
@@ -241,14 +255,52 @@ class AccountsNotifier extends AsyncNotifier<List<Account>> {
     }
   }
 
-  /// Persists [balance] on [account] without bumping `updatedAt`, then
-  /// patches the in-memory list. Does NOT emit [AsyncLoading] so the UI
-  /// can update progressively as results stream in.
-  Future<void> _persistBalance(Account account, double balance) async {
-    final patched = account.copyWith(balance: balance);
+  /// Picks the quota → USD factor from [statusResult] when available,
+  /// otherwise falls back to [kDefaultQuotaPerUnit].
+  double _resolveQuotaPerUnit(Result<SiteStatusDto> statusResult) {
+    if (statusResult is Success<SiteStatusDto>) {
+      final reported = statusResult.data.quotaPerUnit;
+      if (reported != null && reported > 0) return reported;
+    }
+    return kDefaultQuotaPerUnit;
+  }
+
+  /// Merges API-reported user info into [account] and persists the result.
+  ///
+  /// Only fills sentinel-valued fields (`username == ''`, `userId <= 0`) from
+  /// the response — values the user has already entered are preserved even
+  /// when the upstream returns them empty. When nothing actually changes the
+  /// repository write is skipped to avoid churning `updatedAt`.
+  Future<void> _syncAccountInfo(
+    Account account,
+    UserInfoDto info,
+    double quotaPerUnit,
+  ) async {
+    final derivedBalance = AccountApiMapper.computeBalance(info, quotaPerUnit);
+
+    final reportedUsername = AccountApiMapper.extractUsername(info);
+    final nextUsername =
+        (reportedUsername != null && reportedUsername.isNotEmpty)
+        ? reportedUsername
+        : account.username;
+
+    final reportedUserId = AccountApiMapper.extractUserId(info);
+    final nextUserId = (reportedUserId != null && reportedUserId > 0)
+        ? reportedUserId
+        : account.userId;
+
+    final patched = account.copyWith(
+      balance: derivedBalance ?? account.balance,
+      username: nextUsername,
+      userId: nextUserId,
+    );
+
+    if (patched.deepEquals(account)) return;
+
     final repo = ref.read(accountsRepositoryProvider);
     final result = await repo.update(patched);
     if (result is Failure) return;
+
     final current = state.valueOrNull;
     if (current == null) return;
     state = AsyncData([

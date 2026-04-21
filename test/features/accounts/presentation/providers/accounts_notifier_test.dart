@@ -3,9 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:all_api_hub_flutter/core/error/app_exception.dart';
+import 'package:all_api_hub_flutter/core/network/api_request.dart';
+import 'package:all_api_hub_flutter/core/network/dto/site_status_dto.dart';
+import 'package:all_api_hub_flutter/core/network/dto/user_info_dto.dart';
 import 'package:all_api_hub_flutter/core/network/reachability_status.dart';
 import 'package:all_api_hub_flutter/core/network/site_type.dart';
 import 'package:all_api_hub_flutter/core/result/result.dart';
+import 'package:all_api_hub_flutter/features/accounts/data/datasources/accounts_remote_datasource.dart';
 import 'package:all_api_hub_flutter/features/accounts/domain/entities/account.dart';
 import 'package:all_api_hub_flutter/features/accounts/domain/repositories/account_reachability_repository.dart';
 import 'package:all_api_hub_flutter/features/accounts/domain/repositories/accounts_repository.dart';
@@ -13,6 +17,9 @@ import 'package:all_api_hub_flutter/features/accounts/presentation/providers/acc
 import 'package:all_api_hub_flutter/features/accounts/presentation/providers/accounts_providers.dart';
 
 class MockAccountsRepository extends Mock implements AccountsRepository {}
+
+class MockAccountsRemoteDataSource extends Mock
+    implements AccountsRemoteDataSource {}
 
 /// In-memory fake so tests don't need to open the Hive box backing the
 /// real [AccountReachabilityRepository].
@@ -45,6 +52,7 @@ void main() {
     baseUrl: 'https://api.example.com',
     siteType: SiteType.newApi,
     authType: AuthType.accessToken,
+    accessToken: 'sk-test',
     enabled: true,
     createdAt: DateTime(2026, 1, 1),
     updatedAt: DateTime(2026, 1, 1),
@@ -63,6 +71,9 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(testAccount);
+    registerFallbackValue(
+      const ApiRequest(baseUrl: '', authType: AuthType.none),
+    );
   });
 
   setUp(() {
@@ -333,6 +344,287 @@ void main() {
               .toggleEnabled('non-existent'),
           throwsStateError,
         );
+      });
+    });
+
+    group('checkOne (exercises _checkSingle)', () {
+      late MockAccountsRemoteDataSource mockRemote;
+
+      setUp(() {
+        mockRemote = MockAccountsRemoteDataSource();
+      });
+
+      ProviderContainer buildContainer(List<Account> accounts) {
+        when(
+          () => mockRepo.getAll(),
+        ).thenAnswer((_) async => Success(accounts));
+        return ProviderContainer(
+          overrides: [
+            accountsRepositoryProvider.overrideWithValue(mockRepo),
+            accountReachabilityRepositoryProvider.overrideWithValue(
+              fakeReachability,
+            ),
+            accountsRemoteDataSourceProvider.overrideWith(
+              (ref, siteType) => mockRemote,
+            ),
+          ],
+        );
+      }
+
+      test(
+        'user-info success + status success derives balance from reported quotaPerUnit',
+        () async {
+          when(() => mockRemote.fetchAccountInfo(any())).thenAnswer(
+            (_) async => Success(
+              UserInfoDto(
+                id: 42,
+                username: 'alice',
+                quota: 500000000,
+                usedQuota: 1000000,
+              ),
+            ),
+          );
+          when(() => mockRemote.fetchSiteStatus(any())).thenAnswer(
+            (_) async =>
+                Success(SiteStatusDto(quotaPerUnit: 500000, version: 'v1')),
+          );
+          when(
+            () => mockRepo.update(any()),
+          ).thenAnswer((_) async => Success(testAccount));
+
+          container = buildContainer([testAccount]);
+          await container.read(accountsProvider.future);
+
+          await container.read(accountsProvider.notifier).checkOne('acc-1');
+
+          expect(
+            fakeReachability.getAll()['acc-1']?.status,
+            ReachabilityStatus.ok,
+          );
+
+          final captured = verify(() => mockRepo.update(captureAny())).captured;
+          final patched = captured.single as Account;
+          // (500_000_000 - 1_000_000) / 500_000 = 998.0
+          expect(patched.balance, equals(998.0));
+          expect(patched.username, equals('alice'));
+          expect(patched.userId, equals(42));
+        },
+      );
+
+      test(
+        'user-info success + status failure still marks OK and uses default factor',
+        () async {
+          when(() => mockRemote.fetchAccountInfo(any())).thenAnswer(
+            (_) async => Success(
+              UserInfoDto(
+                id: 5,
+                username: 'bob',
+                quota: 1000000,
+                usedQuota: 500000,
+              ),
+            ),
+          );
+          when(() => mockRemote.fetchSiteStatus(any())).thenAnswer(
+            (_) async => Failure(NetworkException(message: 'status boom')),
+          );
+          when(
+            () => mockRepo.update(any()),
+          ).thenAnswer((_) async => Success(testAccount));
+
+          container = buildContainer([testAccount]);
+          await container.read(accountsProvider.future);
+
+          await container.read(accountsProvider.notifier).checkOne('acc-1');
+
+          expect(
+            fakeReachability.getAll()['acc-1']?.status,
+            ReachabilityStatus.ok,
+          );
+
+          final captured = verify(() => mockRepo.update(captureAny())).captured;
+          final patched = captured.single as Account;
+          // (1_000_000 - 500_000) / kDefaultQuotaPerUnit (500_000) = 1.0
+          expect(patched.balance, equals(1.0));
+          expect(patched.username, equals('bob'));
+          expect(patched.userId, equals(5));
+        },
+      );
+
+      test(
+        'status success but quotaPerUnit null falls back to default factor',
+        () async {
+          when(() => mockRemote.fetchAccountInfo(any())).thenAnswer(
+            (_) async => Success(
+              UserInfoDto(
+                id: 9,
+                username: 'carol',
+                quota: 2000000,
+                usedQuota: 500000,
+              ),
+            ),
+          );
+          when(
+            () => mockRemote.fetchSiteStatus(any()),
+          ).thenAnswer((_) async => Success(SiteStatusDto(version: 'v1')));
+          when(
+            () => mockRepo.update(any()),
+          ).thenAnswer((_) async => Success(testAccount));
+
+          container = buildContainer([testAccount]);
+          await container.read(accountsProvider.future);
+
+          await container.read(accountsProvider.notifier).checkOne('acc-1');
+
+          final captured = verify(() => mockRepo.update(captureAny())).captured;
+          final patched = captured.single as Account;
+          // (2_000_000 - 500_000) / kDefaultQuotaPerUnit (500_000) = 3.0
+          expect(patched.balance, equals(3.0));
+        },
+      );
+
+      test(
+        'user-info failure marks account as fail and skips repo update',
+        () async {
+          when(() => mockRemote.fetchAccountInfo(any())).thenAnswer(
+            (_) async => Failure(
+              AuthException(message: 'unauthorized', statusCode: 401),
+            ),
+          );
+          when(() => mockRemote.fetchSiteStatus(any())).thenAnswer(
+            (_) async => Success(SiteStatusDto(quotaPerUnit: 500000)),
+          );
+
+          container = buildContainer([testAccount]);
+          await container.read(accountsProvider.future);
+
+          await container.read(accountsProvider.notifier).checkOne('acc-1');
+
+          final record = fakeReachability.getAll()['acc-1'];
+          expect(record?.status, ReachabilityStatus.fail);
+          expect(record?.failCategory, FailCategory.http4xx);
+
+          verifyNever(() => mockRepo.update(any()));
+        },
+      );
+
+      test(
+        'preserves existing username/userId when API returns empty sentinels',
+        () async {
+          final existing = testAccount.copyWith(
+            username: 'pre-set',
+            userId: 999,
+          );
+          when(() => mockRemote.fetchAccountInfo(any())).thenAnswer(
+            (_) async => Success(
+              UserInfoDto(
+                id: 0,
+                username: '',
+                quota: 500000000,
+                usedQuota: 1000000,
+              ),
+            ),
+          );
+          when(() => mockRemote.fetchSiteStatus(any())).thenAnswer(
+            (_) async => Success(SiteStatusDto(quotaPerUnit: 500000)),
+          );
+          when(
+            () => mockRepo.update(any()),
+          ).thenAnswer((_) async => Success(existing));
+
+          container = buildContainer([existing]);
+          await container.read(accountsProvider.future);
+
+          await container.read(accountsProvider.notifier).checkOne('acc-1');
+
+          final captured = verify(() => mockRepo.update(captureAny())).captured;
+          final patched = captured.single as Account;
+          expect(patched.balance, equals(998.0));
+          expect(patched.username, equals('pre-set'));
+          expect(patched.userId, equals(999));
+        },
+      );
+
+      test(
+        'skips repo update when patched account deep-equals the original',
+        () async {
+          final already = testAccount.copyWith(
+            username: 'alice',
+            userId: 42,
+            balance: 998.0,
+          );
+          when(() => mockRemote.fetchAccountInfo(any())).thenAnswer(
+            (_) async => Success(
+              UserInfoDto(
+                id: 42,
+                username: 'alice',
+                quota: 500000000,
+                usedQuota: 1000000,
+              ),
+            ),
+          );
+          when(() => mockRemote.fetchSiteStatus(any())).thenAnswer(
+            (_) async => Success(SiteStatusDto(quotaPerUnit: 500000)),
+          );
+
+          container = buildContainer([already]);
+          await container.read(accountsProvider.future);
+
+          await container.read(accountsProvider.notifier).checkOne('acc-1');
+
+          expect(
+            fakeReachability.getAll()['acc-1']?.status,
+            ReachabilityStatus.ok,
+          );
+          verifyNever(() => mockRepo.update(any()));
+        },
+      );
+
+      test('does nothing for a disabled account', () async {
+        final disabled = testAccount.copyWith(enabled: false);
+
+        container = buildContainer([disabled]);
+        await container.read(accountsProvider.future);
+
+        await container.read(accountsProvider.notifier).checkOne('acc-1');
+
+        verifyNever(() => mockRemote.fetchAccountInfo(any()));
+        verifyNever(() => mockRemote.fetchSiteStatus(any()));
+        verifyNever(() => mockRepo.update(any()));
+      });
+
+      test('forwards account.userId into ApiRequest so the interceptor '
+          'can inject New-API-User header', () async {
+        final filled = testAccount.copyWith(userId: 777, username: 'dave');
+        when(() => mockRemote.fetchAccountInfo(any())).thenAnswer(
+          (_) async => Success(
+            UserInfoDto(
+              id: 777,
+              username: 'dave',
+              quota: 500000000,
+              usedQuota: 1000000,
+            ),
+          ),
+        );
+        when(
+          () => mockRemote.fetchSiteStatus(any()),
+        ).thenAnswer((_) async => Success(SiteStatusDto(quotaPerUnit: 500000)));
+        when(
+          () => mockRepo.update(any()),
+        ).thenAnswer((_) async => Success(filled));
+
+        container = buildContainer([filled]);
+        await container.read(accountsProvider.future);
+
+        await container.read(accountsProvider.notifier).checkOne('acc-1');
+
+        final captured = verify(
+          () => mockRemote.fetchAccountInfo(captureAny()),
+        ).captured;
+        final request = captured.single as ApiRequest;
+        expect(request.userId, equals(777));
+        expect(request.baseUrl, equals(filled.baseUrl));
+        expect(request.authToken, equals(filled.accessToken));
+        expect(request.authType, equals(filled.authType));
       });
     });
   });

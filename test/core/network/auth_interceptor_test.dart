@@ -105,5 +105,97 @@ void main() {
       expect(options.baseUrl, 'https://new.example.com');
       expect(options.headers['Authorization'], 'Bearer combined-token');
     });
+
+    group('New-API-User header injection', () {
+      test('positive apiUserId injects New-API-User header', () {
+        final options = intercept(
+          RequestOptions(
+            path: '/test',
+            extra: {
+              'apiAuthToken': 'tok',
+              'apiAuthType': 'accessToken',
+              'apiUserId': 42,
+            },
+          ),
+        );
+
+        expect(options.headers['New-API-User'], '42');
+      });
+
+      test('missing apiUserId omits New-API-User header', () {
+        final options = intercept(
+          RequestOptions(
+            path: '/test',
+            extra: {'apiAuthToken': 'tok', 'apiAuthType': 'accessToken'},
+          ),
+        );
+
+        expect(options.headers.containsKey('New-API-User'), isFalse);
+      });
+
+      test('null apiUserId omits New-API-User header', () {
+        final options = intercept(
+          RequestOptions(
+            path: '/test',
+            extra: {
+              'apiAuthToken': 'tok',
+              'apiAuthType': 'accessToken',
+              'apiUserId': null,
+            },
+          ),
+        );
+
+        expect(options.headers.containsKey('New-API-User'), isFalse);
+      });
+
+      test('sentinel apiUserId == -1 omits New-API-User header', () {
+        final options = intercept(
+          RequestOptions(
+            path: '/test',
+            extra: {
+              'apiAuthToken': 'tok',
+              'apiAuthType': 'accessToken',
+              'apiUserId': -1,
+            },
+          ),
+        );
+
+        expect(options.headers.containsKey('New-API-User'), isFalse);
+      });
+
+      test('zero apiUserId omits New-API-User header', () {
+        final options = intercept(
+          RequestOptions(
+            path: '/test',
+            extra: {
+              'apiAuthToken': 'tok',
+              'apiAuthType': 'accessToken',
+              'apiUserId': 0,
+            },
+          ),
+        );
+
+        expect(options.headers.containsKey('New-API-User'), isFalse);
+      });
+
+      test(
+        'cookie authType still injects New-API-User when userId provided',
+        () {
+          final options = intercept(
+            RequestOptions(
+              path: '/test',
+              extra: {
+                'apiAuthToken': 'sess',
+                'apiAuthType': 'cookie',
+                'apiUserId': 7,
+              },
+            ),
+          );
+
+          expect(options.headers['Cookie'], 'session=sess');
+          expect(options.headers['New-API-User'], '7');
+        },
+      );
+    });
   });
 }

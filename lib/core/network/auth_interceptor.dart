@@ -5,6 +5,7 @@
 /// - `apiBaseUrl`: overrides the Dio default base URL for this request.
 /// - `apiAuthToken`: the credential value (token, cookie, etc.).
 /// - `apiAuthType`: one of `'accessToken'`, `'cookie'`, or `'none'`.
+/// - `apiUserId`: the upstream user id for New API `New-API-User` header.
 ///
 /// This design keeps the interceptor stateless — every request carries its
 /// own auth context, allowing a single Dio instance to serve multiple
@@ -40,6 +41,17 @@ class AuthInterceptor extends Interceptor {
           // No authentication header needed.
           break;
       }
+    }
+
+    // 3. Inject the New API user id header when available.
+    //
+    // New API and most of its forks require the caller to echo the upstream
+    // user id via `New-API-User`. Non-positive ids are the "unfilled"
+    // sentinel (`-1`) or absent state — skip injection so the backend can
+    // still attempt token-only identification if it supports that mode.
+    final userId = options.extra['apiUserId'] as int?;
+    if (userId != null && userId > 0) {
+      options.headers['New-API-User'] = '$userId';
     }
 
     handler.next(options);

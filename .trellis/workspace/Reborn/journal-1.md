@@ -1766,3 +1766,91 @@ flipping the account switch actually drives execution.
 ### Next Steps
 
 - None - task complete
+
+
+## Session 23: check-in: per-account aggregation + paginated history + 50-record cap
+
+**Date**: 2026-04-22
+**Task**: check-in: per-account aggregation + paginated history + 50-record cap
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## Overview
+
+Refactored the auto check-in page so the main list collapses to one card per account (showing each account's most recent result) and tapping a row opens a dedicated paginated history view. Capped Hive `check_in_results` at 50 records per `accountId` with trim-on-write and a silent startup migration.
+
+Delivered as two Trellis tasks:
+- `04-22-check-in-data-layer-cap` (Batch 1, commit `96c7733`) — datasource, repository, main.dart migration hook
+- `04-22-check-in-ui-master-detail` (Batch 2, commit `b68c357`) — providers, detail view, master-detail responsive layout
+
+## Changes
+
+| Area | Description |
+|------|-------------|
+| Data layer | New `CheckInLocalDataSource` methods: `getLatestResultPerAccount`, `getResultsByAccountIdPaged`, `countResultsByAccountId`, `deleteAllResultsByAccountId`, `pruneAccountResults`, `migrateResultsToCap`. `saveResult` now trims to `kCheckInResultsCapPerAccount = 50`. Five matching `Result<T>`-wrapped methods added to `CheckInRepository`. |
+| Bootstrap | `main.dart` silently runs `migrateResultsToCap()` after `initHive()` inside a `try/catch` so legacy users start in a tidy state without UI blocking. |
+| Providers | New: `latestResultPerAccountProvider`, `checkInAccountSummariesProvider` (drops orphan records), `selectedAccountIdProvider`. `checkInStatsProvider` now sources from the latest-per-account set so counters match the visible master list. `checkInDashboardProvider` marked `@Deprecated` during transition. `CheckInNotifier.executeAll/executeAllDue` invalidate the new provider. |
+| Pagination | New family `AccountCheckInHistoryNotifier` holding `{items, hasMore, nextOffset, isLoadingMore}`, `loadMore()` is idempotent under concurrent calls and when `!hasMore`. Page size `kCheckInDetailPageSize = 20`. `clearAll()` invalidates master + stats providers. |
+| UI | `CheckInPage` rewritten: left column = summary + stats + filter + master list (40% of width on wide screens); right column = `_CheckInDetailPanel` with empty-state placeholder until an account is selected. Mobile falls back to `Navigator.push` → new `CheckInAccountDetailPage`. Shared body widget `CheckInDetailView` (summary card + infinite scroll list + "clear all" confirm dialog) consumed by both layouts. |
+| Cross-sync | `CheckInDetailView` uses `ref.listen(latestResultPerAccountProvider)` to invalidate its own family state, so an open detail pane refreshes automatically after `executeAll`. |
+
+**Updated Files**:
+- `lib/features/check_in/data/datasources/check_in_local_datasource.dart`
+- `lib/features/check_in/data/repositories/check_in_repository_impl.dart`
+- `lib/features/check_in/domain/repositories/check_in_repository.dart`
+- `lib/features/check_in/presentation/pages/check_in_page.dart`
+- `lib/features/check_in/presentation/providers/check_in_notifier.dart`
+- `lib/features/check_in/presentation/providers/check_in_providers.dart`
+- `lib/main.dart`
+
+**New Files**:
+- `lib/features/check_in/presentation/pages/check_in_account_detail_page.dart`
+- `lib/features/check_in/presentation/providers/account_check_in_history_notifier.dart`
+- `lib/features/check_in/presentation/widgets/account_check_in_summary_card.dart`
+- `lib/features/check_in/presentation/widgets/check_in_detail_view.dart`
+
+## Tests
+
+Sub-agent driven (`general-purpose`). 16 new or extended cases; full suite **383/383 green**, `dart analyze` clean.
+
+| Test file | Purpose |
+|-----------|---------|
+| `test/features/check_in/data/datasources/check_in_local_datasource_test.dart` | 7 groups: trim-on-write cross-account isolation, latest-per-account, paging edge cases, count parity, delete-all, prune no-op / over-cap, multi-account migration. Uses real Hive boxes under a temp dir. |
+| `test/features/check_in/data/repositories/check_in_repository_impl_test.dart` | Extended with success + `StorageException` paths for the five new repository methods. |
+| `test/features/check_in/presentation/providers/account_check_in_history_notifier_test.dart` | build (full / short / empty / failure), loadMore (append, short-page flip, no-op when `!hasMore`, concurrent collapse), clearAll (repo call + state reset + downstream invalidation). |
+| `test/features/check_in/presentation/widgets/check_in_detail_view_test.dart` | Summary + rows + "no more" footer render; scroll-triggered `loadMore` with `offset: 20`; clear-all dialog path; empty state. |
+| `test/features/check_in/presentation/pages/check_in_page_test.dart` | Narrow push vs wide `selectedAccountIdProvider` update; orphan record filtering in the master list. |
+| `test/features/check_in/presentation/providers/check_in_dashboard_stats_test.dart` | Extended: verifies stats reflect the new latest-per-account source. |
+
+## Non-obvious decisions
+
+- Kept Hive (no SQLite). Per-account pagination is `skip/take` over scan+filter+sort. Scale is bounded by the 50-record cap × account count, so O(N) scans are acceptable and an index was not introduced.
+- `selectedAccountIdProvider` is a global `StateProvider`, not page-local state, so the selection survives `LayoutBuilder` rebuilds when the window resizes across the 900px breakpoint.
+- `CheckInResultCard` API was left untouched — the detail list wraps each `CheckInResult` in a locally-constructed `CheckInResultDisplay` so the card stays reusable between master and detail contexts.
+- `checkInDashboardProvider` kept with `@Deprecated` rather than deleted, to avoid blast radius in existing test files during the transition.
+- Migration runs synchronously before `runApp` (rather than in a bootstrap provider) because `initHive` has already opened both boxes and the work is bounded; the UI's first read should see the trimmed state.
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `96c7733` | (see git log) |
+| `b68c357` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

@@ -32,7 +32,8 @@ lib/
 │   │   └── failure_mapper.dart      # Dio → AppException mapper
 │   ├── network/
 │   │   ├── adapters/
-│   │   │   └── common_api_adapter.dart  # Common/new-api implementation
+│   │   │   ├── common_api_adapter.dart  # Common/new-api implementation
+│   │   │   └── veloera_api_adapter.dart # Extends common, overrides check-in path
 │   │   ├── dto/
 │   │   │   ├── api_response.dart    # Generic envelope wrapper
 │   │   │   ├── user_info_dto.dart
@@ -79,7 +80,7 @@ lib/
     │           ├── accounts_providers.dart  # Repository + Notifier provider declarations
     │           └── accounts_notifier.dart   # AsyncNotifier (CRUD + toggleEnabled)
     ├── keys/ (same structure, plus FamilyAsyncNotifier for per-account scoping)
-    └── check_in/ (same structure, plus executeCheckIn orchestration + FutureProvider.family for results)
+    └── check_in/ (same structure, plus executeCheckIn orchestration + FutureProvider.family for results + domain/services/ for cross-entity reconciliation)
 ```
 
 ---
@@ -87,7 +88,14 @@ lib/
 ## Module Organization
 
 - **`core/network/`** — Dio client, per-request auth injection, site adapter interface, DTOs
-  - `adapters/` — Concrete site adapter implementations (CommonApiAdapter)
+  - `adapters/` — Concrete site adapter implementations
+    - `common_api_adapter.dart` exposes the shared HTTP / envelope plumbing via a single
+      `@protected performRequest<T>({method, path, request, fromJson, queryParameters, data})`
+      hook. Site-specific subclasses (e.g. `VeloeraApiAdapter`) extend `CommonApiAdapter` and
+      override only the endpoints that differ (e.g. Veloera's `/api/user/check_in` snake-case
+      path). This avoids duplicating Dio setup and auth/extra forwarding.
+    - Subclasses must update `site_adapter_provider.dart` to replace the `SiteType → adapter`
+      map entry, otherwise fallback silently routes the site through `CommonApiAdapter`.
   - `dto/` — API response models (distinct from domain entities and Hive maps)
   - `api_request.dart` — Immutable per-request config (baseUrl + authToken + authType + userId)
 - **`core/error/`** — Sealed `AppException` hierarchy + Dio error mapping
@@ -97,6 +105,9 @@ lib/
 - **`features/<feature>/data/`** — Local + remote data sources, mappers (DTO↔entity, Map↔entity)
   - `repositories/` — Concrete repository implementations (wrap local datasources, return `Result<T>`)
 - **`features/<feature>/domain/`** — Entities, repository contracts (abstract interfaces)
+  - `services/` — Stateless domain services that coordinate multiple entities (e.g.
+    `AccountCheckInSyncService` reconciles `Account.checkIn.autoCheckInEnabled` into the
+    `CheckInTask` store via an idempotent upsert — no delete, no history loss).
 - **`features/<feature>/presentation/`** — Pages, widgets, Riverpod providers
   - `providers/` — Provider declarations (`*_providers.dart`) + AsyncNotifier classes (`*_notifier.dart`)
 

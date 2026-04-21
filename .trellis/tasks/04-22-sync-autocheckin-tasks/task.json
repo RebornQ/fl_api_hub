@@ -1,0 +1,53 @@
+{
+  "id": "sync-autocheckin-tasks",
+  "name": "sync-autocheckin-tasks",
+  "title": "feat(check-in): sync tasks from account config on execute-all",
+  "description": "Idempotent AccountCheckInSyncService invoked at the top of executeAll() to upsert CheckInTask based on each account's CheckInConfig.autoCheckInEnabled. Also skip AnyRouter/Wong/Sub2API with a marker CheckInResult.",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "Reborn",
+  "assignee": "Reborn",
+  "createdAt": "2026-04-22",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

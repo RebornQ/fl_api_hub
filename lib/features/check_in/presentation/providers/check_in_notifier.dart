@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/network/api_request.dart';
+import '../../../../core/network/site_type.dart';
 import '../../../../core/result/result.dart';
 import '../../../accounts/presentation/providers/accounts_providers.dart';
 import '../../data/datasources/check_in_remote_datasource.dart';
@@ -16,6 +17,17 @@ import '../../data/models/check_in_api_mapper.dart';
 import '../../domain/entities/check_in_result.dart';
 import '../../domain/entities/check_in_task.dart';
 import 'check_in_providers.dart';
+
+/// SiteTypes whose check-in REST protocol is not yet implemented in this
+/// app. Accounts carrying one of these types will still appear in the
+/// task list (when they opt into auto-check-in via [CheckInConfig]) but
+/// their execution is short-circuited with a [CheckInStatus.skipped]
+/// result so the user sees a clear "暂不支持" message.
+const _unsupportedSiteTypes = <SiteType>{
+  SiteType.anyrouter,
+  SiteType.wongGongyi,
+  SiteType.sub2api,
+};
 
 /// Manages the async state of the check-in task list.
 class CheckInNotifier extends AsyncNotifier<List<CheckInTask>> {
@@ -112,6 +124,27 @@ class CheckInNotifier extends AsyncNotifier<List<CheckInTask>> {
     final token = account.accessToken;
     if (token == null || token.isEmpty) return null;
 
+    // 3a. Unsupported site type guard. When the sync service creates tasks
+    // for accounts whose SiteType still lacks a check-in adapter
+    // (AnyRouter / Wong / Sub2API as of Apr 2026), executing them would
+    // misroute to the CommonApiAdapter. Record a skipped result instead
+    // so the user knows the request wasn't silently dropped.
+    if (_unsupportedSiteTypes.contains(account.siteType)) {
+      final now = DateTime.now();
+      final result = CheckInResult(
+        id: const Uuid().v4(),
+        taskId: task.id,
+        accountId: task.accountId,
+        status: CheckInStatus.skipped,
+        message: '${account.siteType.displayName} 站点暂不支持自动签到',
+        executedAt: now,
+      );
+      await checkInRepo.saveResult(result);
+      await checkInRepo.saveTask(task.copyWith(lastRunAt: now, updatedAt: now));
+      await _refreshTasks();
+      return result;
+    }
+
     // 3b. userId sentinel: account snapshot hasn't been hydrated via
     // /api/user/self yet (default sentinel is -1). Strict New-API backends
     // require the `New-API-User` header, so firing a request here would
@@ -203,7 +236,23 @@ class CheckInNotifier extends AsyncNotifier<List<CheckInTask>> {
   ///
   /// Returns the list of [CheckInResult]s from all executions.
   /// Individual failures do not prevent other tasks from running.
+  ///
+  /// Before dispatching, this reconciles the task list with each account's
+  /// [CheckInConfig.autoCheckInEnabled] switch (idempotent upsert) so the
+  /// batch reflects the user's current intent even when tasks were never
+  /// created manually. The sync is non-destructive — disabled accounts
+  /// keep their historical tasks and results; only the `enabled` flag is
+  /// toggled.
   Future<List<CheckInResult?>> executeAll() async {
+    // 1. Reconcile tasks against the current account list. Failures here
+    //    fall through gracefully — we still run whatever task state is
+    //    currently in the store.
+    await ref.read(accountCheckInSyncServiceProvider).sync();
+
+    // 2. Re-read tasks so the notifier state reflects any newly created /
+    //    toggled rows before we pick winners for this batch.
+    await _refreshTasks();
+
     final tasks = state.valueOrNull ?? [];
     final enabled = tasks.where((t) => t.enabled).toList();
     final results = <CheckInResult?>[];

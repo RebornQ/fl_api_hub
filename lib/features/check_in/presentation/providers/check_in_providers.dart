@@ -18,6 +18,7 @@ import '../../data/repositories/check_in_repository_impl.dart';
 import '../../domain/entities/check_in_result.dart';
 import '../../domain/entities/check_in_task.dart';
 import '../../domain/repositories/check_in_repository.dart';
+import '../../domain/services/account_check_in_sync_service.dart';
 import 'check_in_notifier.dart';
 
 export 'check_in_notifier.dart';
@@ -38,6 +39,20 @@ final checkInProvider =
     AsyncNotifierProvider<CheckInNotifier, List<CheckInTask>>(
       CheckInNotifier.new,
     );
+
+/// Provides the [AccountCheckInSyncService] wired to both repositories.
+///
+/// Invoked at the top of [CheckInNotifier.executeAll] so tasks always
+/// reflect each account's current `autoCheckInEnabled` switch before the
+/// batch runs.
+final accountCheckInSyncServiceProvider = Provider<AccountCheckInSyncService>((
+  ref,
+) {
+  return AccountCheckInSyncService(
+    accountsRepo: ref.watch(accountsRepositoryProvider),
+    checkInRepo: ref.watch(checkInRepositoryProvider),
+  );
+});
 
 // ── Per-task result providers ───────────────────────────────────────
 

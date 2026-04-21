@@ -100,7 +100,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
             width: 48,
             height: 48,
             child: FloatingActionButton(
-              heroTag: 'refresh',
+              heroTag: 'check_in_refresh',
               onPressed: () {
                 ref.invalidate(allCheckInResultsProvider);
                 ref.invalidate(checkInProvider);

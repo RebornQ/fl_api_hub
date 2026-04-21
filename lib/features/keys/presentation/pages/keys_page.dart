@@ -116,7 +116,7 @@ class _KeysPageState extends ConsumerState<KeysPage> {
             width: 48,
             height: 48,
             child: FloatingActionButton(
-              heroTag: 'refresh',
+              heroTag: 'keys_refresh',
               onPressed: _selectedAccountId != null
                   ? () => ref.invalidate(keysProvider(_selectedAccountId!))
                   : null,
@@ -144,7 +144,7 @@ class _KeysPageState extends ConsumerState<KeysPage> {
     final colorScheme = Theme.of(context).colorScheme;
     final enabled = _selectedAccountId != null;
     return Hero(
-      tag: 'add',
+      tag: 'keys_add',
       child: Opacity(
         opacity: enabled ? 1.0 : 0.5,
         child: Material(

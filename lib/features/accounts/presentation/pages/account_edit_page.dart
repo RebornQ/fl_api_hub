@@ -88,7 +88,10 @@ class _AccountEditPageState extends ConsumerState<AccountEditPage> {
     _notesController = TextEditingController(text: a?.notes ?? '');
     _usernameController = TextEditingController(text: a?.username ?? '');
     _userIdController = TextEditingController(
-      text: a?.userId != null ? a!.userId.toString() : '',
+      // Sentinel userId (-1) is the unfilled marker; reflect it as empty
+      // so the validator treats the field as missing and prompts the user
+      // to supply a real positive id.
+      text: (a != null && a.userId > 0) ? a.userId.toString() : '',
     );
     _exchangeRateController = TextEditingController(
       text: (a?.exchangeRate ?? kDefaultUsdToCnyRate).toString(),
@@ -97,7 +100,7 @@ class _AccountEditPageState extends ConsumerState<AccountEditPage> {
       text: a?.manualBalanceUsd != null ? a!.manualBalanceUsd.toString() : '',
     );
 
-    _siteType = a?.siteType ?? SiteType.newApi;
+    _siteType = a?.siteType ?? SiteType.unknown;
     _authType = a?.authType ?? _siteType.defaultAuthType;
     _excludeFromTotalBalance = a?.excludeFromTotalBalance ?? false;
     _tagIds = List<String>.from(a?.tagIds ?? const []);
@@ -287,7 +290,7 @@ class _AccountEditPageState extends ConsumerState<AccountEditPage> {
           key: const ValueKey('urlField'),
           controller: _urlController,
           decoration: const InputDecoration(
-            labelText: '站点 URL',
+            labelText: '站点 URL *',
             hintText: 'https://api.example.com',
           ),
           keyboardType: TextInputType.url,
@@ -303,7 +306,7 @@ class _AccountEditPageState extends ConsumerState<AccountEditPage> {
               child: TextFormField(
                 key: const ValueKey('nameField'),
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: '站点名称'),
+                decoration: const InputDecoration(labelText: '站点名称 *'),
                 textInputAction: TextInputAction.next,
                 validator: _validateName,
                 onChanged: (_) => setState(() {}),
@@ -341,8 +344,9 @@ class _AccountEditPageState extends ConsumerState<AccountEditPage> {
               child: TextFormField(
                 key: const ValueKey('usernameField'),
                 controller: _usernameController,
-                decoration: const InputDecoration(labelText: '用户名'),
+                decoration: const InputDecoration(labelText: '用户名 *'),
                 textInputAction: TextInputAction.next,
+                validator: _validateUsername,
                 onChanged: (_) => setState(() {}),
               ),
             ),
@@ -351,7 +355,7 @@ class _AccountEditPageState extends ConsumerState<AccountEditPage> {
               child: TextFormField(
                 key: const ValueKey('userIdField'),
                 controller: _userIdController,
-                decoration: const InputDecoration(labelText: '用户 ID'),
+                decoration: const InputDecoration(labelText: '用户 ID *'),
                 keyboardType: TextInputType.number,
                 textInputAction: TextInputAction.next,
                 validator: _validateUserId,
@@ -365,7 +369,7 @@ class _AccountEditPageState extends ConsumerState<AccountEditPage> {
           key: const ValueKey('exchangeRateField'),
           controller: _exchangeRateController,
           decoration: const InputDecoration(
-            labelText: '充值比例',
+            labelText: '充值比例 *',
             suffixText: 'CNY/USD',
           ),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -493,6 +497,12 @@ class _AccountEditPageState extends ConsumerState<AccountEditPage> {
     return null;
   }
 
+  String? _validateUsername(String? value) {
+    if (value == null || value.trim().isEmpty) return '请输入用户名';
+    if (value.trim().length > 50) return '用户名不能超过 50 个字符';
+    return null;
+  }
+
   String? _validateUrl(String? value) {
     if (value == null || value.trim().isEmpty) return '请输入站点 URL';
     final trimmed = value.trim();
@@ -508,9 +518,10 @@ class _AccountEditPageState extends ConsumerState<AccountEditPage> {
   }
 
   String? _validateUserId(String? value) {
-    if (value == null || value.trim().isEmpty) return null;
+    if (value == null || value.trim().isEmpty) return '请输入用户 ID';
     final parsed = int.tryParse(value.trim());
     if (parsed == null) return '请输入有效的数字';
+    if (parsed <= 0) return '请输入大于 0 的正整数';
     return null;
   }
 
@@ -633,7 +644,8 @@ class _AccountEditPageState extends ConsumerState<AccountEditPage> {
           : _tokenController.text;
     }
 
-    final parsedUserId = int.tryParse(_userIdController.text.trim());
+    final parsedUserId =
+        int.tryParse(_userIdController.text.trim()) ?? -1;
     final parsedExchangeRate =
         double.tryParse(_exchangeRateController.text.trim()) ??
         kDefaultUsdToCnyRate;
@@ -641,9 +653,7 @@ class _AccountEditPageState extends ConsumerState<AccountEditPage> {
         ? null
         : double.tryParse(_manualBalanceController.text.trim());
 
-    final username = _usernameController.text.trim().isEmpty
-        ? null
-        : _usernameController.text.trim();
+    final username = _usernameController.text.trim();
     final notes = _notesController.text.trim().isEmpty
         ? null
         : _notesController.text.trim();

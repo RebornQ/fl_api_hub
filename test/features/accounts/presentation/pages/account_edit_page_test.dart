@@ -127,7 +127,16 @@ void main() {
       await tester.pumpWidget(buildHost());
       await tester.pumpAndSettle();
 
-      // Default siteType is new-api which is managed.
+      // Default siteType is unknown which is non-managed, so the
+      // auto-config button is hidden until the user picks a managed type.
+      expect(find.byKey(const ValueKey('autoConfigButton')), findsNothing);
+
+      // Switch to new-api (managed).
+      await tester.tap(find.byKey(const ValueKey('siteTypeField')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('New API').last);
+      await tester.pumpAndSettle();
+
       expect(find.byKey(const ValueKey('autoConfigButton')), findsOneWidget);
 
       // Switch to one-api (non-managed).
@@ -157,6 +166,13 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('自动识别功能即将上线～'), findsNothing);
 
+      // The auto-config button is only visible for managed site types;
+      // default is unknown (non-managed), so switch to new-api first.
+      await tester.tap(find.byKey(const ValueKey('siteTypeField')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('New API').last);
+      await tester.pumpAndSettle();
+
       await tester.tap(find.byKey(const ValueKey('autoConfigButton')));
       await tester.pump();
       expect(find.text('保存并配置功能即将上线～'), findsOneWidget);
@@ -168,6 +184,8 @@ void main() {
       await tester.pumpWidget(buildHost());
       await tester.pumpAndSettle();
 
+      // Fill every now-required site-info field; exchangeRate already
+      // has a default value in the controller, so it doesn't need input.
       await tester.enterText(
         find.byKey(const ValueKey('nameField')),
         'New Site',
@@ -175,6 +193,14 @@ void main() {
       await tester.enterText(
         find.byKey(const ValueKey('urlField')),
         'https://new.example.com',
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('usernameField')),
+        'admin',
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('userIdField')),
+        '42',
       );
       await tester.pump();
 
@@ -185,6 +211,8 @@ void main() {
       final created = notifier.created.single;
       expect(created.name, 'New Site');
       expect(created.baseUrl, 'https://new.example.com');
+      expect(created.username, 'admin');
+      expect(created.userId, 42);
       expect(created.enabled, isTrue);
       expect(notifier.checkedOne, [created.id]);
     });

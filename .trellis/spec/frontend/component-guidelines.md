@@ -178,6 +178,22 @@ class _XEditPageState extends ConsumerState<XEditPage> {
   in their final position from day one and respond with a SnackBar
   (`'该功能即将上线'`) — do not hide them behind feature flags, it
   desyncs UI from the design source of truth.
+- Required fields whose domain entity uses a **sentinel** for "unfilled"
+  (e.g. `username: ''`, `userId: -1`) must detect the sentinel during
+  controller init and reflect it as an empty string:
+  ```dart
+  _userIdController = TextEditingController(
+    text: (a != null && a.userId > 0) ? a.userId.toString() : '',
+  );
+  ```
+  The paired validator then rejects empty / sentinel input, forcing the
+  user to supply a real value before save. See
+  `guides/cross-layer-thinking-guide.md` → **Mistake 6** for the full
+  three-layer contract.
+- Label required fields visibly by appending ` *` to the `labelText`
+  (e.g. `labelText: '站点 URL *'`). Do not rely on the validator alone
+  to communicate that a field is mandatory — the asterisk is the user's
+  pre-submit cue.
 
 **Don't**:
 - Don't reach for `showModalBottomSheet` when the field count grows past

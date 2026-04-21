@@ -298,5 +298,196 @@ void main() {
         );
       });
     });
+
+    group('getLatestResultPerAccount', () {
+      test('returns Success with the datasource output', () async {
+        when(
+          () => mockLocal.getLatestResultPerAccount(),
+        ).thenReturn([testResult]);
+
+        final result = await repository.getLatestResultPerAccount();
+
+        expect(result, isA<Success<List<CheckInResult>>>());
+        expect((result as Success<List<CheckInResult>>).data, [testResult]);
+        verify(() => mockLocal.getLatestResultPerAccount()).called(1);
+      });
+
+      test('returns Failure with StorageException on error', () async {
+        when(
+          () => mockLocal.getLatestResultPerAccount(),
+        ).thenThrow(Exception('db error'));
+
+        final result = await repository.getLatestResultPerAccount();
+
+        expect(result, isA<Failure<List<CheckInResult>>>());
+        final failure = result as Failure<List<CheckInResult>>;
+        expect(failure.exception, isA<StorageException>());
+        expect(
+          failure.exception.message,
+          contains('Failed to load latest-per-account results'),
+        );
+      });
+    });
+
+    group('getResultsByAccountIdPaged', () {
+      test(
+        'delegates limit/offset to the datasource and wraps Success',
+        () async {
+          when(
+            () => mockLocal.getResultsByAccountIdPaged(
+              'account-id',
+              limit: 20,
+              offset: 40,
+            ),
+          ).thenReturn([testResult]);
+
+          final result = await repository.getResultsByAccountIdPaged(
+            'account-id',
+            limit: 20,
+            offset: 40,
+          );
+
+          expect(result, isA<Success<List<CheckInResult>>>());
+          expect((result as Success<List<CheckInResult>>).data, [testResult]);
+          verify(
+            () => mockLocal.getResultsByAccountIdPaged(
+              'account-id',
+              limit: 20,
+              offset: 40,
+            ),
+          ).called(1);
+        },
+      );
+
+      test('returns Failure with StorageException on error', () async {
+        when(
+          () => mockLocal.getResultsByAccountIdPaged(
+            'account-id',
+            limit: any(named: 'limit'),
+            offset: any(named: 'offset'),
+          ),
+        ).thenThrow(Exception('db error'));
+
+        final result = await repository.getResultsByAccountIdPaged(
+          'account-id',
+          limit: 20,
+          offset: 0,
+        );
+
+        expect(result, isA<Failure<List<CheckInResult>>>());
+        final failure = result as Failure<List<CheckInResult>>;
+        expect(failure.exception, isA<StorageException>());
+        expect(
+          failure.exception.message,
+          contains('Failed to load paged results for account'),
+        );
+      });
+    });
+
+    group('countResultsByAccountId', () {
+      test('returns Success with the count', () async {
+        when(
+          () => mockLocal.countResultsByAccountId('account-id'),
+        ).thenReturn(42);
+
+        final result = await repository.countResultsByAccountId('account-id');
+
+        expect(result, isA<Success<int>>());
+        expect((result as Success<int>).data, 42);
+        verify(() => mockLocal.countResultsByAccountId('account-id')).called(1);
+      });
+
+      test('returns Failure with StorageException on error', () async {
+        when(
+          () => mockLocal.countResultsByAccountId('account-id'),
+        ).thenThrow(Exception('db error'));
+
+        final result = await repository.countResultsByAccountId('account-id');
+
+        expect(result, isA<Failure<int>>());
+        final failure = result as Failure<int>;
+        expect(failure.exception, isA<StorageException>());
+        expect(
+          failure.exception.message,
+          contains('Failed to count results for account'),
+        );
+      });
+    });
+
+    group('deleteAllResultsByAccountId', () {
+      test('returns Success with the number deleted', () async {
+        when(
+          () => mockLocal.deleteAllResultsByAccountId('account-id'),
+        ).thenAnswer((_) async => 7);
+
+        final result = await repository.deleteAllResultsByAccountId(
+          'account-id',
+        );
+
+        expect(result, isA<Success<int>>());
+        expect((result as Success<int>).data, 7);
+        verify(
+          () => mockLocal.deleteAllResultsByAccountId('account-id'),
+        ).called(1);
+      });
+
+      test('returns Failure with StorageException on error', () async {
+        when(
+          () => mockLocal.deleteAllResultsByAccountId('account-id'),
+        ).thenThrow(Exception('delete failed'));
+
+        final result = await repository.deleteAllResultsByAccountId(
+          'account-id',
+        );
+
+        expect(result, isA<Failure<int>>());
+        final failure = result as Failure<int>;
+        expect(failure.exception, isA<StorageException>());
+        expect(
+          failure.exception.message,
+          contains('Failed to clear results for account'),
+        );
+      });
+    });
+
+    group('migrateResultsToCap', () {
+      test('returns Success and forwards keep parameter', () async {
+        when(
+          () => mockLocal.migrateResultsToCap(keep: 50),
+        ).thenAnswer((_) async => 0);
+
+        final result = await repository.migrateResultsToCap();
+
+        expect(result, isA<Success<void>>());
+        verify(() => mockLocal.migrateResultsToCap(keep: 50)).called(1);
+      });
+
+      test('forwards a custom keep value', () async {
+        when(
+          () => mockLocal.migrateResultsToCap(keep: 10),
+        ).thenAnswer((_) async => 123);
+
+        final result = await repository.migrateResultsToCap(keep: 10);
+
+        expect(result, isA<Success<void>>());
+        verify(() => mockLocal.migrateResultsToCap(keep: 10)).called(1);
+      });
+
+      test('returns Failure with StorageException on error', () async {
+        when(
+          () => mockLocal.migrateResultsToCap(keep: any(named: 'keep')),
+        ).thenThrow(Exception('migrate failed'));
+
+        final result = await repository.migrateResultsToCap();
+
+        expect(result, isA<Failure<void>>());
+        final failure = result as Failure<void>;
+        expect(failure.exception, isA<StorageException>());
+        expect(
+          failure.exception.message,
+          contains('Failed to migrate check-in results'),
+        );
+      });
+    });
   });
 }

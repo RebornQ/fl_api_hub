@@ -167,4 +167,91 @@ class CheckInRepositoryImpl implements CheckInRepository {
       );
     }
   }
+
+  @override
+  Future<Result<List<CheckInResult>>> getLatestResultPerAccount() async {
+    try {
+      return Success(_local.getLatestResultPerAccount());
+    } catch (e, st) {
+      return Failure(
+        StorageException(
+          message: 'Failed to load latest-per-account results: $e',
+          originalError: e,
+          stackTrace: st,
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Result<List<CheckInResult>>> getResultsByAccountIdPaged(
+    String accountId, {
+    required int limit,
+    required int offset,
+  }) async {
+    try {
+      return Success(
+        _local.getResultsByAccountIdPaged(
+          accountId,
+          limit: limit,
+          offset: offset,
+        ),
+      );
+    } catch (e, st) {
+      return Failure(
+        StorageException(
+          message: 'Failed to load paged results for account: $e',
+          originalError: e,
+          stackTrace: st,
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Result<int>> countResultsByAccountId(String accountId) async {
+    try {
+      return Success(_local.countResultsByAccountId(accountId));
+    } catch (e, st) {
+      return Failure(
+        StorageException(
+          message: 'Failed to count results for account: $e',
+          originalError: e,
+          stackTrace: st,
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Result<int>> deleteAllResultsByAccountId(String accountId) async {
+    try {
+      final deleted = await _local.deleteAllResultsByAccountId(accountId);
+      return Success(deleted);
+    } catch (e, st) {
+      return Failure(
+        StorageException(
+          message: 'Failed to clear results for account: $e',
+          originalError: e,
+          stackTrace: st,
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Result<void>> migrateResultsToCap({int keep = 50}) async {
+    try {
+      await _local.migrateResultsToCap(keep: keep);
+      return const Success(null);
+    } catch (e, st) {
+      return Failure(
+        StorageException(
+          message: 'Failed to migrate check-in results: $e',
+          originalError: e,
+          stackTrace: st,
+        ),
+      );
+    }
+  }
 }

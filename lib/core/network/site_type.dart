@@ -28,7 +28,15 @@ enum SiteType {
   octopus('octopus', AuthType.accessToken, isManaged: true),
   sub2api('sub2api', AuthType.cookie, isManaged: false),
   anyrouter('anyrouter', AuthType.cookie, isManaged: false),
-  wongGongyi('wong-gongyi', AuthType.cookie, isManaged: false);
+  wongGongyi('wong-gongyi', AuthType.cookie, isManaged: false),
+
+  /// Placeholder for accounts whose backend type has not been confirmed yet.
+  ///
+  /// Persisted as `'unknown'`. Calls fall back to the [SiteType.newApi]
+  /// adapter via [siteAdapterForTypeProvider], so the account remains
+  /// functional while the user later confirms the real type through the
+  /// "re-detect" flow in the edit sheet.
+  unknown('unknown', AuthType.accessToken, isManaged: false);
 
   const SiteType(this.value, this.defaultAuthType, {required this.isManaged});
 
@@ -62,6 +70,7 @@ enum SiteType {
     SiteType.sub2api => 'Sub2API',
     SiteType.anyrouter => 'AnyRouter',
     SiteType.wongGongyi => 'Wong Gongyi',
+    SiteType.unknown => 'Unknown',
   };
 }
 

@@ -1426,3 +1426,75 @@ entitlement。adhoc 签名两者都没有：
 - 实装 Cookie / Sub2API 字段编辑分支（`authType != accessToken` 的 UI 子表）
 - `autoDetect` 按钮接 `SiteAdapter.probe(baseUrl)` 做真实站点类型探测
 - 托管站点 `rocket_launch` 按钮跳转到 ChannelDialog / TokenList 页面
+
+
+## Session 18: 账号弹窗重构的 code-spec 沉淀
+
+**Date**: 2026-04-22
+**Task**: 账号弹窗重构的 code-spec 沉淀
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+### Summary
+
+对昨天（Session 18）账号编辑弹窗重构产出的可执行契约进行沉淀。`/trellis:finish-work` 把 5 批次改动分成 3 个 commit 合入 main 后，再以 `/trellis:update-spec` 收尾，把跨层契约和复用模式写进 `.trellis/spec/`，方便未来的 AI / 开发者直接按模板套用。
+
+### Main Changes
+
+| 文件 | 新增行 | 内容 |
+|---|---|---|
+| `.trellis/spec/frontend/state-management.md` | +211 | **Pattern 4 — Serialized Writes in an AsyncNotifier**（`_writeQueue` + `Completer` chain + `ref.keepAlive`）/ **Pattern 5 — Cross-Feature Cascade Delete via Sibling Repository**（跨层契约 7-section mandatory：Scope / Signatures / Contracts / Validation & Error Matrix / Good-Base-Bad / Tests Required / Wrong vs Correct） |
+| `.trellis/spec/frontend/component-guidelines.md` | +113 | **Pattern — Full-Screen Form Page with Unsaved-Changes Guard**（`Navigator.push(fullscreenDialog: true)` + `_FormSnapshot` 值对象 + `PopScope(canPop: !_isDirty)` + 双路径 close 一致性 + 必需 widget 测试清单） |
+| `.trellis/spec/guides/cross-layer-thinking-guide.md` | +42 | **Mistake 4: Lazy Cascade on Read**（指向 Pattern 5）/ **Mistake 5: Dual-Source Booleans Across Layers**（AND/OR 语义契约，以 `account.checkIn.autoCheckInEnabled AND CheckInTask.enabled` 为例）/ Checklist 补两条：cascade delete 检查、legacy payload round-trip |
+
+### Key Decisions
+
+- **Code-Spec vs Guide 严格分工**：实现契约（怎么写、测什么）全部沉到 `frontend/state-management.md` 和 `component-guidelines.md` 的 **Reusable Patterns** 区；`guides/` 只留 checklist / pointer，不复述规则
+- **跨层契约必须有 7-section 深度**：Tag→Account 级联删除是 `TagsRepository.delete` 调 `AccountsRepository.removeTagFromAllAccounts(id)` 的跨层协议，按 `/trellis:update-spec` 的 Mandatory Triggers 规则完整输出 Scope / Signatures / Contracts / Error Matrix / Good-Base-Bad / Tests / Wrong-vs-Correct
+- **Wrong vs Correct 用真实代码**：选 lazy filter on read（坏）vs cascade on write（好）这一对 Dart 片段，避免原则级空话
+- **双源布尔用显式 AND/OR 契约化**：`CheckInConfig.autoCheckInEnabled` 和 `CheckInTask.enabled` 的双源真相风险在 Session 18 评审时被 Plan agent 捕捉，现在以 Mistake 5 形式沉淀
+
+### Updated Files
+
+- `.trellis/spec/frontend/state-management.md`（211 → 494 行）
+- `.trellis/spec/frontend/component-guidelines.md`（86 → 199 行）
+- `.trellis/spec/guides/cross-layer-thinking-guide.md`（94 → 136 行）
+
+### Testing
+
+- 改动仅限 `.trellis/spec/` Markdown 文档，无代码变更
+- 工作树干净后对齐 `flutter analyze` / `flutter test` 状态（Session 18 基线：0 issues / 301 passed）
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 下个 feature（keys 编辑 / 设置页）按 Pattern 4 / Full-Screen Form Page 模板复用
+- 跨 feature 引用删除场景（例如未来 "项目-账号" 关联）严格走 Pattern 5 的 7-section 流程
+- `CheckInTask` 侧调度器实装时，显式在代码里实现 Mistake 5 的 AND 语义（并加 regression test）
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `9875197` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

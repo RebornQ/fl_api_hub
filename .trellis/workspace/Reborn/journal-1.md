@@ -1428,17 +1428,10 @@ entitlement。adhoc 签名两者都没有：
 - 托管站点 `rocket_launch` 按钮跳转到 ChannelDialog / TokenList 页面
 
 
-## Session 18: 账号弹窗重构的 code-spec 沉淀
+## Session 19: 账号弹窗重构的 code-spec 沉淀
 
 **Date**: 2026-04-22
-**Task**: 账号弹窗重构的 code-spec 沉淀
 **Branch**: `main`
-
-### Summary
-
-(Add summary)
-
-### Main Changes
 
 ### Summary
 
@@ -1465,6 +1458,12 @@ entitlement。adhoc 签名两者都没有：
 - `.trellis/spec/frontend/component-guidelines.md`（86 → 199 行）
 - `.trellis/spec/guides/cross-layer-thinking-guide.md`（94 → 136 行）
 
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `9875197` | docs(spec): capture cascade-delete and async-notifier serialization contracts |
+
 ### Testing
 
 - 改动仅限 `.trellis/spec/` Markdown 文档，无代码变更
@@ -1477,24 +1476,5 @@ entitlement。adhoc 签名两者都没有：
 ### Next Steps
 
 - 下个 feature（keys 编辑 / 设置页）按 Pattern 4 / Full-Screen Form Page 模板复用
-- 跨 feature 引用删除场景（例如未来 "项目-账号" 关联）严格走 Pattern 5 的 7-section 流程
+- 跨 feature 引用删除场景（例如未来"项目-账号"关联）严格走 Pattern 5 的 7-section 流程
 - `CheckInTask` 侧调度器实装时，显式在代码里实现 Mistake 5 的 AND 语义（并加 regression test）
-
-
-### Git Commits
-
-| Hash | Message |
-|------|---------|
-| `9875197` | (see git log) |
-
-### Testing
-
-- [OK] (Add test results)
-
-### Status
-
-[OK] **Completed**
-
-### Next Steps
-
-- None - task complete

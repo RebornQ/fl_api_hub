@@ -84,3 +84,116 @@ Current example:
 - Using mutable public widget fields instead of `final` fields.
 - Forgetting `const` constructors or `const` children where possible.
 - Mixing app shell, feature UI, and future data logic into one widget file.
+
+---
+
+## Reusable Patterns
+
+### Pattern — Full-Screen Form Page with Unsaved-Changes Guard
+
+**When to use**: an edit/add screen with more than ~5 fields or
+Section-grouped content. Prefer a full-screen `Scaffold` pushed via
+`Navigator.push(MaterialPageRoute(fullscreenDialog: true))` over a
+bottom sheet; the extra surface area plays better with BottomAppBar
+actions and an AppBar close button.
+
+**Reference implementation**:
+
+- `lib/features/accounts/presentation/pages/account_edit_page.dart`
+
+**Signature contract**:
+
+```dart
+class XEditPage extends ConsumerStatefulWidget {
+  final X? entity;                         // null → add mode
+  const XEditPage({super.key, this.entity});
+
+  static Future<void> push(BuildContext context, {X? entity}) {
+    return Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => XEditPage(entity: entity),
+        fullscreenDialog: true,
+      ),
+    );
+  }
+}
+
+@immutable
+class _FormSnapshot {
+  // Only the user-editable fields; id/createdAt/balance excluded so the
+  // comparison is not skewed by derived data.
+  // ... fields + operator == + hashCode
+}
+
+class _XEditPageState extends ConsumerState<XEditPage> {
+  late final _FormSnapshot _initialSnapshot;
+  _FormSnapshot get _currentSnapshot => _FormSnapshot.fromControllers(/* ... */);
+  bool get _isDirty => _currentSnapshot != _initialSnapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: !_isDirty,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final ok = await _confirmDiscardChanges();
+        if (ok && context.mounted) Navigator.of(context).pop();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            tooltip: '关闭',
+            icon: const Icon(Icons.close),
+            onPressed: _requestClose,          // also runs confirm flow
+          ),
+          // ...
+        ),
+        body: SingleChildScrollView(child: Form(key: _formKey, child: ...)),
+        bottomNavigationBar: SafeArea(
+          top: false,
+          child: BottomAppBar(child: Row(children: [...])),
+        ),
+      ),
+    );
+  }
+}
+```
+
+**Rules**:
+- The dirty check must compare a `_FormSnapshot` value object, NOT the
+  domain entity. Comparing entities pulls in `id`, `createdAt`, cached
+  `balance`, etc., which drift even when the user hasn't edited anything.
+- Both pathways into "close" must run the same confirm flow:
+  - PopScope (system back gesture / predictive back) via
+    `onPopInvokedWithResult`.
+  - Explicit close button via `IconButton(onPressed: _requestClose)`.
+- `canPop: !_isDirty` flips the behavior — PopScope only intercepts when
+  there are unsaved edits. A clean form returns immediately on back.
+- `_requestClose` checks `_isDirty` first and only opens the dialog when
+  needed; a pristine form pops without confirmation.
+- Validate inside `_submit` via `Form.of(context).validate()` — do not
+  rely on the primary button being disabled until all fields pass, as
+  that hides which field is invalid.
+- Placeholder actions (e.g. a future "auto-detect" button) must render
+  in their final position from day one and respond with a SnackBar
+  (`'该功能即将上线'`) — do not hide them behind feature flags, it
+  desyncs UI from the design source of truth.
+
+**Don't**:
+- Don't reach for `showModalBottomSheet` when the field count grows past
+  ~5 or when there are ≥3 footer actions. Sheets crop the form, fight
+  the keyboard, and make BottomAppBar action rows impossible.
+- Don't scatter "token modified" booleans across the state. If the user
+  touches the field, let the snapshot comparison handle it.
+
+**Required tests** (widget):
+- Edit mode pre-fills every field from the injected entity.
+- Add mode renders the "add" primary button label and empty defaults.
+- `_isDirty` detection: enter text in one field → back gesture shows
+  the discard dialog; discard returns to the list.
+- Conditional footer affordances (e.g. managed-only rocket_launch) show
+  iff the site type flag says so.
+- Placeholder actions surface the "即将上线" SnackBar and do not mutate
+  state.
+- Submit calls the expected notifier method (`create` vs `update`) with
+  the right id semantics.

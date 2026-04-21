@@ -281,3 +281,214 @@ A typical "fan-out background refresh" feature composes all three:
 - Widget/Notifier: disabled items skip + clear cache; `force: true` bypasses
   throttle; `markChecking` drained on thrown task.
 - Regression: `updatedAt` **not** touched by the partial patch path.
+
+---
+
+## Reusable Patterns (from tags + account edit, 2026-04)
+
+These two patterns were added during the account-edit dialog rewrite and
+the new tags feature. They sit at the `presentation` ↔ `data` boundary and
+encode concurrency + cross-feature integrity invariants that are easy to
+forget when adding a new feature.
+
+### Pattern 4 — Serialized Writes in an AsyncNotifier
+
+**When to use**: an `AsyncNotifier` exposes mutation methods that can be
+called back-to-back by the same UI action (tag picker "create" button,
+quick double-tap on save, form field auto-save). Without serialization,
+two concurrent calls may both observe pre-write state and each insert a
+"new" record, producing duplicates.
+
+**Reference implementation**:
+
+- `lib/features/tags/presentation/providers/tags_notifier.dart` —
+  `TagsNotifier._enqueue`, `upsertByName`, `rename`, `delete`
+
+**Signature contract**:
+
+```dart
+class XNotifier extends AsyncNotifier<List<X>> {
+  // Chain of pending write operations. Each write awaits the previous
+  // one to settle (success *or* failure) before running its own work.
+  Future<void> _writeQueue = Future<void>.value();
+
+  @override
+  Future<List<X>> build() async {
+    ref.keepAlive();                         // stay resident across
+                                             //   short-lived UIs
+    final r = await ref.read(xRepoProvider).getAll();
+    return r.when(
+      onSuccess: (list) => list,
+      onFailure: (e) => throw e,
+    );
+  }
+
+  Future<X> upsertByName(String name) {
+    return _enqueue(() async {
+      final r = await ref.read(xRepoProvider).upsertByName(name);
+      return switch (r) {
+        Success(:final data) => () { _mergeInState(data); return data; }(),
+        Failure(:final exception) => throw exception,
+      };
+    });
+  }
+
+  Future<T> _enqueue<T>(Future<T> Function() action) async {
+    final previous = _writeQueue;
+    final completer = Completer<void>();
+    _writeQueue = completer.future;
+    try {
+      // Swallow the previous error so it does not cascade into ours.
+      await previous.catchError((Object _, StackTrace _) {});
+      return await action();
+    } finally {
+      completer.complete();
+    }
+  }
+}
+```
+
+**Rules**:
+- Every state-mutating public method goes through `_enqueue`. Reads
+  (`build`, derived getters) do NOT enqueue.
+- `previous.catchError(...)` must swallow the prior failure so a bad
+  earlier write does not poison subsequent writes with an unrelated
+  `AsyncError`.
+- `_mergeInState` edits the local list via a new `AsyncData([...next])`
+  — never mutates the existing list in-place.
+- `ref.keepAlive()` is only appropriate when the dataset is small and
+  universally useful (tag list, short preference sets). Large feeds
+  should rely on implicit invalidation instead.
+
+**Don't**:
+- Don't add per-method locks or `synchronized` packages — the single
+  `_writeQueue` field is sufficient and survives `dispose()` because
+  `AsyncNotifier` instances are rebuilt fresh on next listen.
+- Don't rely on Riverpod's `AsyncLoading` alone to serialize — back-to-back
+  public method calls execute between microtasks and neither sees the
+  other's `AsyncLoading` before acting.
+
+**Required tests**:
+- Concurrent same-value test: fire `upsertByName('Prod')` and
+  `upsertByName('prod')` in `Future.wait` — both must return the same id
+  (`counter == 1` on the underlying creation path).
+- Failure isolation: a failing `upsertByName` must not leave the next
+  write pending; assert the next `upsertByName` resolves normally.
+- State consistency: after N serialized writes the state list length
+  equals the unique normalized keys.
+
+### Pattern 5 — Cross-Feature Cascade Delete via Sibling Repository
+
+> **Trigger**: new cross-layer contract. Apply the full 7-section
+> treatment whenever one feature's deletion must update another
+> feature's data.
+
+**Scope / Trigger**
+
+- Trigger: deleting an entity in feature `A` would leave dangling
+  references inside feature `B`'s records.
+- Mandatory when referenced ids persist to local storage / backups /
+  WebDAV and lazy "filter on read" would silently hide the issue.
+
+**Signatures**
+
+```dart
+// Sibling contract, owned by the feature that holds the back-reference.
+abstract class BsRepository {
+  /// Returns the number of B records whose reference list was modified.
+  Future<Result<int>> removeAReferenceFromAllBs(String aId);
+}
+
+// Deleting feature A drives the cascade.
+abstract class AsRepository {
+  Future<Result<void>> delete(String aId);
+}
+```
+
+Reference implementation (tags → accounts):
+
+- `lib/features/accounts/domain/repositories/accounts_repository.dart` —
+  `removeTagFromAllAccounts(String tagId) -> Future<Result<int>>`
+- `lib/features/accounts/data/repositories/accounts_repository_impl.dart`
+- `lib/features/tags/data/repositories/tags_repository_impl.dart` —
+  `TagsRepositoryImpl.delete` (cascade orchestration)
+- `lib/features/tags/presentation/providers/tags_notifier.dart` —
+  `TagsNotifier.delete` (UI-level cache invalidation)
+
+**Contracts**
+
+| Step | Side | Input | Output | Constraint |
+|------|------|-------|--------|-----------|
+| 1    | A    | `aId` | existence check | Fail fast with `StorageException('A not found')` if missing |
+| 2    | B    | `aId` | `Result<int>` count | Must not throw; exceptions become `Failure(StorageException)` |
+| 3    | A    | `aId` | void | Only delete after step 2 Success |
+| 4    | UI   | —     | —      | `ref.invalidate(bProvider)` so consumers re-read |
+
+Required env / wiring: both repositories and their providers must be
+reachable from a single Riverpod graph so the deleting notifier can
+`ref.read(bRepositoryProvider)`.
+
+**Validation & Error Matrix**
+
+| Condition                              | Result                                              |
+|----------------------------------------|-----------------------------------------------------|
+| A does not exist                       | `Failure(StorageException('A not found'))`; no B write |
+| B cascade returns `Failure`            | Abort delete; A record stays on disk; surface B error |
+| B cascade returns `Success(n)`         | Proceed to delete A                                 |
+| A delete throws                        | `Failure(StorageException)`; orphan state possible — callers must re-run delete |
+| No B referenced A                      | `Success(0)` from cascade; A delete proceeds        |
+
+**Good / Base / Bad Cases**
+
+- **Good**: Cascade is atomic from the user's perspective — either both A
+  and B update, or nothing visible changes (error toast surfaces).
+- **Base**: Cascade runs even if zero B references exist — negligible
+  cost, keeps the control flow uniform.
+- **Bad**: Lazy filter on read ("skip tagIds that no longer resolve").
+  Masks the bug, breaks WebDAV backups, causes duplicate tags when the
+  user restores a backup then recreates the same-named tag.
+
+**Tests Required**
+
+- `a_repository_impl_test.dart` — `removeAReferenceFromAllBs`:
+  - Updates only Bs that reference `aId`, returns exact count.
+  - Leaves other `aIds` in the same B record intact.
+  - Returns `Failure` on underlying storage errors.
+- `b_repository_impl_test.dart` — `delete`:
+  - Calls sibling cascade **before** deleting the A record.
+  - Aborts and leaves A on disk if cascade fails.
+  - Fails fast if A does not exist (sibling is not called).
+- `b_notifier_test.dart` — `delete`:
+  - After success, the A list state drops the id AND `ref.invalidate`
+    causes `bProvider` to re-read so downstream UI sees the cleaned
+    back-references.
+
+**Wrong vs Correct**
+
+```dart
+// Wrong — reads tagIds through a lazy filter, leaves orphans on disk.
+List<Tag> selectedTags(Account a, List<Tag> all) {
+  final byId = {for (final t in all) t.id: t};
+  return a.tagIds
+      .map((id) => byId[id])
+      .whereType<Tag>()
+      .toList();                            // orphan ids silently dropped
+}
+```
+
+```dart
+// Correct — delete flow is the single place that cleans up references.
+Future<Result<void>> delete(String tagId) async {
+  final cascade = await _accounts.removeTagFromAllAccounts(tagId);
+  if (cascade is Failure<int>) return Failure<void>(cascade.exception);
+  await _local.delete(tagId);
+  return const Success(null);
+}
+```
+
+**Don't**:
+- Don't call the sibling cascade *after* deleting the primary record.
+  An intermittent failure on step 2 leaves B with references to a
+  non-existent A.
+- Don't substitute `on catch` + retry on the UI side — fix the flow at
+  the repository layer so every caller gets the same guarantee.

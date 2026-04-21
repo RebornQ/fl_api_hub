@@ -68,6 +68,40 @@ For each boundary:
 
 **Good**: Each layer only knows its neighbors
 
+### Mistake 4: Lazy Cascade on Read
+
+**Bad**: Feature `A` deletes an entity but feature `B`'s records still
+cite it; the read path "filters out orphan ids".
+
+**Good**: Cascade on write. The deleting feature calls the sibling
+repository to clean references **before** removing its own record.
+
+→ See `frontend/state-management.md` → **Pattern 5 — Cross-Feature
+Cascade Delete via Sibling Repository** for the executable contract and
+wrong-vs-correct example.
+
+### Mistake 5: Dual-Source Booleans Across Layers
+
+**Bad**: The same "is-enabled" decision is persisted in two places
+without a documented precedence rule — e.g. `Account.autoCheckInEnabled`
+on the domain entity **and** `CheckInTask.enabled` inside the scheduler
+storage. Whichever layer reads last sets the apparent truth, and the UI
+toggle silently stops working whenever the other side was updated.
+
+**Good**: Persist each concern in exactly one layer. If both must exist
+(per-account opt-in vs scheduler-level kill-switch), document the
+precedence as an explicit AND/OR:
+
+```
+scheduler should run on account a at time t
+  ⇔ account.checkIn.autoCheckInEnabled   // user-level opt-in
+    AND taskFor(a).enabled               // scheduler-level kill switch
+```
+
+Reference: `lib/features/accounts/domain/entities/check_in_config.dart`
+library-level comment spells out the contract; the scheduler must honor
+the AND semantics.
+
 ---
 
 ## Checklist for Cross-Layer Features
@@ -77,11 +111,19 @@ Before implementation:
 - [ ] Identified all layer boundaries
 - [ ] Defined format at each boundary
 - [ ] Decided where validation happens
+- [ ] If one entity is referenced by id in another entity's list field:
+      is there a **cascade delete** path? (Mistake 4)
+- [ ] If the feature has an "enabled" / "active" flag: is it persisted
+      in one place, or documented with explicit AND/OR semantics across
+      layers? (Mistake 5)
 
 After implementation:
 - [ ] Tested with edge cases (null, empty, invalid)
 - [ ] Verified error handling at each boundary
 - [ ] Checked data survives round-trip
+- [ ] If new fields were added to a persisted entity, verified that
+      legacy payloads (missing those fields) still deserialize (Hive
+      mapper fallback coverage).
 
 ---
 

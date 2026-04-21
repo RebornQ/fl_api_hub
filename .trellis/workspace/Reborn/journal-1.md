@@ -1324,3 +1324,105 @@ entitlement。adhoc 签名两者都没有：
 ### Next Steps
 
 - None - task complete
+
+
+## Session 18: 账号编辑弹窗重构（5 批次）
+
+**Date**: 2026-04-21
+**Task**: 04-21-extend-account-entity / 04-21-add-tags-module / 04-21-reusable-form-components / 04-21-account-edit-page-rewrite / 04-21-cleanup-and-verify
+**Branch**: `main`
+
+### Summary
+
+按 Stitch HTML 设计稿对齐 PRD 重构账号编辑入口：淘汰旧的 bottom-sheet `AccountFormSheet`，改为全屏 `Navigator.push` 的 `AccountEditPage`；扩展 `Account` 实体 7 个字段（用户 / 计费 / 签到 / 标签分组）+ 新增独立 `features/tags` 三层模块；签到配置从单开关升级为带时间窗口 / 重试策略的内嵌 Section。
+
+### Main Changes
+
+| 层 | 文件 | 说明 |
+|---|---|---|
+| **数据层 / 实体** | `lib/features/accounts/domain/entities/account.dart` | +7 字段 `username / userId / exchangeRate / manualBalanceUsd / excludeFromTotalBalance / tagIds / checkIn`，`redemptionUrl` 抽到根级 |
+| 数据层 / 实体 | `lib/features/accounts/domain/entities/check_in_config.dart` | **新增** `CheckInConfig` 值对象（enabled / windowStart / windowEnd / retry / cookie） |
+| 数据层 / 常量 | `lib/core/config/app_defaults.dart` | **新增** `kDefaultUsdToCnyRate = 7.24`（PRD 基线汇率，Stitch 稿一致） |
+| 数据层 / 映射 | `lib/features/accounts/data/models/account_mapper.dart` | `toMap` / `fromMap` 同步 7 字段；对旧 Hive 数据向后兼容 null-safe 读取 |
+| 数据层 / 仓库 | `lib/features/accounts/data/repositories/accounts_repository_impl.dart` + `domain/repositories/accounts_repository.dart` | 签名对齐新字段 |
+| 数据层 / 持久化 | `lib/core/storage/hive_store.dart` | 新增 `tags` Hive box 注册 |
+| **Tag 模块（全新）** | `lib/features/tags/domain/entities/tag.dart` + `repositories/tags_repository.dart` | 实体 + 接口 |
+| Tag 模块 | `lib/features/tags/data/models/tag_mapper.dart` + `datasources/tags_local_datasource.dart` + `repositories/tags_repository_impl.dart` | Hive 映射 + 本地数据源 + `upsertByName` 归一化 + 删除级联清理 `Account.tagIds` |
+| Tag 模块 | `lib/features/tags/presentation/providers/tags_providers.dart` + `tags_notifier.dart` | AsyncNotifierProvider + 串行化锁防并发重名 |
+| Tag 模块 | `lib/features/tags/presentation/widgets/tag_chip_input.dart` | Chip 选择 + Picker 对话框 + 现场创建新标签 |
+| **可复用组件** | `lib/core/widgets/section_card.dart` | 通用分组容器（图标 + 大写标题 + 子内容） |
+| 可复用组件 | `lib/features/accounts/presentation/widgets/check_in_config_section.dart` | 签到配置 Section（启用 / 时间窗口 / 重试次数 / 重试间隔） |
+| **AccountEditPage** | `lib/features/accounts/presentation/pages/account_edit_page.dart` | 全屏 `Scaffold` + `AppBar` + `BottomAppBar`；4 个 `SectionCard` 分组；`PopScope` + `isDirty` 拦截；`rocket_launch` 仅 `isManaged` 站点显示；autoDetect / 跳托管站点 / Cookie 子表显示 "即将上线" SnackBar |
+| **入口接线** | `lib/features/accounts/presentation/pages/accounts_page.dart` | FAB / 空状态 CTA / 卡片 tap 全部改为 `AccountEditPage.push(context, account:...)` |
+| **Legacy Stub** | `lib/features/accounts/presentation/widgets/account_form_sheet.dart` + `test/.../account_form_sheet_test.dart` | 清空为 `library;` + 注释 + `void main() {}`（用户要求保留物理文件） |
+
+### Key Decisions
+
+- **改为全屏 `Navigator.push` Page**（而非 `showModalBottomSheet` / `showGeneralDialog`）：复杂表单在 mobile / desktop 屏幕均需纵向空间；原生返回键 / AppBar back 一键 pop；AnimatedSwitcher 等嵌套不再受 bottom sheet 约束
+- **Tag 模块独立三层 + 级联删除**：避免散落在 `accounts/` 内部；`upsertByName` 做 `trim() + toLowerCase()` 归一化防重；删除标签时同步清理所有 `Account.tagIds` 引用保持数据一致性
+- **`redemptionUrl` 抽到 `Account` 根级**（不嵌 `CheckInConfig`）：兑换码 URL 是站点属性，与签到调度无关；domain 保持 single responsibility
+- **autoDetect / 托管站点跳转 / Cookie / Sub2API 作为下期**：本批次只拉通实体 + 主编辑 UI，这几个按钮接口已预留，点击后 SnackBar "即将上线"
+- **`CheckInConfig` 只存静态配置**：账号级 `enabled / windowStart / windowEnd / retryCount / retryInterval / cookie`；调度真正执行归 `CheckInTask.enabled`；最终生效值 = `account.checkIn.enabled AND task.enabled`
+- **`PopScope` + `isDirty` 拦截**：Form 任意字段改动后未保存返回时弹出 `AlertDialog` 二次确认，避免误触丢数据
+- **`account_form_sheet.dart` 保留为空 library stub**：用户明确要求不物理删除文件；保留 `library;` 头 + 注释指引 `account_edit_page.dart`；`_test.dart` 留 `void main() {}` 让 `flutter test` 不报 load 失败
+
+### Updated Files
+
+**新增（lib/）**:
+- `lib/core/config/app_defaults.dart`
+- `lib/core/widgets/section_card.dart`
+- `lib/features/accounts/domain/entities/check_in_config.dart`
+- `lib/features/accounts/presentation/pages/account_edit_page.dart`
+- `lib/features/accounts/presentation/widgets/check_in_config_section.dart`
+- `lib/features/tags/domain/entities/tag.dart`
+- `lib/features/tags/domain/repositories/tags_repository.dart`
+- `lib/features/tags/data/models/tag_mapper.dart`
+- `lib/features/tags/data/datasources/tags_local_datasource.dart`
+- `lib/features/tags/data/repositories/tags_repository_impl.dart`
+- `lib/features/tags/presentation/providers/tags_providers.dart`
+- `lib/features/tags/presentation/providers/tags_notifier.dart`
+- `lib/features/tags/presentation/widgets/tag_chip_input.dart`
+
+**修改（lib/）**:
+- `lib/core/storage/hive_store.dart`
+- `lib/features/accounts/domain/entities/account.dart`
+- `lib/features/accounts/domain/repositories/accounts_repository.dart`
+- `lib/features/accounts/data/models/account_mapper.dart`
+- `lib/features/accounts/data/repositories/accounts_repository_impl.dart`
+- `lib/features/accounts/presentation/pages/accounts_page.dart`
+- `lib/features/accounts/presentation/widgets/account_form_sheet.dart`（清空为 stub）
+
+**新增（test/）**:
+- `test/core/widgets/section_card_test.dart`
+- `test/features/accounts/presentation/pages/account_edit_page_test.dart`
+- `test/features/accounts/presentation/widgets/check_in_config_section_test.dart`
+- `test/features/tags/domain/entities/tag_test.dart`
+- `test/features/tags/data/repositories/tags_repository_impl_test.dart`
+- `test/features/tags/presentation/providers/tags_notifier_test.dart`
+- `test/features/tags/presentation/widgets/tag_chip_input_test.dart`
+
+**修改（test/）**:
+- `test/features/accounts/data/models/account_mapper_test.dart`
+- `test/features/accounts/data/repositories/accounts_repository_impl_test.dart`
+- `test/features/accounts/domain/entities/account_test.dart`
+- `test/features/accounts/presentation/widgets/account_form_sheet_test.dart`（清空为 stub）
+
+### Testing
+
+- `dart format .` → 18 files formatted（纯空白差异，无语义变化）；二次运行 0 changed
+- `flutter analyze lib/ test/` → **No issues found!**
+- `flutter test` → **301/301 passed**（基线 255 → +46 含 SectionCard / TagChipInput / AccountEditPage / tags / check_in_config_section 等新增覆盖）
+- 残留扫描：
+  - `grep -n AccountFormSheet lib/` 仅剩 `account_edit_page.dart:3` 一处 doc comment 记录历史演进，非活代码引用
+  - `grep -n "AccountFormSheet.show" lib/ test/` 零命中
+  - `grep -n account_form_sheet lib/ test/` 零命中（stub 文件不自引用）
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 实装 Cookie / Sub2API 字段编辑分支（`authType != accessToken` 的 UI 子表）
+- `autoDetect` 按钮接 `SiteAdapter.probe(baseUrl)` 做真实站点类型探测
+- 托管站点 `rocket_launch` 按钮跳转到 ChannelDialog / TokenList 页面

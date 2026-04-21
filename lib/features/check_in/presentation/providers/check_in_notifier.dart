@@ -112,11 +112,33 @@ class CheckInNotifier extends AsyncNotifier<List<CheckInTask>> {
     final token = account.accessToken;
     if (token == null || token.isEmpty) return null;
 
+    // 3b. userId sentinel: account snapshot hasn't been hydrated via
+    // /api/user/self yet (default sentinel is -1). Strict New-API backends
+    // require the `New-API-User` header, so firing a request here would
+    // always fail. Record a skipped result instead so the user sees a
+    // concrete prompt to refresh the account in the detail page.
+    if (account.userId <= 0) {
+      final now = DateTime.now();
+      final result = CheckInResult(
+        id: const Uuid().v4(),
+        taskId: task.id,
+        accountId: task.accountId,
+        status: CheckInStatus.skipped,
+        message: '账号缺少 userId,请先在账号详情页刷新/补全账号信息',
+        executedAt: now,
+      );
+      await checkInRepo.saveResult(result);
+      await checkInRepo.saveTask(task.copyWith(lastRunAt: now, updatedAt: now));
+      await _refreshTasks();
+      return result;
+    }
+
     // 4. Build the request.
     final request = ApiRequest(
       baseUrl: account.baseUrl,
       authToken: token,
       authType: account.authType,
+      userId: account.userId,
     );
 
     // 5. Call the remote API.

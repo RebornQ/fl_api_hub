@@ -1,0 +1,53 @@
+{
+  "id": "reusable-form-components",
+  "name": "reusable-form-components",
+  "title": "feat(ui): add reusable form components for account edit",
+  "description": "封装三个可复用组件：core/widgets/section_card.dart、features/tags/presentation/widgets/tag_chip_input.dart、features/accounts/presentation/widgets/check_in_config_section.dart。依赖 Task 1, 2。",
+  "status": "completed",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "Reborn",
+  "assignee": "Reborn",
+  "createdAt": "2026-04-21",
+  "completedAt": "2026-04-21",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

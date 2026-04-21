@@ -1,0 +1,53 @@
+{
+  "id": "account-edit-page-rewrite",
+  "name": "account-edit-page-rewrite",
+  "title": "refactor(accounts): rewrite edit dialog as full-screen page matching stitch design",
+  "description": "新增 AccountEditPage（Scaffold + AppBar + BottomAppBar 三按钮），按 HTML 设计稿分组渲染 4 个 SectionCard，替换旧的 AccountFormSheet。PopScope 防误触返回，入口改为 Navigator.push。rocket_launch 仅对 isManaged 站点显示。依赖 Task 1-3。",
+  "status": "completed",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P0",
+  "creator": "Reborn",
+  "assignee": "Reborn",
+  "createdAt": "2026-04-21",
+  "completedAt": "2026-04-21",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

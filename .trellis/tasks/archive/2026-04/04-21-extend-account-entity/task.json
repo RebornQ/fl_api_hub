@@ -1,0 +1,53 @@
+{
+  "id": "extend-account-entity",
+  "name": "extend-account-entity",
+  "title": "feat(accounts): extend account entity with user/billing/check-in/tag fields",
+  "description": "扩展 Account 实体支持 PRD 新字段（username/userId/exchangeRate/manualBalanceUsd/excludeFromTotalBalance/tagIds/checkIn/redemptionUrl），新建 CheckInConfig 值对象和 kDefaultUsdToCnyRate 常量，更新 AccountMapper 保持 Hive 向后兼容。",
+  "status": "completed",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P0",
+  "creator": "Reborn",
+  "assignee": "Reborn",
+  "createdAt": "2026-04-21",
+  "completedAt": "2026-04-21",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

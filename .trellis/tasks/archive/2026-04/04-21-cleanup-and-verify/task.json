@@ -1,0 +1,53 @@
+{
+  "id": "cleanup-and-verify",
+  "name": "cleanup-and-verify",
+  "title": "chore(accounts): cleanup legacy form sheet and verify end-to-end",
+  "description": "确认无 AccountFormSheet 遗留引用，flutter analyze + flutter test 整体通过，更新 journal 记录本次重构。依赖 Task 1-4。",
+  "status": "completed",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "Reborn",
+  "assignee": "Reborn",
+  "createdAt": "2026-04-21",
+  "completedAt": "2026-04-21",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

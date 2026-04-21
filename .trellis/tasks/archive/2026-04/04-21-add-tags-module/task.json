@@ -1,0 +1,53 @@
+{
+  "id": "add-tags-module",
+  "name": "add-tags-module",
+  "title": "feat(tags): add tag system foundation",
+  "description": "新建 lib/features/tags 三层架构（domain + data + presentation/providers）+ Hive box + AsyncNotifierProvider。upsertByName 做 trim+lowercase 归一化与锁串行化，delete 级联清理 Account.tagIds。依赖 Task 1。",
+  "status": "completed",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P0",
+  "creator": "Reborn",
+  "assignee": "Reborn",
+  "createdAt": "2026-04-21",
+  "completedAt": "2026-04-21",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

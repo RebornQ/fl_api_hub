@@ -1478,3 +1478,104 @@ entitlement。adhoc 签名两者都没有：
 - 下个 feature（keys 编辑 / 设置页）按 Pattern 4 / Full-Screen Form Page 模板复用
 - 跨 feature 引用删除场景（例如未来"项目-账号"关联）严格走 Pattern 5 的 7-section 流程
 - `CheckInTask` 侧调度器实装时，显式在代码里实现 Mistake 5 的 AND 语义（并加 regression test）
+
+
+## Session 20: Fix Hero tag collision + enforce required site-info fields with SiteType.unknown default
+
+**Date**: 2026-04-22
+**Task**: Fix Hero tag collision + enforce required site-info fields with SiteType.unknown default
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## Context
+
+Two issues surfaced while exercising the new full-screen `AccountEditPage`:
+
+1. **Hero tag collision** — opening the edit page (pushed via `fullscreenDialog: true`) threw `multiple heroes had the following tag: refresh` and later `... tag: add`. `AppShell` keeps every tab alive via `IndexedStack`, so the refresh / add FABs on all tabs co-exist in the same route subtree; Hero's pre-transition scan asserts on duplicate tags.
+2. **Site-info field hygiene** — username / user id had no validator (or a weak one), the required set was invisible to users, and "站点类型" jumped straight into a concrete backend instead of offering a safe placeholder for unconfirmed sites.
+
+## Changes Summary
+
+| Batch | Commit | Description |
+|-------|--------|-------------|
+| 1 | `3d8e6ab` | Rename colliding Hero tags (`refresh` x2, `add` x1 overlap) into unique `<feature>_<role>` form |
+| 2 | `b6ff492` | Add `SiteType.unknown` enum value (accessToken / non-managed / `'unknown'` persisted value), rendered as `'Unknown'` at dropdown end |
+| 3 | `e9f4351` | Tighten `Account.username: String` and `Account.userId: int` to non-null with documented sentinels `''` / `-1`; mapper rehydrates legacy nulls and traps unknown siteType strings into `SiteType.unknown` |
+| 4 | `77a2add` | Editor required-field UX: `*` suffix on five labels, new `_validateUsername`, stricter `_validateUserId` (positive int), sentinel-to-empty reflection in `initState`, default `_siteType = SiteType.unknown` |
+
+## Cross-Layer Contract Established
+
+Introduced an explicit **sentinel contract** spanning domain / data / presentation:
+
+```
+domain       → field is non-null; doc declares sentinel ('' or -1)
+data (mapper)→ legacy null payloads rehydrate into sentinel
+editor       → initState reflects sentinel as '' so validator can reject
+```
+
+Captured as **Mistake 6 — Non-null Required Field Backed by a Sentinel** in `.trellis/spec/guides/cross-layer-thinking-guide.md`, with an executable signature table, validation matrix, good/base/bad cases, and required-test list. Paired UI rule added to `frontend/component-guidelines.md`'s full-screen form pattern (sentinel reflection + `*` label convention).
+
+## Design Decisions (from interview)
+
+- `SiteType.unknown` treated as permanent legal type (can be saved), not a UI-only placeholder — aligns with future "re-detect" flow.
+- `defaultAuthType = AuthType.accessToken`, `isManaged: false` (hides "save & configure" rocket button).
+- adapter_provider stays un-changed; `unknown` silently falls back to `newApi` via `?? adapters[SiteType.newApi]!`.
+- **Sentinel over required-parameter** — kept optional constructor params with sentinel defaults rather than making them `required`, to avoid breaking ~15 existing Account constructor call sites in tests; type-system tightening still achieved.
+- Legacy user-id stored as `null` rehydrates to `-1`, which the editor shows as empty; user must re-enter before save.
+
+## Updated Files
+
+**Production code**
+- `lib/core/network/site_type.dart` — add `unknown` enum entry + displayName
+- `lib/features/accounts/domain/entities/account.dart` — username/userId non-null with sentinel doc
+- `lib/features/accounts/data/models/account_mapper.dart` — `_readSiteType` fallback + `_readUserId` sentinel + `username ?? ''`
+- `lib/features/accounts/presentation/pages/account_edit_page.dart` — required labels, validators, sentinel reflect, default unknown
+- `lib/features/check_in/presentation/pages/check_in_page.dart` — Hero tag `check_in_refresh`
+- `lib/features/keys/presentation/pages/keys_page.dart` — Hero tags `keys_refresh` / `keys_add`
+
+**Tests**
+- `test/features/accounts/domain/entities/account_test.dart` — default-construct asserts `''` / `-1`
+- `test/features/accounts/data/models/account_mapper_test.dart` — sentinel round-trip + unknown-siteType fallback regression
+- `test/features/accounts/presentation/pages/account_edit_page_test.dart` — 3 widget tests updated for new defaults
+
+**Spec docs**
+- `.trellis/spec/guides/cross-layer-thinking-guide.md` — new Mistake 6 + checklist items
+- `.trellis/spec/frontend/component-guidelines.md` — sentinel-reflection + required-label rules in full-screen form pattern
+
+## Verification
+
+- `flutter analyze` → No issues found
+- `flutter test` → 302 tests passed (added 1 regression test for unknown siteType fallback)
+- Manual smoke test on device: pending (handed off to human)
+
+## Known Follow-ups
+
+- Hook up "重新识别" button to real auto-detect flow (currently shows "即将上线" SnackBar); unknown-type accounts are the intended starting state for this flow.
+- Consider migrating remaining `heroTag` literals into a `core/ui/hero_tags.dart` constant file if a fourth tab is added (single source of truth across IndexedStack).
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3d8e6ab` | (see git log) |
+| `b6ff492` | (see git log) |
+| `e9f4351` | (see git log) |
+| `77a2add` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 19
+- **Total Sessions**: 20
 - **Last Active**: 2026-04-22
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1500 | Active |
+| `journal-1.md` | ~1581 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 20 | 2026-04-22 | Fix Hero tag collision + enforce required site-info fields with SiteType.unknown default | `3d8e6ab`, `b6ff492`, `e9f4351`, `77a2add` | `main` |
 | 19 | 2026-04-22 | 账号弹窗重构的 code-spec 沉淀 | `9875197` | `main` |
 | 18 | 2026-04-21 | 账号编辑弹窗重构（5 批次） | `08da6d0`, `bc012fe`, `edb60b2` | `main` |
 | 17 | 2026-04-19 | 扁平化敏感字段到实体并彻底移除 flutter_secure_storage | `57500f9` | `main` |

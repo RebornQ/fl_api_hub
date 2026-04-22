@@ -13,8 +13,11 @@ enum CheckInStatus {
   /// Check-in failed due to an error.
   failed,
 
-  /// Check-in was skipped (e.g. account disabled, already checked in).
+  /// Check-in was skipped (e.g. account disabled, userId missing).
   skipped,
+
+  /// Already checked in today (API returned success=false with "今日已签到").
+  alreadyChecked,
 }
 
 /// A single check-in execution result.
@@ -38,6 +41,12 @@ class CheckInResult {
   /// `null` if no reward or on failure/skip.
   final double? rewardAmount;
 
+  /// API 返回的签到日期（格式：YYYY-MM-DD）
+  final String? checkinDate;
+
+  /// API 返回的配额奖励值（原始整数）
+  final int? quotaAwarded;
+
   /// Timestamp when this check-in was executed.
   final DateTime executedAt;
 
@@ -48,6 +57,8 @@ class CheckInResult {
     required this.status,
     this.message,
     this.rewardAmount,
+    this.checkinDate,
+    this.quotaAwarded,
     required this.executedAt,
   });
 

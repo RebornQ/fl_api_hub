@@ -38,7 +38,8 @@ lib/
 │   │   │   ├── api_response.dart    # Generic envelope wrapper
 │   │   │   ├── user_info_dto.dart
 │   │   │   ├── site_status_dto.dart
-│   │   │   ├── check_in_result_dto.dart
+│   │   │   ├── check_in_result_dto.dart  # Top-level check-in response (success + message + data)
+│   │   │   ├── check_in_data_dto.dart    # Nested check-in data (checkin_date + quota_awarded)
 │   │   │   ├── check_in_status_dto.dart
 │   │   │   ├── token_dto.dart
 │   │   │   └── access_token_dto.dart
@@ -94,9 +95,17 @@ lib/
       hook. Site-specific subclasses (e.g. `VeloeraApiAdapter`) extend `CommonApiAdapter` and
       override only the endpoints that differ (e.g. Veloera's `/api/user/check_in` snake-case
       path). This avoids duplicating Dio setup and auth/extra forwarding.
+    - **Exception: Check-in endpoints** — `checkIn()` methods in both `CommonApiAdapter` and
+      `VeloeraApiAdapter` do NOT use `performRequest`. They parse `CheckInResultDto` directly
+      from the response and always return `Success` when HTTP 200, regardless of the
+      `apiResponse.success` field. This is because New-API returns `success: false` for
+      "already checked in" scenarios, which is a valid business state, not an error.
+      Status determination is delegated to `CheckInApiMapper`.
     - Subclasses must update `site_adapter_provider.dart` to replace the `SiteType → adapter`
       map entry, otherwise fallback silently routes the site through `CommonApiAdapter`.
   - `dto/` — API response models (distinct from domain entities and Hive maps)
+    - `check_in_result_dto.dart` — Top-level response with `success`, `message`, and `data` fields
+    - `check_in_data_dto.dart` — Nested data object with `checkin_date` and `quota_awarded`
   - `api_request.dart` — Immutable per-request config (baseUrl + authToken + authType + userId)
 - **`core/error/`** — Sealed `AppException` hierarchy + Dio error mapping
 - **`core/result/`** — `Result<T>` discriminated union (Success/Failure)
@@ -110,6 +119,66 @@ lib/
     `CheckInTask` store via an idempotent upsert — no delete, no history loss).
 - **`features/<feature>/presentation/`** — Pages, widgets, Riverpod providers
   - `providers/` — Provider declarations (`*_providers.dart`) + AsyncNotifier classes (`*_notifier.dart`)
+
+---
+
+## Special Case: Check-in Response Handling
+
+### Problem
+
+New-API's check-in endpoint returns `success: false` for "already checked in today" scenarios:
+
+```json
+{"message":"今日已签到","success":false}
+```
+
+This is a valid business state, not an error. However, the standard `performRequest` method treats `success: false` as a failure and returns `Failure<T>`, causing the UI to incorrectly display "failed" for already-checked-in cases.
+
+### Solution
+
+The `checkIn()` methods in both `CommonApiAdapter` and `VeloeraApiAdapter` bypass `performRequest` and implement custom response handling:
+
+1. **Parse directly**: Call `CheckInResultDto.fromJson()` directly on `response.data`
+2. **Always succeed on HTTP 200**: Return `Success<CheckInResultDto>` for any HTTP 200 response
+3. **Delegate status determination**: Let `CheckInApiMapper.inferStatus()` determine the actual status based on DTO content
+
+### Status Mapping
+
+`CheckInApiMapper.inferStatus()` maps DTO to `CheckInStatus`:
+
+| Condition | Status | UI Display | Stats Count |
+|-----------|--------|------------|-------------|
+| `success: true` | `success` | Green "成功" | Success |
+| `success: false` + "已签到" | `alreadyChecked` | Purple "已签到" | Success |
+| `success: false` + other | `failed` | Red "失败" | Failed |
+| Account disabled / no userId | `skipped` | Purple "已跳过" | Skipped |
+
+### Implementation Details
+
+**CommonApiAdapter.checkIn:**
+```dart
+@override
+Future<Result<CheckInResultDto>> checkIn(ApiRequest request) async {
+  try {
+    final response = await dioClient.dio.request('/api/user/checkin', ...);
+    final dto = CheckInResultDto.fromJson(response.data);
+    return Success<CheckInResultDto>(dto);
+  } on DioException catch (e, st) {
+    return Failure<CheckInResultDto>(mapToAppException(e, st));
+  }
+}
+```
+
+**VeloeraApiAdapter.checkIn:**
+- Same logic, different path: `/api/user/check_in` (snake_case)
+
+### Testing
+
+See `test/core/network/adapters/common_api_adapter_test.dart`:
+- HTTP 200 + `success: true` → `Success`
+- HTTP 200 + `success: false` + "已签到" → `Success`
+- HTTP 200 + `success: false` + other error → `Success`
+- `DioException` → `Failure`
 
 ---
 

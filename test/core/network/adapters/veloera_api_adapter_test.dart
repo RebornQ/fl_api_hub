@@ -63,7 +63,7 @@ void main() {
     });
 
     test('checkIn posts to /api/user/check_in with snake_case path', () async {
-      // Arrange — Dio returns a success envelope so performRequest succeeds.
+      // Arrange — Dio returns a success envelope.
       when(
         () => mockDio.request(
           any(),
@@ -77,8 +77,8 @@ void main() {
           statusCode: 200,
           data: const {
             'success': true,
-            'message': 'ok',
-            'data': {'message': 'Check-in successful', 'reward': 2.5},
+            'message': '签到成功',
+            'data': {'checkin_date': '2026-04-23', 'quota_awarded': 1000},
           },
         ),
       );
@@ -96,8 +96,11 @@ void main() {
       // Assert — returned DTO.
       expect(result, isA<Success>());
       final dto = (result as Success).data;
-      expect(dto.message, 'Check-in successful');
-      expect(dto.reward, 2.5);
+      expect(dto.success, true);
+      expect(dto.message, '签到成功');
+      expect(dto.data, isNotNull);
+      expect(dto.data!.checkinDate, '2026-04-23');
+      expect(dto.data!.quotaAwarded, 1000);
 
       // Assert — call details captured.
       final captured = verify(
@@ -151,8 +154,8 @@ void main() {
           statusCode: 200,
           data: const {
             'success': true,
-            'message': 'ok',
-            'data': {'message': 'done', 'reward': 0.1},
+            'message': '签到成功',
+            'data': {'checkin_date': '2026-04-23', 'quota_awarded': 100},
           },
         ),
       );

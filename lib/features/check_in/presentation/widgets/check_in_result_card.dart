@@ -106,6 +106,7 @@ class CheckInResultCard extends StatelessWidget {
       CheckInStatus.success => const Color(0xFF765B00), // tertiary tone
       CheckInStatus.failed => colorScheme.error,
       CheckInStatus.skipped => colorScheme.onSurfaceVariant,
+      CheckInStatus.alreadyChecked => colorScheme.onSurfaceVariant,
     };
   }
 

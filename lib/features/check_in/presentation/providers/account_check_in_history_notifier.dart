@@ -169,6 +169,8 @@ class AccountCheckInStats {
           failed++;
         case CheckInStatus.skipped:
           skipped++;
+        case CheckInStatus.alreadyChecked:
+          success++;
       }
     }
 

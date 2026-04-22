@@ -32,11 +32,7 @@ class CheckInDetailView extends ConsumerStatefulWidget {
   /// Called after the user confirms "clear all" and the deletion finishes.
   final VoidCallback? onCleared;
 
-  const CheckInDetailView({
-    super.key,
-    required this.accountId,
-    this.onCleared,
-  });
+  const CheckInDetailView({super.key, required this.accountId, this.onCleared});
 
   @override
   ConsumerState<CheckInDetailView> createState() => _CheckInDetailViewState();
@@ -115,17 +111,13 @@ class _CheckInDetailViewState extends ConsumerState<CheckInDetailView> {
     );
 
     final accounts = ref.watch(accountsProvider).valueOrNull ?? [];
-    final account = accounts
-        .where((a) => a.id == widget.accountId)
-        .firstOrNull;
+    final account = accounts.where((a) => a.id == widget.accountId).firstOrNull;
     final accountName = account?.name ?? '未知账号';
 
     final historyAsync = ref.watch(
       accountCheckInHistoryProvider(widget.accountId),
     );
-    final statsAsync = ref.watch(
-      accountCheckInStatsProvider(widget.accountId),
-    );
+    final statsAsync = ref.watch(accountCheckInStatsProvider(widget.accountId));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -133,7 +125,8 @@ class _CheckInDetailViewState extends ConsumerState<CheckInDetailView> {
         _buildHeader(context, accountName),
         Expanded(
           child: historyAsync.when(
-            data: (state) => _buildBody(context, state, statsAsync, accountName),
+            data: (state) =>
+                _buildBody(context, state, statsAsync, accountName),
             loading: () => const AppLoadingState(message: '加载中...'),
             error: (err, _) => AppErrorState(
               message: err.toString(),
@@ -160,9 +153,9 @@ class _CheckInDetailViewState extends ConsumerState<CheckInDetailView> {
           Expanded(
             child: Text(
               accountName,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -189,10 +182,7 @@ class _CheckInDetailViewState extends ConsumerState<CheckInDetailView> {
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
         child: Column(
           children: [
-            AccountCheckInSummaryCard(
-              accountName: accountName,
-              stats: stats,
-            ),
+            AccountCheckInSummaryCard(accountName: accountName, stats: stats),
             const SizedBox(height: AppSpacing.md),
             const SizedBox(
               height: 220,

@@ -33,6 +33,11 @@ class CheckInStatusBadge extends StatelessWidget {
         const Color(0xFF6D28D9),
         '已跳过',
       ),
+      CheckInStatus.alreadyChecked => (
+        const Color(0xFFEDE9FE),
+        const Color(0xFF6D28D9),
+        '已签到',
+      ),
     };
 
     return Container(

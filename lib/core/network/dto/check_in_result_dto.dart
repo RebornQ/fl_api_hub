@@ -3,21 +3,29 @@
 /// Represents the result of a daily check-in attempt.
 library;
 
+import 'check_in_data_dto.dart';
+
 /// Check-in execution result from the API.
 class CheckInResultDto {
-  /// Human-readable message (e.g. "Check-in successful, reward: 0.5").
+  /// Detailed check-in data (date and quota awarded).
+  final CheckInDataDto? data;
+
+  /// Whether the check-in was successful.
+  final bool success;
+
+  /// Human-readable message (e.g. "签到成功", "今日已签到").
   final String? message;
 
-  /// Reward amount received from this check-in.
-  final double? reward;
-
-  const CheckInResultDto({this.message, this.reward});
+  const CheckInResultDto({this.data, required this.success, this.message});
 
   /// Parses a raw JSON map into a [CheckInResultDto].
-  static CheckInResultDto fromJson(Map<String, dynamic> json) {
+  factory CheckInResultDto.fromJson(Map<String, dynamic> json) {
     return CheckInResultDto(
+      data: json['data'] != null
+          ? CheckInDataDto.fromJson(json['data'] as Map<String, dynamic>)
+          : null,
+      success: json['success'] as bool? ?? false,
       message: json['message'] as String?,
-      reward: (json['reward'] as num?)?.toDouble(),
     );
   }
 }

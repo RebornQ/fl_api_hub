@@ -9,6 +9,10 @@
 /// endpoint contract.
 library;
 
+import 'package:dio/dio.dart';
+
+import '../../error/app_exception.dart';
+import '../../error/failure_mapper.dart';
 import '../../result/result.dart';
 import '../api_request.dart';
 import '../dto/check_in_result_dto.dart';
@@ -27,12 +31,41 @@ class VeloeraApiAdapter extends CommonApiAdapter {
   SiteType get siteType => SiteType.veloera;
 
   @override
-  Future<Result<CheckInResultDto>> checkIn(ApiRequest request) {
-    return performRequest<CheckInResultDto>(
-      method: 'POST',
-      path: '/api/user/check_in',
-      request: request,
-      fromJson: CheckInResultDto.fromJson,
-    );
+  Future<Result<CheckInResultDto>> checkIn(ApiRequest request) async {
+    try {
+      final response = await dioClient.dio.request(
+        '/api/user/check_in',
+        options: Options(
+          method: 'POST',
+          extra: {
+            'apiBaseUrl': request.baseUrl,
+            'apiAuthToken': request.authToken,
+            'apiAuthType': request.authType.name,
+            'apiUserId': request.userId,
+          },
+        ),
+      );
+
+      // For check-in, we parse the DTO directly from the response without
+      // using ApiResponse, because we need to preserve the top-level success
+      // and message fields even when success=false (e.g., "already checked in").
+      // The Mapper layer (CheckInApiMapper) will determine the actual status
+      // (success/alreadyChecked/failed) based on the DTO content.
+      final dto = CheckInResultDto.fromJson(
+        response.data as Map<String, dynamic>,
+      );
+
+      return Success<CheckInResultDto>(dto);
+    } on DioException catch (e, st) {
+      return Failure<CheckInResultDto>(mapToAppException(e, st));
+    } catch (e, st) {
+      return Failure<CheckInResultDto>(
+        UnknownException(
+          message: e.toString(),
+          originalError: e,
+          stackTrace: st,
+        ),
+      );
+    }
   }
 }

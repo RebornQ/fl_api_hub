@@ -163,7 +163,7 @@ void main() {
         final fixture = buildContainer(
           siteType: account.siteType,
           stub: const Success<CheckInResultDto>(
-            CheckInResultDto(message: 'ok', reward: 1.0),
+            CheckInResultDto(success: true, message: 'ok'),
           ),
         );
 
@@ -207,7 +207,7 @@ void main() {
         final fixture = buildContainer(
           siteType: account.siteType,
           stub: const Success<CheckInResultDto>(
-            CheckInResultDto(message: 'should-not-be-called'),
+            CheckInResultDto(success: true, message: 'should-not-be-called'),
           ),
         );
 
@@ -260,7 +260,7 @@ void main() {
         final fixture = buildContainer(
           siteType: account.siteType,
           stub: const Success<CheckInResultDto>(
-            CheckInResultDto(message: 'should-not-be-called'),
+            CheckInResultDto(success: true, message: 'should-not-be-called'),
           ),
         );
 

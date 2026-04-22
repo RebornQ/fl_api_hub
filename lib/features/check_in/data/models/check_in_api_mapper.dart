@@ -13,24 +13,22 @@ class CheckInApiMapper {
 
   /// Infers the [CheckInStatus] from a [CheckInResultDto].
   ///
-  /// - If a reward is present and positive → [CheckInStatus.success].
-  /// - If the message suggests the user already checked in →
-  ///   [CheckInStatus.skipped].
+  /// - If success is true → [CheckInStatus.success].
+  /// - If success is false and message suggests already checked in →
+  ///   [CheckInStatus.alreadyChecked].
   /// - Otherwise → [CheckInStatus.failed].
   static CheckInStatus inferStatus(CheckInResultDto dto) {
-    if (dto.reward != null && dto.reward! > 0) {
+    // Prioritize the success field
+    if (dto.success) {
       return CheckInStatus.success;
     }
+
+    // Check message content when success is false
     final message = dto.message?.toLowerCase() ?? '';
     if (message.contains('already') || message.contains('已签到')) {
-      return CheckInStatus.skipped;
+      return CheckInStatus.alreadyChecked;
     }
-    // If there is no error message and no reward, it might still be success.
-    if (dto.message != null &&
-        !message.contains('fail') &&
-        !message.contains('error')) {
-      return CheckInStatus.success;
-    }
+
     return CheckInStatus.failed;
   }
 
@@ -51,7 +49,9 @@ class CheckInApiMapper {
       accountId: accountId,
       status: inferStatus(dto),
       message: dto.message,
-      rewardAmount: dto.reward,
+      rewardAmount: dto.data?.quotaAwarded?.toDouble(),
+      checkinDate: dto.data?.checkinDate,
+      quotaAwarded: dto.data?.quotaAwarded,
       executedAt: DateTime.now(),
     );
   }

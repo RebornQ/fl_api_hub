@@ -1854,3 +1854,124 @@ Sub-agent driven (`general-purpose`). 16 new or extended cases; full suite **383
 ### Next Steps
 
 - None - task complete
+
+
+## Session 24: 实现请求记录器完整功能（B1-B4）
+
+**Date**: 2026-04-23
+**Task**: 实现请求记录器完整功能（B1-B4）
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## 功能概述
+
+实现了完整的请求记录器（Request Logger）功能，用于调试 App 内的每个 HTTP 请求。采用 Clean Architecture + Feature-First 架构，分 4 个批次完成。
+
+## 实现批次
+
+### B1 - 数据层（41 个测试）
+- **实体定义**：`RequestLogEntry`、`StatusBucket`、`RequestLogFilter`
+- **工具函数**：
+  - `header_redactor.dart`：敏感头脱敏（Authorization、Cookie 等）
+  - `body_serializer.dart`：请求/响应体序列化（支持 JSON、FormData、二进制）
+  - `curl_exporter.dart`：导出为 curl 命令
+- **Dio 拦截器**：`RequestLoggerInterceptor` 自动捕获请求/响应
+- **Riverpod Providers**：
+  - `requestLoggerEnabledProvider`：开关状态
+  - `requestLogBufferProvider`：500 条 FIFO 环形缓冲区
+  - `requestLogFilterProvider`：过滤器状态
+  - `filteredRequestLogsProvider`：过滤后的日志列表
+
+### B2 - 入口接线（5 个测试）
+- **DioClient 改造**：
+  - 新增 `removeInterceptorsOfType<T>()` 方法
+  - `dioClientProvider` 监听开关状态动态挂载/卸载拦截器
+- **开发者选项页**：`DeveloperOptionsPage` 含开关和入口
+- **设置页入口**：从 Settings 页面导航到开发者选项
+
+### B3 - 列表页（12 个测试）
+- **Master-Detail 响应式布局**：
+  - ≥900px：双栏布局（左侧列表 + 右侧详情）
+  - <900px：单栏布局（点击 push 到详情页）
+- **过滤栏**：
+  - 搜索框：URL 关键词过滤
+  - 5 个状态 chips：全部/2xx/4xx/5xx/错误（含实时计数）
+- **清空功能**：确认对话框 + 清空缓冲区
+- **三种空状态**：开关关/开关开但无请求/过滤后无匹配
+
+### B4 - 详情页（9 个测试）
+- **三组 SectionCard**：
+  - 概览：method、URL、状态码、耗时、时间戳
+  - Request：query 参数、请求头、请求体（可折叠）
+  - Response：响应头、响应体（可折叠）、错误信息
+- **curl 复制**：FloatingActionButton 一键复制到剪贴板
+- **可折叠 body**：超过 10 行显示"展开"/"收起"按钮
+
+## 技术亮点
+
+- 🔒 **安全**：敏感头自动脱敏（值长度 ≤8 全 `*`，否则保留前 4 + 后 4）
+- 📦 **性能**：500 条 FIFO 环形缓冲区，超出自动淘汰
+- 📱 **响应式**：手机/平板/桌面自适应布局
+- 🎨 **Material Design 3**：现代化 UI 风格
+- 🧪 **测试完整**：67 个测试覆盖所有关键路径
+- 📋 **一键导出**：curl 命令复制到剪贴板
+
+## 文件变更
+
+**新增文件（21 个）**：
+- Domain 层：3 个实体
+- Data 层：4 个工具 + 1 个拦截器
+- Presentation 层：3 个页面 + 5 个 widget + 1 个 providers
+- 测试文件：8 个
+- 文档：4 个 PRD
+
+**修改文件（3 个）**：
+- `lib/core/network/dio_client.dart`：动态拦截器管理
+- `lib/features/settings/presentation/pages/settings_page.dart`：添加入口
+- `test/core/network/adapters/veloera_api_adapter_test.dart`：测试适配
+
+**代码统计**：
+- 36 files changed
+- 3477 insertions(+)
+- 23 deletions(-)
+
+## 验证结果
+
+- ✅ `flutter analyze`：0 issues
+- ✅ `flutter test`：67/67 tests passed
+- ✅ 无 TODO/FIXME/HACK 标记
+- ✅ 无调试语句（console.log/print）
+- ✅ 类型安全（Dart 强类型）
+
+## 使用方式
+
+1. 打开 App → 设置 → 开发者选项
+2. 打开"请求记录器"开关
+3. 触发任意请求（如签到）
+4. 点击"查看请求记录"查看列表
+5. 点击记录查看详情，可复制 curl 命令
+
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3aec0ce` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

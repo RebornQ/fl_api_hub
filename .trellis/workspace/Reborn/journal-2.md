@@ -108,3 +108,63 @@ New-API 签到接口存在两个问题：
 ### Next Steps
 
 - None - task complete
+
+
+## Session 26: fix(check-in): count alreadyChecked as success + fix data serialization
+
+**Date**: 2026-04-23
+**Task**: fix(check-in): count alreadyChecked as success + fix data serialization
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## Summary
+
+Fix three regressions from commit 71068c0 which added `CheckInStatus.alreadyChecked`:
+
+1. **alreadyChecked not counted as success on main page** — `CheckInDashboardStats.from`, filter bar counts, and `_executeAll` SnackBar only counted `CheckInStatus.success`, missing `alreadyChecked`. The fix was applied to the detail page's `AccountCheckInStats` but missed the main page entirely.
+
+2. **checkinDate/quotaAwarded not persisted** — `CheckInResultMapper.toMap` and `fromMap` never serialized the new fields added in 71068c0, so they were always `null` after reload.
+
+3. **Detail page records incomplete** — `ref.listen` in `CheckInDetailView` used `(_, _)` callback that fired on every state transition (including loading→data), resetting paginated history to page 1 unnecessarily. Changed to `(previous, next)` with `if (!next.hasValue) return` guard.
+
+| Area | Fix |
+|------|-----|
+| Main page stats | `alreadyChecked` counted as success in `CheckInDashboardStats.from` |
+| Filter bar | `alreadyChecked` included in success count |
+| ExecuteAll SnackBar | `alreadyChecked` included in success count |
+| Data persistence | `checkinDate` + `quotaAwarded` added to mapper `toMap`/`fromMap` |
+| Detail view | `ref.listen` skips loading transitions to prevent pagination reset |
+
+**Updated Files**:
+- `lib/features/check_in/presentation/providers/check_in_providers.dart`
+- `lib/features/check_in/presentation/pages/check_in_page.dart`
+- `lib/features/check_in/data/models/check_in_mapper.dart`
+- `lib/features/check_in/presentation/widgets/check_in_detail_view.dart`
+
+**Tests**:
+- `test/features/check_in/domain/entities/check_in_result_test.dart` — enum length 3→4 + `alreadyChecked` parse test
+- 460/460 all green, `dart analyze` clean
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `7551856` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

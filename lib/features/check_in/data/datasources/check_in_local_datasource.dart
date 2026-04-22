@@ -150,8 +150,7 @@ class CheckInLocalDataSource {
       final map = Map<String, dynamic>.from(raw as Map);
       final result = CheckInResultMapper.fromMap(map);
       final existing = byAccount[result.accountId];
-      if (existing == null ||
-          result.executedAt.isAfter(existing.executedAt)) {
+      if (existing == null || result.executedAt.isAfter(existing.executedAt)) {
         byAccount[result.accountId] = result;
       }
     }

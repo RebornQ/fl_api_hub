@@ -39,10 +39,7 @@ class _FakeAccountsNotifier extends AccountsNotifier {
   Future<void> checkOne(String id) async {}
 }
 
-Account _account({
-  required String id,
-  required String name,
-}) {
+Account _account({required String id, required String name}) {
   return Account(
     id: id,
     name: name,
@@ -133,11 +130,7 @@ void main() {
       ).thenAnswer((_) async => Success(secondPage));
     }
     when(
-      () => repo.getResultsByAccountIdPaged(
-        accountId,
-        limit: 50,
-        offset: 0,
-      ),
+      () => repo.getResultsByAccountIdPaged(accountId, limit: 50, offset: 0),
     ).thenAnswer((_) async => Success(statsOverride ?? firstPage));
   }
 
@@ -296,8 +289,9 @@ void main() {
     },
   );
 
-  testWidgets('empty state rendered when the account has no records',
-      (tester) async {
+  testWidgets('empty state rendered when the account has no records', (
+    tester,
+  ) async {
     const accountId = 'acc-4';
     stubPages(
       accountId: accountId,

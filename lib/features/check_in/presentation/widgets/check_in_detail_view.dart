@@ -102,9 +102,12 @@ class _CheckInDetailViewState extends ConsumerState<CheckInDetailView> {
   Widget build(BuildContext context) {
     // Whenever the master list refreshes (e.g. after execute-all), refetch
     // this account's page too so the open detail pane stays in sync.
+    // Only invalidate when new data is actually available — skip loading
+    // transitions to avoid resetting the paginated list unnecessarily.
     ref.listen<AsyncValue<List<CheckInResult>>>(
       latestResultPerAccountProvider,
-      (_, _) {
+      (previous, next) {
+        if (!next.hasValue) return;
         ref.invalidate(accountCheckInHistoryProvider(widget.accountId));
         ref.invalidate(accountCheckInStatsProvider(widget.accountId));
       },

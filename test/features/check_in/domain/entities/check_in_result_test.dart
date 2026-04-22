@@ -4,17 +4,22 @@ import 'package:all_api_hub_flutter/features/check_in/domain/entities/check_in_r
 
 void main() {
   group('CheckInStatus', () {
-    test('has three values', () {
-      expect(CheckInStatus.values, hasLength(3));
+    test('has four values', () {
+      expect(CheckInStatus.values, hasLength(4));
       expect(CheckInStatus.values, contains(CheckInStatus.success));
       expect(CheckInStatus.values, contains(CheckInStatus.failed));
       expect(CheckInStatus.values, contains(CheckInStatus.skipped));
+      expect(CheckInStatus.values, contains(CheckInStatus.alreadyChecked));
     });
 
     test('can be parsed from name', () {
       expect(CheckInStatus.values.byName('success'), CheckInStatus.success);
       expect(CheckInStatus.values.byName('failed'), CheckInStatus.failed);
       expect(CheckInStatus.values.byName('skipped'), CheckInStatus.skipped);
+      expect(
+        CheckInStatus.values.byName('alreadyChecked'),
+        CheckInStatus.alreadyChecked,
+      );
     });
   });
 

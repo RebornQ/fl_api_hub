@@ -54,6 +54,8 @@ class CheckInResultMapper {
     'status': result.status.name,
     'message': result.message,
     'rewardAmount': result.rewardAmount,
+    'checkinDate': result.checkinDate,
+    'quotaAwarded': result.quotaAwarded,
     'executedAt': result.executedAt.toIso8601String(),
   };
 
@@ -66,6 +68,8 @@ class CheckInResultMapper {
       status: CheckInStatus.values.byName(map['status'] as String),
       message: map['message'] as String?,
       rewardAmount: (map['rewardAmount'] as num?)?.toDouble(),
+      checkinDate: map['checkinDate'] as String?,
+      quotaAwarded: map['quotaAwarded'] as int?,
       executedAt: DateTime.parse(map['executedAt'] as String),
     );
   }

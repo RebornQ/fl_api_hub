@@ -152,30 +152,29 @@ void main() {
     return container;
   }
 
-  testWidgets(
-    'narrow layout: tapping a card pushes CheckInAccountDetailPage',
-    (tester) async {
-      const accountId = 'acc-narrow';
-      final account = _account(id: accountId, name: 'Narrow');
-      await pump(
-        tester,
-        size: const Size(600, 1200),
-        accounts: [account],
-        tasks: [_task(id: 'task-1', accountId: accountId)],
-        latestPerAccount: [_result(accountId: accountId)],
-      );
+  testWidgets('narrow layout: tapping a card pushes CheckInAccountDetailPage', (
+    tester,
+  ) async {
+    const accountId = 'acc-narrow';
+    final account = _account(id: accountId, name: 'Narrow');
+    await pump(
+      tester,
+      size: const Size(600, 1200),
+      accounts: [account],
+      tasks: [_task(id: 'task-1', accountId: accountId)],
+      latestPerAccount: [_result(accountId: accountId)],
+    );
 
-      // Master card is rendered.
-      expect(find.byType(CheckInResultCard), findsOneWidget);
+    // Master card is rendered.
+    expect(find.byType(CheckInResultCard), findsOneWidget);
 
-      // Tap it — should push the detail page.
-      await tester.tap(find.byType(CheckInResultCard));
-      await tester.pumpAndSettle();
+    // Tap it — should push the detail page.
+    await tester.tap(find.byType(CheckInResultCard));
+    await tester.pumpAndSettle();
 
-      // Detail page's AppBar is now on screen.
-      expect(find.text('签到记录'), findsOneWidget);
-    },
-  );
+    // Detail page's AppBar is now on screen.
+    expect(find.text('签到记录'), findsOneWidget);
+  });
 
   testWidgets(
     'wide layout: tapping a card updates selectedAccountIdProvider and mounts the detail pane',

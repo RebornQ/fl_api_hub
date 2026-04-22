@@ -100,26 +100,28 @@ void main() {
       ).called(1);
     });
 
-    test('short first page → hasMore false, nextOffset == items.length',
-        () async {
-      final shortPage = _results(accountId: accountId, count: 7);
-      when(
-        () => repo.getResultsByAccountIdPaged(
-          accountId,
-          limit: kCheckInDetailPageSize,
-          offset: 0,
-        ),
-      ).thenAnswer((_) async => Success(shortPage));
+    test(
+      'short first page → hasMore false, nextOffset == items.length',
+      () async {
+        final shortPage = _results(accountId: accountId, count: 7);
+        when(
+          () => repo.getResultsByAccountIdPaged(
+            accountId,
+            limit: kCheckInDetailPageSize,
+            offset: 0,
+          ),
+        ).thenAnswer((_) async => Success(shortPage));
 
-      final container = buildContainer();
-      final state = await container.read(
-        accountCheckInHistoryProvider(accountId).future,
-      );
+        final container = buildContainer();
+        final state = await container.read(
+          accountCheckInHistoryProvider(accountId).future,
+        );
 
-      expect(state.items, hasLength(7));
-      expect(state.hasMore, isFalse);
-      expect(state.nextOffset, 7);
-    });
+        expect(state.items, hasLength(7));
+        expect(state.hasMore, isFalse);
+        expect(state.nextOffset, 7);
+      },
+    );
 
     test('empty first page → items empty, hasMore false, offset 0', () async {
       when(
@@ -148,8 +150,7 @@ void main() {
           offset: 0,
         ),
       ).thenAnswer(
-        (_) async =>
-            const Failure(StorageException(message: 'boom')),
+        (_) async => const Failure(StorageException(message: 'boom')),
       );
 
       final container = buildContainer();
@@ -193,8 +194,11 @@ void main() {
           .requireValue;
       expect(state.items, hasLength(40));
       expect(state.nextOffset, 40);
-      expect(state.hasMore, isTrue,
-          reason: 'A full page came back → there may still be more.');
+      expect(
+        state.hasMore,
+        isTrue,
+        reason: 'A full page came back → there may still be more.',
+      );
     });
 
     test('short second page flips hasMore to false', () async {
@@ -260,63 +264,66 @@ void main() {
       ).called(1);
     });
 
-    test('concurrent loadMore calls collapse into a single repo call',
-        () async {
-      final page1 = _results(accountId: accountId, count: 20, prefix: 'p1');
-      final page2 = _results(accountId: accountId, count: 20, prefix: 'p2');
+    test(
+      'concurrent loadMore calls collapse into a single repo call',
+      () async {
+        final page1 = _results(accountId: accountId, count: 20, prefix: 'p1');
+        final page2 = _results(accountId: accountId, count: 20, prefix: 'p2');
 
-      when(
-        () => repo.getResultsByAccountIdPaged(
-          accountId,
-          limit: kCheckInDetailPageSize,
-          offset: 0,
-        ),
-      ).thenAnswer((_) async => Success(page1));
+        when(
+          () => repo.getResultsByAccountIdPaged(
+            accountId,
+            limit: kCheckInDetailPageSize,
+            offset: 0,
+          ),
+        ).thenAnswer((_) async => Success(page1));
 
-      // Gate the second page so both loadMore invocations overlap while the
-      // first is still in flight.
-      final gate = Completer<void>();
-      when(
-        () => repo.getResultsByAccountIdPaged(
-          accountId,
-          limit: kCheckInDetailPageSize,
-          offset: 20,
-        ),
-      ).thenAnswer((_) async {
-        await gate.future;
-        return Success(page2);
-      });
+        // Gate the second page so both loadMore invocations overlap while the
+        // first is still in flight.
+        final gate = Completer<void>();
+        when(
+          () => repo.getResultsByAccountIdPaged(
+            accountId,
+            limit: kCheckInDetailPageSize,
+            offset: 20,
+          ),
+        ).thenAnswer((_) async {
+          await gate.future;
+          return Success(page2);
+        });
 
-      final container = buildContainer();
-      await container.read(accountCheckInHistoryProvider(accountId).future);
+        final container = buildContainer();
+        await container.read(accountCheckInHistoryProvider(accountId).future);
 
-      final notifier = container
-          .read(accountCheckInHistoryProvider(accountId).notifier);
-      final f1 = notifier.loadMore();
-      final f2 = notifier.loadMore();
+        final notifier = container.read(
+          accountCheckInHistoryProvider(accountId).notifier,
+        );
+        final f1 = notifier.loadMore();
+        final f2 = notifier.loadMore();
 
-      // Allow the first (and only real) fetch to complete.
-      gate.complete();
-      await Future.wait([f1, f2]);
+        // Allow the first (and only real) fetch to complete.
+        gate.complete();
+        await Future.wait([f1, f2]);
 
-      // Initial build call (offset 0) must be present too; verify both and
-      // then assert no additional calls were made.
-      verify(
-        () => repo.getResultsByAccountIdPaged(
-          accountId,
-          limit: kCheckInDetailPageSize,
-          offset: 0,
-        ),
-      ).called(1);
-      verify(
-        () => repo.getResultsByAccountIdPaged(
-          accountId,
-          limit: kCheckInDetailPageSize,
-          offset: 20,
-        ),
-      ).called(1);
-      verifyNoMoreInteractions(repo);
-    });
+        // Initial build call (offset 0) must be present too; verify both and
+        // then assert no additional calls were made.
+        verify(
+          () => repo.getResultsByAccountIdPaged(
+            accountId,
+            limit: kCheckInDetailPageSize,
+            offset: 0,
+          ),
+        ).called(1);
+        verify(
+          () => repo.getResultsByAccountIdPaged(
+            accountId,
+            limit: kCheckInDetailPageSize,
+            offset: 20,
+          ),
+        ).called(1);
+        verifyNoMoreInteractions(repo);
+      },
+    );
   });
 
   group('clearAll', () {
@@ -340,11 +347,8 @@ void main() {
         // Stats provider also depends on the paged fetch; stub it once more so
         // that when it is re-resolved after invalidation we don't blow up.
         when(
-          () => repo.getResultsByAccountIdPaged(
-            accountId,
-            limit: 50,
-            offset: 0,
-          ),
+          () =>
+              repo.getResultsByAccountIdPaged(accountId, limit: 50, offset: 0),
         ).thenAnswer((_) async => const Success<List<CheckInResult>>([]));
 
         final container = buildContainer();
@@ -383,11 +387,8 @@ void main() {
         // triggers a second paged-50 fetch.
         await container.read(accountCheckInStatsProvider(accountId).future);
         verify(
-          () => repo.getResultsByAccountIdPaged(
-            accountId,
-            limit: 50,
-            offset: 0,
-          ),
+          () =>
+              repo.getResultsByAccountIdPaged(accountId, limit: 50, offset: 0),
         ).called(2);
       },
     );

@@ -210,7 +210,11 @@ class CheckInDashboardStats {
     final tasksWithResults = results.map((r) => r.taskId).toSet().length;
 
     final successCount = results
-        .where((r) => r.status == CheckInStatus.success)
+        .where(
+          (r) =>
+              r.status == CheckInStatus.success ||
+              r.status == CheckInStatus.alreadyChecked,
+        )
         .length;
     final failedCount = results
         .where((r) => r.status == CheckInStatus.failed)

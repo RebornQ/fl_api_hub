@@ -246,12 +246,19 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
   }) {
     final displays = summariesAsync.valueOrNull ?? const [];
     final filtered = _filterResults(displays);
-    final successCount =
-        displays.where((d) => d.result.status == CheckInStatus.success).length;
-    final failedCount =
-        displays.where((d) => d.result.status == CheckInStatus.failed).length;
-    final skippedCount =
-        displays.where((d) => d.result.status == CheckInStatus.skipped).length;
+    final successCount = displays
+        .where(
+          (d) =>
+              d.result.status == CheckInStatus.success ||
+              d.result.status == CheckInStatus.alreadyChecked,
+        )
+        .length;
+    final failedCount = displays
+        .where((d) => d.result.status == CheckInStatus.failed)
+        .length;
+    final skippedCount = displays
+        .where((d) => d.result.status == CheckInStatus.skipped)
+        .length;
 
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(
@@ -397,7 +404,11 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
       if (!mounted) return;
 
       final success = results
-          .where((r) => r?.status == CheckInStatus.success)
+          .where(
+            (r) =>
+                r?.status == CheckInStatus.success ||
+                r?.status == CheckInStatus.alreadyChecked,
+          )
           .length;
       final failed = results
           .where((r) => r?.status == CheckInStatus.failed)

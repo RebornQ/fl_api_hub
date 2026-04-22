@@ -11,8 +11,11 @@ import 'package:hive_flutter/hive_flutter.dart';
 /// Interface for a generic key-value store.
 abstract class KeyValueStore {
   Future<T?> read<T>(String key);
+
   Future<void> write<T>(String key, T value);
+
   Future<void> delete(String key);
+
   Future<bool> containsKey(String key);
 }
 

@@ -18,9 +18,7 @@ class CheckInAccountDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('签到记录'),
-      ),
+      appBar: AppBar(title: const Text('签到记录')),
       body: SafeArea(
         child: CheckInDetailView(
           accountId: accountId,

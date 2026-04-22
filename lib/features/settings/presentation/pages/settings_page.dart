@@ -1,39 +1,37 @@
-/// Placeholder settings page.
+/// Settings page shown on the fourth bottom-nav destination.
 ///
-/// Real settings (scheduler config, theme, backup, etc.) will be implemented
-/// in a later batch. For now this acts as a fourth bottom-nav destination so
-/// the shell matches the Stitch design.
+/// Currently serves as a simple launcher for developer options; more
+/// groups (theme, backup, scheduler config, …) will be added in later
+/// batches.
 library;
 
 import 'package:flutter/material.dart';
 
-import '../../../../app/theme/design_tokens.dart';
+import '../../../dev_tools/request_logger/presentation/pages/developer_options_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+      body: SafeArea(
+        child: ListView(
           children: [
-            Icon(
-              Icons.settings_outlined,
-              size: 64,
-              color: colorScheme.onSurfaceVariant,
+            ListTile(
+              leading: const Icon(Icons.developer_mode_outlined),
+              title: const Text('开发者选项'),
+              subtitle: const Text('请求记录器等调试工具'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const DeveloperOptionsPage(),
+                  ),
+                );
+              },
             ),
-            const SizedBox(height: AppSpacing.md),
-            Text('设置', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              '敬请期待',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
+            const Divider(height: 1),
           ],
         ),
       ),

@@ -35,6 +35,9 @@ class _FakeDioClient implements DioClient {
 
   @override
   void addInterceptor(Interceptor interceptor) {}
+
+  @override
+  int removeInterceptorsOfType<T extends Interceptor>() => 0;
 }
 
 // ── Main ───────────────────────────────────────────────────────────

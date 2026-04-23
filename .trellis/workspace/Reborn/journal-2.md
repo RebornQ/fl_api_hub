@@ -201,3 +201,36 @@ Fixed narrow-screen check-in detail page not refreshing after executeAll(). Root
 ### Next Steps
 
 - None - task complete
+
+
+## Session 28: Project rename: all_api_hub_flutter -> fl_all_api_hub
+
+**Date**: 2026-04-23
+**Task**: Project rename: all_api_hub_flutter -> fl_all_api_hub
+**Branch**: `main`
+
+### Summary
+
+Renamed project across all platforms: Dart package name, application ID, display name, bundle identifiers, and Android MainActivity package path.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `4b6c01f` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

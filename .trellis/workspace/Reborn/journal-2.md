@@ -506,3 +506,47 @@ Renamed project across all platforms: Dart package name, application ID, display
 ### Next Steps
 
 - None - task complete
+
+
+## Session 35: fix(ui): badge colors and account form tweaks
+
+**Date**: 2026-04-24
+**Task**: fix(ui): badge colors and account form tweaks
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+| Change | Description |
+|--------|-------------|
+| Badge colors | alreadyChecked→green, skipped→yellow |
+| Enable toggle | Moved above site info card, Row+Switch (no ripple) |
+| Notes field | alignLabelWithHint + textAlignVertical top |
+| Spec sync | Updated color mapping in directory-structure.md |
+
+**Modified Files**:
+- `lib/features/check_in/presentation/widgets/check_in_status_badge.dart`
+- `lib/features/accounts/presentation/widgets/account_edit_form.dart`
+- `.trellis/spec/backend/directory-structure.md`
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `6d31dd2` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

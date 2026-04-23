@@ -451,3 +451,58 @@ Renamed project across all platforms: Dart package name, application ID, display
 ### Next Steps
 
 - None - task complete
+
+
+## Session 34: feat(accounts): add enable/disable toggle and check-in skip messages
+
+**Date**: 2026-04-24
+**Task**: feat(accounts): add enable/disable toggle and check-in skip messages
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## Summary
+
+在账号编辑表单中添加启用/禁用开关，并在签到时为禁用账号和关闭自动签到的账号生成跳过记录。
+
+## Changes
+
+| Area | Description |
+|------|-------------|
+| Account Edit Form | 添加 `_enabled` 状态、UI 开关（站点信息顶部）、`_FormSnapshot` 支持 dirty 检测 |
+| Check-in Notifier | 禁用账号 → "账号已禁用"；自动签到关闭 → "自动签到已关闭" |
+| Sync Service | 为 autoCheckInEnabled=false 的账号创建 disabled 任务（确保所有账号都能产出结果） |
+| Future.wait | 两处添加 `eagerError: false`，单个失败不再中断整个批次 |
+| executeAll | 处理所有任务（不过滤 enabled），确保跳过消息覆盖所有账号 |
+
+## Updated Files
+
+- `lib/features/accounts/presentation/widgets/account_edit_form.dart`
+- `lib/features/check_in/presentation/providers/check_in_notifier.dart`
+- `lib/features/check_in/domain/services/account_check_in_sync_service.dart`
+- `test/features/check_in/presentation/providers/check_in_notifier_test.dart`
+- `test/features/check_in/presentation/providers/check_in_notifier_userid_test.dart`
+- `test/features/check_in/domain/services/account_check_in_sync_service_test.dart`
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `87b7f23` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

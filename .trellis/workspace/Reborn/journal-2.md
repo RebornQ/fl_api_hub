@@ -273,3 +273,58 @@ Renamed project across all platforms: Dart package name, application ID, display
 ### Next Steps
 
 - None - task complete
+
+
+## Session 30: 账号列表宽屏 Master-Detail 布局
+
+**Date**: 2026-04-23
+**Task**: 账号列表宽屏 Master-Detail 布局
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## Summary
+
+为账号管理页面添加 900px 断点的响应式 master-detail 宽屏布局，并实现键盘方向键导航和 FAB 交互。
+
+| Feature | Description |
+|---------|-------------|
+| 宽屏布局 | >= 900px 时左侧 40%（header + 搜索筛选 + 卡片列表）+ 右侧 60%（内联编辑表单） |
+| AccountEditForm | 从 AccountEditPage 提取可复用编辑表单 widget，支持 dirtyNotifier / siteTypeNotifier |
+| 选中效果 | AccountCard 新增 isSelected 参数，选中时 primaryContainer 背景加边框 |
+| 键盘导航 | ArrowUp/ArrowDown 切换选中账号，Scrollable.ensureVisible 自动滚动到可视区 |
+| FAB 切换 | 宽屏有改动时添加 FAB 隐藏、保存 FAB 出现；窄屏保存按钮改为 FAB |
+| 未保存保护 | 切换账号/键盘导航时检测未保存编辑，弹确认对话框 |
+| 选中持久化 | StateProvider 跨 Tab 保持选中状态，删除选中账号自动清空，ID 失效自动重置 |
+
+**Modified Files**:
+- `lib/features/accounts/presentation/providers/accounts_providers.dart` — 新增 selectedAccountIdProvider
+- `lib/features/accounts/presentation/widgets/account_edit_form.dart` — **新建**，从 AccountEditPage 提取
+- `lib/features/accounts/presentation/pages/account_edit_page.dart` — 重构为薄包装层 + 保存 FAB
+- `lib/features/accounts/presentation/pages/accounts_page.dart` — LayoutBuilder 宽窄屏 + 键盘 + FAB
+- `lib/features/accounts/presentation/widgets/account_card.dart` — 新增 isSelected 选中态
+- `test/features/accounts/presentation/pages/account_edit_page_test.dart` — 适配 FAB + pump 时序
+- `test/features/check_in/presentation/pages/check_in_page_test.dart` — 修复 selectedAccountIdProvider 命名冲突
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `111b3e6` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

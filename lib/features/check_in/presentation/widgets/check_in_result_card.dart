@@ -14,86 +14,113 @@ import 'check_in_status_badge.dart';
 class CheckInResultCard extends StatelessWidget {
   final CheckInResultDisplay display;
 
-  const CheckInResultCard({super.key, required this.display});
+  /// Whether this card is currently selected (wide-screen master-detail).
+  final bool isSelected;
+
+  const CheckInResultCard({
+    super.key,
+    required this.display,
+    this.isSelected = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final result = display.result;
 
+    final Color cardColor;
+    final BoxBorder? border;
+    if (isSelected) {
+      cardColor = colorScheme.primaryContainer;
+      border = Border.all(
+        color: colorScheme.primary.withValues(alpha: 0.5),
+        width: 1.5,
+      );
+    } else {
+      cardColor = colorScheme.surfaceContainerLowest;
+      border = null;
+    }
+
     return Card(
       margin: EdgeInsets.zero,
-      color: colorScheme.surfaceContainerLowest,
+      color: cardColor,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        side: BorderSide(color: colorScheme.outlineVariant.withAlpha(15)),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Row 1: Account name + status badge.
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          display.accountName,
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.w600),
-                          overflow: TextOverflow.ellipsis,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: isSelected
+              ? border
+              : Border.all(color: colorScheme.outlineVariant.withAlpha(15)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Row 1: Account name + status badge.
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            display.accountName,
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      Icon(
-                        Icons.open_in_new,
-                        size: 14,
-                        color: colorScheme.primary,
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.open_in_new,
+                          size: 14,
+                          color: colorScheme.primary,
+                        ),
+                      ],
+                    ),
+                  ),
+                  CheckInStatusBadge(status: result.status),
+                ],
+              ),
+              const SizedBox(height: 4),
+              // Row 2: Message.
+              if (result.message != null)
+                Text.rich(
+                  TextSpan(
+                    text: '消息: ',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: result.message,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: _messageColor(context, result),
+                        ),
                       ),
                     ],
                   ),
                 ),
-                CheckInStatusBadge(status: result.status),
-              ],
-            ),
-            const SizedBox(height: 4),
-            // Row 2: Message.
-            if (result.message != null)
-              Text.rich(
-                TextSpan(
-                  text: '消息: ',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  children: [
-                    TextSpan(
-                      text: result.message,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: _messageColor(context, result),
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: 4),
+              // Row 3: Timestamp.
+              Text(
+                _formatDateTime(result.executedAt),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
-            const SizedBox(height: 4),
-            // Row 3: Timestamp.
-            Text(
-              _formatDateTime(result.executedAt),
-              style: TextStyle(
-                fontSize: 11,
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

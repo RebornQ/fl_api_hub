@@ -11,6 +11,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -153,6 +154,18 @@ void main() {
     return container;
   }
 
+  /// Requests focus on the wide-layout [Focus] node that handles arrow-key
+  /// navigation, so [tester.sendKeyEvent] is routed to its [onKeyEvent].
+  void requestWideFocus(WidgetTester tester) {
+    final focusFinder = find.ancestor(
+      of: find.byType(Row).first,
+      matching: find.byWidgetPredicate(
+        (w) => w is Focus && w.onKeyEvent != null,
+      ),
+    );
+    tester.widget<Focus>(focusFinder.first).focusNode!.requestFocus();
+  }
+
   testWidgets('narrow layout: tapping a card pushes CheckInAccountDetailPage', (
     tester,
   ) async {
@@ -233,4 +246,190 @@ void main() {
       expect(cards.single.display.result.accountId, liveAccountId);
     },
   );
+
+  testWidgets('wide layout: tapping a card sets isSelected on the card', (
+    tester,
+  ) async {
+    const acc1 = 'acc-sel-1';
+    const acc2 = 'acc-sel-2';
+    final container = await pump(
+      tester,
+      size: const Size(1400, 1000),
+      accounts: [
+        _account(id: acc1, name: 'Alpha'),
+        _account(id: acc2, name: 'Beta'),
+      ],
+      tasks: [
+        _task(id: 't1', accountId: acc1),
+        _task(id: 't2', accountId: acc2),
+      ],
+      latestPerAccount: [
+        _result(accountId: acc1, id: 'r1'),
+        _result(accountId: acc2, id: 'r2'),
+      ],
+    );
+
+    // Initially no card is selected
+    final cardsBefore =
+        tester.widgetList<CheckInResultCard>(find.byType(CheckInResultCard)).toList();
+    expect(cardsBefore.every((c) => !c.isSelected), isTrue);
+
+    // Tap first card
+    await tester.tap(find.byType(CheckInResultCard).first);
+    await tester.pumpAndSettle();
+
+    expect(container.read(selectedAccountIdProvider), acc1);
+    final cardsAfter =
+        tester.widgetList<CheckInResultCard>(find.byType(CheckInResultCard)).toList();
+    expect(cardsAfter.first.isSelected, isTrue);
+    expect(cardsAfter.last.isSelected, isFalse);
+  });
+
+  testWidgets('wide layout: ArrowDown selects next item', (tester) async {
+    const acc1 = 'acc-kb-1';
+    const acc2 = 'acc-kb-2';
+    final container = await pump(
+      tester,
+      size: const Size(1400, 1000),
+      accounts: [
+        _account(id: acc1, name: 'First'),
+        _account(id: acc2, name: 'Second'),
+      ],
+      tasks: [
+        _task(id: 't1', accountId: acc1),
+        _task(id: 't2', accountId: acc2),
+      ],
+      latestPerAccount: [
+        _result(accountId: acc1, id: 'r1'),
+        _result(accountId: acc2, id: 'r2'),
+      ],
+    );
+
+    // Tap first to establish selection
+    await tester.tap(find.byType(CheckInResultCard).first);
+    await tester.pumpAndSettle();
+    expect(container.read(selectedAccountIdProvider), acc1);
+
+    // Request focus on the wide-layout Focus node so it receives key events.
+    requestWideFocus(tester);
+    await tester.pump();
+
+    // Press ArrowDown
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+
+    expect(container.read(selectedAccountIdProvider), acc2);
+  });
+
+  testWidgets('wide layout: ArrowUp selects previous item', (tester) async {
+    const acc1 = 'acc-kb-up-1';
+    const acc2 = 'acc-kb-up-2';
+    final container = await pump(
+      tester,
+      size: const Size(1400, 1000),
+      accounts: [
+        _account(id: acc1, name: 'First'),
+        _account(id: acc2, name: 'Second'),
+      ],
+      tasks: [
+        _task(id: 't1', accountId: acc1),
+        _task(id: 't2', accountId: acc2),
+      ],
+      latestPerAccount: [
+        _result(accountId: acc1, id: 'r1'),
+        _result(accountId: acc2, id: 'r2'),
+      ],
+    );
+
+    // Tap second card
+    await tester.tap(find.byType(CheckInResultCard).last);
+    await tester.pumpAndSettle();
+    expect(container.read(selectedAccountIdProvider), acc2);
+
+    // Request focus on the wide-layout Focus node so it receives key events.
+    requestWideFocus(tester);
+    await tester.pump();
+
+    // Press ArrowUp
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+    await tester.pumpAndSettle();
+
+    expect(container.read(selectedAccountIdProvider), acc1);
+  });
+
+  testWidgets('wide layout: ArrowUp on first item keeps selection', (
+    tester,
+  ) async {
+    const acc1 = 'acc-bound-1';
+    const acc2 = 'acc-bound-2';
+    final container = await pump(
+      tester,
+      size: const Size(1400, 1000),
+      accounts: [
+        _account(id: acc1, name: 'First'),
+        _account(id: acc2, name: 'Second'),
+      ],
+      tasks: [
+        _task(id: 't1', accountId: acc1),
+        _task(id: 't2', accountId: acc2),
+      ],
+      latestPerAccount: [
+        _result(accountId: acc1, id: 'r1'),
+        _result(accountId: acc2, id: 'r2'),
+      ],
+    );
+
+    // Select first
+    await tester.tap(find.byType(CheckInResultCard).first);
+    await tester.pumpAndSettle();
+    expect(container.read(selectedAccountIdProvider), acc1);
+
+    // Request focus on the wide-layout Focus node so it receives key events.
+    requestWideFocus(tester);
+    await tester.pump();
+
+    // ArrowUp on first — should stay
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+    await tester.pumpAndSettle();
+
+    expect(container.read(selectedAccountIdProvider), acc1);
+  });
+
+  testWidgets('wide layout: ArrowDown on last item keeps selection', (
+    tester,
+  ) async {
+    const acc1 = 'acc-bound-last-1';
+    const acc2 = 'acc-bound-last-2';
+    final container = await pump(
+      tester,
+      size: const Size(1400, 1000),
+      accounts: [
+        _account(id: acc1, name: 'First'),
+        _account(id: acc2, name: 'Second'),
+      ],
+      tasks: [
+        _task(id: 't1', accountId: acc1),
+        _task(id: 't2', accountId: acc2),
+      ],
+      latestPerAccount: [
+        _result(accountId: acc1, id: 'r1'),
+        _result(accountId: acc2, id: 'r2'),
+      ],
+    );
+
+    // Select last
+    await tester.tap(find.byType(CheckInResultCard).last);
+    await tester.pumpAndSettle();
+    expect(container.read(selectedAccountIdProvider), acc2);
+
+    // Request focus on the wide-layout Focus node so it receives key events.
+    requestWideFocus(tester);
+    await tester.pump();
+
+    // ArrowDown on last — should stay
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+
+    expect(container.read(selectedAccountIdProvider), acc2);
+  });
 }

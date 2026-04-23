@@ -98,14 +98,16 @@ class CheckInFilterBar extends StatelessWidget {
             horizontal: 20,
             vertical: AppSpacing.sm,
           ),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: selected
-                  ? colorScheme.onPrimary
-                  : colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: selected
+                    ? colorScheme.onPrimary
+                    : colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+              ),
             ),
           ),
         ),

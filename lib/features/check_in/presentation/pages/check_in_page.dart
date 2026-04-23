@@ -12,6 +12,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/design_tokens.dart';
@@ -41,6 +42,18 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
   String _searchQuery = '';
   bool _isExecuting = false;
 
+  /// Focus node for capturing keyboard arrow-key events in wide layout.
+  final _wideFocusNode = FocusNode();
+
+  /// Per-account item keys used to scroll the selected card into view.
+  final _itemKeys = <String, GlobalKey>{};
+
+  @override
+  void dispose() {
+    _wideFocusNode.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final summariesAsync = ref.watch(checkInAccountSummariesProvider);
@@ -56,31 +69,23 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
         child: Stack(
           children: [
             SafeArea(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildHeader(context),
-                  Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final isWide = constraints.maxWidth >= 900;
-                        return isWide
-                            ? _buildWideLayout(
-                                context,
-                                stats,
-                                summariesAsync,
-                                tasksAsync,
-                              )
-                            : _buildNarrowLayout(
-                                context,
-                                stats,
-                                summariesAsync,
-                                tasksAsync,
-                              );
-                      },
-                    ),
-                  ),
-                ],
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isWide = constraints.maxWidth >= 900;
+                  return isWide
+                      ? _buildWideLayout(
+                          context,
+                          stats,
+                          summariesAsync,
+                          tasksAsync,
+                        )
+                      : _buildNarrowLayout(
+                          context,
+                          stats,
+                          summariesAsync,
+                          tasksAsync,
+                        );
+                },
               ),
             ),
             // Loading overlay during execution.
@@ -184,26 +189,38 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
     AsyncValue<List<CheckInResultDisplay>> summariesAsync,
     AsyncValue<List<CheckInTask>> tasksAsync,
   ) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        SizedBox(
-          width: MediaQuery.of(context).size.width * 0.40,
-          child: _buildMasterColumn(
-            context,
-            stats,
-            summariesAsync,
-            tasksAsync,
-            isWide: true,
+    return Focus(
+      focusNode: _wideFocusNode,
+      onKeyEvent: _onKeyEvent,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            width: MediaQuery.of(context).size.width * 0.40,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildHeader(context),
+                Expanded(
+                  child: _buildMasterColumn(
+                    context,
+                    stats,
+                    summariesAsync,
+                    tasksAsync,
+                    isWide: true,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        VerticalDivider(
-          width: 1,
-          thickness: 1,
-          color: Theme.of(context).colorScheme.outlineVariant.withAlpha(40),
-        ),
-        Expanded(child: _CheckInDetailPanel()),
-      ],
+          VerticalDivider(
+            width: 1,
+            thickness: 1,
+            color: Theme.of(context).colorScheme.outlineVariant.withAlpha(40),
+          ),
+          Expanded(child: _CheckInDetailPanel()),
+        ],
+      ),
     );
   }
 
@@ -214,12 +231,20 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
     AsyncValue<List<CheckInResultDisplay>> summariesAsync,
     AsyncValue<List<CheckInTask>> tasksAsync,
   ) {
-    return _buildMasterColumn(
-      context,
-      stats,
-      summariesAsync,
-      tasksAsync,
-      isWide: false,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildHeader(context),
+        Expanded(
+          child: _buildMasterColumn(
+            context,
+            stats,
+            summariesAsync,
+            tasksAsync,
+            isWide: false,
+          ),
+        ),
+      ],
     );
   }
 
@@ -270,9 +295,11 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
             skippedCount: skippedCount,
             onFilterChanged: (filter) {
               setState(() => _selectedFilter = filter);
+              ref.read(selectedAccountIdProvider.notifier).state = null;
             },
             onSearchChanged: (query) {
               setState(() => _searchQuery = query);
+              ref.read(selectedAccountIdProvider.notifier).state = null;
             },
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -327,6 +354,14 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
       );
     }
 
+    final selectedId = isWide ? ref.watch(selectedAccountIdProvider) : null;
+
+    if (isWide) {
+      for (final d in filtered) {
+        _itemKeys.putIfAbsent(d.result.accountId, () => GlobalKey());
+      }
+    }
+
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -334,10 +369,13 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
       itemCount: filtered.length,
       itemBuilder: (context, index) {
         final display = filtered[index];
+        final isSelected = isWide && display.result.accountId == selectedId;
         return Padding(
+          key: isWide ? _itemKeys[display.result.accountId] : null,
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: _TappableResultCard(
             display: display,
+            isSelected: isSelected,
             onTap: () => _openDetail(display.result.accountId, isWide),
           ),
         );
@@ -362,6 +400,56 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
         ),
       );
     }
+  }
+
+  /// Handles ArrowUp / ArrowDown key events to navigate the account list.
+  KeyEventResult _onKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+    final isUp = event.logicalKey == LogicalKeyboardKey.arrowUp;
+    final isDown = event.logicalKey == LogicalKeyboardKey.arrowDown;
+    if (!isUp && !isDown) return KeyEventResult.ignored;
+
+    final displays =
+        ref.watch(checkInAccountSummariesProvider).valueOrNull ?? [];
+    final filtered = _filterResults(displays);
+    if (filtered.isEmpty) return KeyEventResult.ignored;
+
+    final currentId = ref.read(selectedAccountIdProvider);
+    final currentIndex = filtered.indexWhere(
+      (d) => d.result.accountId == currentId,
+    );
+
+    int nextIndex;
+    if (currentIndex < 0) {
+      nextIndex = 0;
+    } else {
+      nextIndex = isUp ? currentIndex - 1 : currentIndex + 1;
+    }
+    if (nextIndex < 0 || nextIndex >= filtered.length) {
+      return KeyEventResult.handled;
+    }
+
+    final targetId = filtered[nextIndex].result.accountId;
+    ref.read(selectedAccountIdProvider.notifier).state = targetId;
+    _scrollToItem(targetId);
+    return KeyEventResult.handled;
+  }
+
+  /// Scrolls the list so the card identified by [accountId] becomes visible.
+  void _scrollToItem(String accountId) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final key = _itemKeys[accountId];
+      final ctx = key?.currentContext;
+      if (ctx != null) {
+        Scrollable.ensureVisible(
+          ctx,
+          alignment: 0.5,
+          duration: const Duration(milliseconds: 150),
+        );
+      }
+    });
   }
 
   /// Filters results by selected status and search query.
@@ -431,9 +519,14 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
 /// when reused in the detail list.
 class _TappableResultCard extends StatelessWidget {
   final CheckInResultDisplay display;
+  final bool isSelected;
   final VoidCallback onTap;
 
-  const _TappableResultCard({required this.display, required this.onTap});
+  const _TappableResultCard({
+    required this.display,
+    this.isSelected = false,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -443,7 +536,7 @@ class _TappableResultCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        child: CheckInResultCard(display: display),
+        child: CheckInResultCard(display: display, isSelected: isSelected),
       ),
     );
   }

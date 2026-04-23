@@ -361,3 +361,45 @@ Renamed project across all platforms: Dart package name, application ID, display
 ### Next Steps
 
 - None - task complete
+
+
+## Session 32: 账号刷新FAB + 保存后可达性检测
+
+**Date**: 2026-04-23
+**Task**: 账号刷新FAB + 保存后可达性检测
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+| 改动 | 说明 |
+|------|------|
+| 搜索 FAB → 刷新 FAB | 替换空实现的搜索按钮为刷新按钮，触发 `checkAll(force: true)` |
+| 旋转动画 | 点击后图标旋转，所有检测完成后停止 |
+| 保存后可达性检测 | 放宽 `checkOne` 条件，任何已启用账号保存后都触发检测 |
+
+**修改文件**:
+- `lib/features/accounts/presentation/pages/accounts_page.dart` (+30/-11)
+- `lib/features/accounts/presentation/widgets/account_edit_form.dart` (+4/-2)
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `e73b1f5` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

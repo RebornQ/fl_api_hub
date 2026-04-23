@@ -103,6 +103,18 @@ final latestResultPerAccountProvider = FutureProvider<List<CheckInResult>>((
   return result.dataOrNull ?? [];
 });
 
+/// The latest [CheckInResult] keyed by `accountId` for O(1) lookup.
+///
+/// Derived from [latestResultPerAccountProvider]. Widgets that need per-account
+/// access (e.g. the account card check-in status icon) should watch this with
+/// `select()` to avoid unnecessary rebuilds.
+final latestResultByAccountProvider = Provider<Map<String, CheckInResult>>((
+  ref,
+) {
+  final results = ref.watch(latestResultPerAccountProvider).valueOrNull ?? [];
+  return {for (final r in results) r.accountId: r};
+});
+
 /// Computed aggregate statistics for the check-in dashboard.
 ///
 /// Sourced from [latestResultPerAccountProvider] so the numbers match what

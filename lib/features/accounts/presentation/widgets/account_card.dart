@@ -10,11 +10,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/design_tokens.dart';
 import '../../../../core/network/reachability_status.dart';
+import '../../../check_in/domain/entities/check_in_result.dart';
+import '../../../check_in/presentation/providers/check_in_providers.dart';
 import '../../domain/entities/account.dart';
 import '../providers/account_reachability_providers.dart';
 
 /// Displays a summary card for a single [Account].
-class AccountCard extends StatelessWidget {
+class AccountCard extends ConsumerWidget {
   final Account account;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
@@ -31,11 +33,20 @@ class AccountCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     final isDisabled = !account.enabled;
+
+    // Watch the latest check-in result for this account only.
+    final latestResult = ref.watch(
+      latestResultByAccountProvider.select((map) => map[account.id]),
+    );
+    final checkInIcon = _resolveCheckInIcon(
+      autoCheckInEnabled: account.checkIn.autoCheckInEnabled,
+      latestResult: latestResult,
+    );
 
     final Color cardColor;
     final BoxBorder? border;
@@ -88,15 +99,30 @@ class AccountCard extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Account name.
-                              Text(
-                                account.name,
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  height: 1.3,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                              // Account name + check-in icon.
+                              Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      account.name,
+                                      style: theme.textTheme.titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                            height: 1.3,
+                                          ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  if (checkInIcon != null) ...[
+                                    const SizedBox(width: 4),
+                                    Icon(
+                                      checkInIcon.icon,
+                                      size: 14,
+                                      color: checkInIcon.color,
+                                    ),
+                                  ],
+                                ],
                               ),
                               const SizedBox(height: 4),
                               // Site type label.
@@ -250,6 +276,49 @@ Color _resolveDotColor(Account account, ReachabilityRecord? record) {
     return const Color(0xFFF97316); // orange-500, low balance
   }
   return const Color(0xFF10B981); // emerald-500, healthy
+}
+
+/// Resolves the check-in status icon for an account.
+///
+/// Returns `null` when auto-check-in is disabled (no icon shown).
+/// Otherwise returns `(IconData, Color)` based on today's latest result:
+/// - success / alreadyChecked → green check_circle
+/// - failed                   → orange error
+/// - skipped / no result / stale → red cancel
+({IconData icon, Color color})? _resolveCheckInIcon({
+  required bool autoCheckInEnabled,
+  required CheckInResult? latestResult,
+}) {
+  if (!autoCheckInEnabled) return null;
+
+  if (latestResult == null) {
+    return (icon: Icons.cancel, color: const Color(0xFFEF4444));
+  }
+
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final executedAt = latestResult.executedAt;
+  final resultDate = DateTime(
+    executedAt.year,
+    executedAt.month,
+    executedAt.day,
+  );
+
+  if (resultDate != today) {
+    return (icon: Icons.cancel, color: const Color(0xFFEF4444));
+  }
+
+  return switch (latestResult.status) {
+    CheckInStatus.success || CheckInStatus.alreadyChecked => (
+      icon: Icons.check_circle,
+      color: const Color(0xFF10B981),
+    ),
+    CheckInStatus.failed => (icon: Icons.error, color: const Color(0xFFF97316)),
+    CheckInStatus.skipped => (
+      icon: Icons.cancel,
+      color: const Color(0xFFEF4444),
+    ),
+  };
 }
 
 /// Right-side column showing balance and status text.

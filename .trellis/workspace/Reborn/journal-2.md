@@ -328,3 +328,36 @@ Renamed project across all platforms: Dart package name, application ID, display
 ### Next Steps
 
 - None - task complete
+
+
+## Session 31: 签到页 FAB 标准化改造
+
+**Date**: 2026-04-23
+**Task**: 签到页 FAB 标准化改造
+**Branch**: `main`
+
+### Summary
+
+将签到页主 FAB 从自定义 Material+InkWell+Hero 包装替换为标准 FloatingActionButton，统一与账号页面风格。执行中状态改为 CircularProgressIndicator + onPressed: null 禁用。净减 13 行代码。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `bd6c37b` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

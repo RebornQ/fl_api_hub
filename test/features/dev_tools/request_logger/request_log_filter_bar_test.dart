@@ -25,10 +25,7 @@ RequestLogEntry _entry({required int id, int? statusCode, String? url}) {
 Widget _wrapFilterBar() {
   return const MaterialApp(
     home: Scaffold(
-      body: Padding(
-        padding: EdgeInsets.all(8),
-        child: RequestLogFilterBar(),
-      ),
+      body: Padding(padding: EdgeInsets.all(8), child: RequestLogFilterBar()),
     ),
   );
 }
@@ -40,16 +37,16 @@ void main() {
       addTearDown(container.dispose);
 
       await tester.pumpWidget(
-        UncontrolledProviderScope(container: container, child: _wrapFilterBar()),
+        UncontrolledProviderScope(
+          container: container,
+          child: _wrapFilterBar(),
+        ),
       );
 
       await tester.enterText(find.byType(TextField), 'login');
       await tester.pump();
 
-      expect(
-        container.read(requestLogFilterProvider).keyword,
-        'login',
-      );
+      expect(container.read(requestLogFilterProvider).keyword, 'login');
     });
 
     testWidgets('bucket chip tap updates filter.statusBucket', (tester) async {
@@ -57,7 +54,10 @@ void main() {
       addTearDown(container.dispose);
 
       await tester.pumpWidget(
-        UncontrolledProviderScope(container: container, child: _wrapFilterBar()),
+        UncontrolledProviderScope(
+          container: container,
+          child: _wrapFilterBar(),
+        ),
       );
 
       await tester.tap(find.textContaining('5xx'));
@@ -84,7 +84,10 @@ void main() {
           .add(_entry(id: 3, statusCode: null));
 
       await tester.pumpWidget(
-        UncontrolledProviderScope(container: container, child: _wrapFilterBar()),
+        UncontrolledProviderScope(
+          container: container,
+          child: _wrapFilterBar(),
+        ),
       );
 
       expect(find.textContaining('全部 (3)'), findsOneWidget);
@@ -100,7 +103,10 @@ void main() {
           const RequestLogFilter(keyword: 'abc');
 
       await tester.pumpWidget(
-        UncontrolledProviderScope(container: container, child: _wrapFilterBar()),
+        UncontrolledProviderScope(
+          container: container,
+          child: _wrapFilterBar(),
+        ),
       );
 
       await tester.tap(find.byTooltip('清除搜索'));

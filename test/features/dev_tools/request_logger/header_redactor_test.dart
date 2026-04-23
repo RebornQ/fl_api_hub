@@ -15,10 +15,7 @@ void main() {
 
     test('keeps first and last 4 chars for long values', () {
       expect(maskSensitiveValue('abcdefghij'), 'abcd****ghij');
-      expect(
-        maskSensitiveValue('Bearer sk-1234567890xyz'),
-        'Bear****0xyz',
-      );
+      expect(maskSensitiveValue('Bearer sk-1234567890xyz'), 'Bear****0xyz');
     });
   });
 
@@ -38,9 +35,7 @@ void main() {
     });
 
     test('keeps original key casing in output', () {
-      final redacted = redactHeaders({
-        'Authorization': 'Bearer abcdefghij',
-      });
+      final redacted = redactHeaders({'Authorization': 'Bearer abcdefghij'});
       expect(redacted.containsKey('Authorization'), isTrue);
       expect(redacted.containsKey('authorization'), isFalse);
     });

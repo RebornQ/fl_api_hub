@@ -36,8 +36,8 @@ class RequestLogDetailView extends StatelessWidget {
         child: Text(
           '选择左侧的请求以查看详情',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
       );
     }
@@ -79,9 +79,9 @@ class RequestLogDetailView extends StatelessWidget {
     final curl = exportAsCurl(entry);
     await Clipboard.setData(ClipboardData(text: curl));
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('已复制 curl 命令到剪贴板')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('已复制 curl 命令到剪贴板')));
   }
 }
 
@@ -116,21 +116,12 @@ class _OverviewCard extends StatelessWidget {
             valueColor: _statusColor(entry, colorScheme),
           ),
           const SizedBox(height: AppSpacing.xs),
-          _InfoRow(
-            label: '耗时',
-            value: _formatElapsed(entry.elapsed),
-          ),
+          _InfoRow(label: '耗时', value: _formatElapsed(entry.elapsed)),
           const SizedBox(height: AppSpacing.xs),
-          _InfoRow(
-            label: '开始',
-            value: _formatTime(entry.startedAt),
-          ),
+          _InfoRow(label: '开始', value: _formatTime(entry.startedAt)),
           if (entry.endedAt != null) ...[
             const SizedBox(height: AppSpacing.xs),
-            _InfoRow(
-              label: '结束',
-              value: _formatTime(entry.endedAt!),
-            ),
+            _InfoRow(label: '结束', value: _formatTime(entry.endedAt!)),
           ],
         ],
       ),
@@ -233,8 +224,7 @@ class _ResponseCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           _CollapsibleBody(
             body: entry.responseBody,
-            emptyPlaceholder:
-                entry.isError ? '<请求失败，无响应>' : '<无响应体>',
+            emptyPlaceholder: entry.isError ? '<请求失败，无响应>' : '<无响应体>',
           ),
           if (hasError) ...[
             const SizedBox(height: AppSpacing.md),
@@ -251,11 +241,7 @@ class _InfoRow extends StatelessWidget {
   final String value;
   final Color? valueColor;
 
-  const _InfoRow({
-    required this.label,
-    required this.value,
-    this.valueColor,
-  });
+  const _InfoRow({required this.label, required this.value, this.valueColor});
 
   @override
   Widget build(BuildContext context) {
@@ -295,9 +281,9 @@ class _SectionLabel extends StatelessWidget {
     return Text(
       text,
       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.5,
-          ),
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
+      ),
     );
   }
 }
@@ -320,10 +306,7 @@ class _KeyValueTable extends StatelessWidget {
     }
 
     return Table(
-      columnWidths: const {
-        0: IntrinsicColumnWidth(),
-        1: FlexColumnWidth(),
-      },
+      columnWidths: const {0: IntrinsicColumnWidth(), 1: FlexColumnWidth()},
       defaultVerticalAlignment: TableCellVerticalAlignment.top,
       children: data.entries.map((e) {
         return TableRow(
@@ -362,10 +345,7 @@ class _CollapsibleBody extends StatefulWidget {
   final String? body;
   final String emptyPlaceholder;
 
-  const _CollapsibleBody({
-    this.body,
-    this.emptyPlaceholder = '<无请求体>',
-  });
+  const _CollapsibleBody({this.body, this.emptyPlaceholder = '<无请求体>'});
 
   @override
   State<_CollapsibleBody> createState() => _CollapsibleBodyState();
@@ -436,20 +416,14 @@ class _ErrorSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.errorContainer.withAlpha(80),
         borderRadius: BorderRadius.circular(AppRadius.sm),
-        border: Border.all(
-          color: colorScheme.error.withAlpha(100),
-        ),
+        border: Border.all(color: colorScheme.error.withAlpha(100)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.error_outline,
-                size: 16,
-                color: colorScheme.error,
-              ),
+              Icon(Icons.error_outline, size: 16, color: colorScheme.error),
               const SizedBox(width: AppSpacing.xs),
               Text(
                 '错误信息',

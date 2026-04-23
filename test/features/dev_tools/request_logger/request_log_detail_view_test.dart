@@ -39,9 +39,7 @@ RequestLogEntry _entry({
 
 Widget _wrap(RequestLogEntry? entry) {
   return MaterialApp(
-    home: Scaffold(
-      body: RequestLogDetailView(entry: entry),
-    ),
+    home: Scaffold(body: RequestLogDetailView(entry: entry)),
   );
 }
 
@@ -52,8 +50,9 @@ void main() {
       expect(find.text('选择左侧的请求以查看详情'), findsOneWidget);
     });
 
-    testWidgets('renders three SectionCards when entry is not null',
-        (tester) async {
+    testWidgets('renders three SectionCards when entry is not null', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap(_entry()));
       await tester.pumpAndSettle();
 
@@ -62,13 +61,14 @@ void main() {
       expect(find.text('RESPONSE'), findsOneWidget);
     });
 
-    testWidgets('overview card shows method, URL, status, elapsed',
-        (tester) async {
-      await tester.pumpWidget(_wrap(_entry(
-        method: 'GET',
-        url: 'https://api.test/login',
-        statusCode: 200,
-      )));
+    testWidgets('overview card shows method, URL, status, elapsed', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          _entry(method: 'GET', url: 'https://api.test/login', statusCode: 200),
+        ),
+      );
       await tester.pumpAndSettle();
 
       expect(find.textContaining('GET https://api.test/login'), findsOneWidget);
@@ -76,11 +76,10 @@ void main() {
       expect(find.textContaining('42 ms'), findsOneWidget);
     });
 
-    testWidgets('request card shows query params when present',
-        (tester) async {
-      await tester.pumpWidget(_wrap(_entry(
-        query: {'page': '1', 'limit': '10'},
-      )));
+    testWidgets('request card shows query params when present', (tester) async {
+      await tester.pumpWidget(
+        _wrap(_entry(query: {'page': '1', 'limit': '10'})),
+      );
       await tester.pumpAndSettle();
 
       expect(find.text('Query 参数'), findsOneWidget);
@@ -88,8 +87,9 @@ void main() {
       expect(find.text('1'), findsOneWidget);
     });
 
-    testWidgets('collapsible body shows expand button when > 10 lines',
-        (tester) async {
+    testWidgets('collapsible body shows expand button when > 10 lines', (
+      tester,
+    ) async {
       final longBody = List.generate(15, (i) => 'line $i').join('\n');
       await tester.pumpWidget(_wrap(_entry(requestBody: longBody)));
       await tester.pumpAndSettle();
@@ -102,13 +102,18 @@ void main() {
       expect(find.text('收起'), findsOneWidget);
     });
 
-    testWidgets('response card shows error section when errorType present',
-        (tester) async {
-      await tester.pumpWidget(_wrap(_entry(
-        statusCode: null,
-        errorType: 'connectionTimeout',
-        errorMessage: 'Connection timed out after 10s',
-      )));
+    testWidgets('response card shows error section when errorType present', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          _entry(
+            statusCode: null,
+            errorType: 'connectionTimeout',
+            errorMessage: 'Connection timed out after 10s',
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
 
       expect(find.text('错误信息'), findsOneWidget);
@@ -116,8 +121,9 @@ void main() {
       expect(find.text('Connection timed out after 10s'), findsOneWidget);
     });
 
-    testWidgets('Copy as curl FAB copies to clipboard and shows SnackBar',
-        (tester) async {
+    testWidgets('Copy as curl FAB copies to clipboard and shows SnackBar', (
+      tester,
+    ) async {
       String? copiedText;
       tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
         SystemChannels.platform,
@@ -129,14 +135,20 @@ void main() {
         },
       );
 
-      await tester.pumpWidget(_wrap(_entry(
-        method: 'POST',
-        url: 'https://api.test/login',
-        requestBody: '{"user":"alice"}',
-      )));
+      await tester.pumpWidget(
+        _wrap(
+          _entry(
+            method: 'POST',
+            url: 'https://api.test/login',
+            requestBody: '{"user":"alice"}',
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(FloatingActionButton, 'Copy as curl'));
+      await tester.tap(
+        find.widgetWithText(FloatingActionButton, 'Copy as curl'),
+      );
       await tester.pumpAndSettle();
 
       expect(copiedText, isNotNull);
@@ -157,13 +169,14 @@ void main() {
       expect(find.text('<无请求体>'), findsOneWidget);
     });
 
-    testWidgets('empty response body shows different placeholder for errors',
-        (tester) async {
-      await tester.pumpWidget(_wrap(_entry(
-        statusCode: null,
-        responseBody: null,
-        errorType: 'cancel',
-      )));
+    testWidgets('empty response body shows different placeholder for errors', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          _entry(statusCode: null, responseBody: null, errorType: 'cancel'),
+        ),
+      );
       await tester.pumpAndSettle();
 
       expect(find.text('<请求失败，无响应>'), findsOneWidget);

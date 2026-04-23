@@ -53,24 +53,23 @@ void main() {
     });
 
     test('encodes JSON-like Map when content-type missing', () {
-      expect(
-        serializeResponseBody({'ok': true}),
-        '{"ok":true}',
-      );
+      expect(serializeResponseBody({'ok': true}), '{"ok":true}');
     });
 
-    test('replaces binary body with placeholder when content-type is image', () {
-      final raw = List<int>.filled(2048, 0);
-      final out = serializeResponseBody(raw, contentType: 'image/png')!;
-      expect(out, '<二进制数据, 2048 bytes>');
-    });
+    test(
+      'replaces binary body with placeholder when content-type is image',
+      () {
+        final raw = List<int>.filled(2048, 0);
+        final out = serializeResponseBody(raw, contentType: 'image/png')!;
+        expect(out, '<二进制数据, 2048 bytes>');
+      },
+    );
 
     test('accepts application/json content-type and decodes', () {
       expect(
-        serializeResponseBody(
-          {'hello': 'world'},
-          contentType: 'application/json; charset=utf-8',
-        ),
+        serializeResponseBody({
+          'hello': 'world',
+        }, contentType: 'application/json; charset=utf-8'),
         '{"hello":"world"}',
       );
     });
@@ -90,13 +89,10 @@ void main() {
       );
     });
 
-    test(
-      'truncation applies to response bodies too',
-      () {
-        final big = 'b' * (kMaxBodyBytes + 100);
-        final out = serializeResponseBody(big, contentType: 'text/plain')!;
-        expect(out.contains('已截断'), isTrue);
-      },
-    );
+    test('truncation applies to response bodies too', () {
+      final big = 'b' * (kMaxBodyBytes + 100);
+      final out = serializeResponseBody(big, contentType: 'text/plain')!;
+      expect(out.contains('已截断'), isTrue);
+    });
   });
 }

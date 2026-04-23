@@ -83,11 +83,7 @@ class RequestLogListTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppSpacing.xs),
-              Icon(
-                Icons.chevron_right,
-                size: 18,
-                color: colorScheme.outline,
-              ),
+              Icon(Icons.chevron_right, size: 18, color: colorScheme.outline),
             ],
           ),
         ),

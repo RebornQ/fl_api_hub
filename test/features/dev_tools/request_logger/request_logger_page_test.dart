@@ -40,8 +40,9 @@ Widget _wrap({required ProviderContainer container, Size? size}) {
 
 void main() {
   group('RequestLoggerPage — empty states', () {
-    testWidgets('switch off + empty buffer shows "尚未开启" message',
-        (tester) async {
+    testWidgets('switch off + empty buffer shows "尚未开启" message', (
+      tester,
+    ) async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
@@ -50,8 +51,9 @@ void main() {
       expect(find.textContaining('请求记录器尚未开启'), findsOneWidget);
     });
 
-    testWidgets('switch on + empty buffer shows "等待请求" message',
-        (tester) async {
+    testWidgets('switch on + empty buffer shows "等待请求" message', (
+      tester,
+    ) async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
       container.read(requestLoggerEnabledProvider.notifier).state = true;
@@ -63,8 +65,9 @@ void main() {
   });
 
   group('RequestLoggerPage — list rendering', () {
-    testWidgets('renders tile for each buffer entry with URL path visible',
-        (tester) async {
+    testWidgets('renders tile for each buffer entry with URL path visible', (
+      tester,
+    ) async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
       container.read(requestLoggerEnabledProvider.notifier).state = true;
@@ -118,7 +121,9 @@ void main() {
   });
 
   group('RequestLoggerPage — layout', () {
-    testWidgets('wide layout renders VerticalDivider separator', (tester) async {
+    testWidgets('wide layout renders VerticalDivider separator', (
+      tester,
+    ) async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
       container.read(requestLoggerEnabledProvider.notifier).state = true;
@@ -127,16 +132,16 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(1800, 1200));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await tester.pumpWidget(_wrap(
-        container: container,
-        size: const Size(1800, 1200),
-      ));
+      await tester.pumpWidget(
+        _wrap(container: container, size: const Size(1800, 1200)),
+      );
 
       expect(find.byType(VerticalDivider), findsOneWidget);
     });
 
-    testWidgets('narrow layout does not render VerticalDivider',
-        (tester) async {
+    testWidgets('narrow layout does not render VerticalDivider', (
+      tester,
+    ) async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
       container.read(requestLoggerEnabledProvider.notifier).state = true;
@@ -145,18 +150,18 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(400, 800));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await tester.pumpWidget(_wrap(
-        container: container,
-        size: const Size(400, 800),
-      ));
+      await tester.pumpWidget(
+        _wrap(container: container, size: const Size(400, 800)),
+      );
 
       expect(find.byType(VerticalDivider), findsNothing);
     });
   });
 
   group('RequestLoggerPage — in-app switch', () {
-    testWidgets('AppBar switch toggles requestLoggerEnabledProvider',
-        (tester) async {
+    testWidgets('AppBar switch toggles requestLoggerEnabledProvider', (
+      tester,
+    ) async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 

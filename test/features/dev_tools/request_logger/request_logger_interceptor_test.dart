@@ -42,17 +42,19 @@ void main() {
   }
 
   test('onResponse emits a single entry with redacted headers and elapsed', () {
-    final options = prepare(RequestOptions(
-      method: 'POST',
-      baseUrl: 'https://api.example.com',
-      path: '/login',
-      queryParameters: {'x': '1'},
-      headers: {
-        'Authorization': 'Bearer sk-1234567890abcdef',
-        'Content-Type': 'application/json',
-      },
-      data: {'u': 'alice', 'p': 'secret'},
-    ));
+    final options = prepare(
+      RequestOptions(
+        method: 'POST',
+        baseUrl: 'https://api.example.com',
+        path: '/login',
+        queryParameters: {'x': '1'},
+        headers: {
+          'Authorization': 'Bearer sk-1234567890abcdef',
+          'Content-Type': 'application/json',
+        },
+        data: {'u': 'alice', 'p': 'secret'},
+      ),
+    );
 
     final response = Response<Object?>(
       requestOptions: options,
@@ -81,36 +83,43 @@ void main() {
     expect(entry.isError, isFalse);
   });
 
-  test('onError emits entry with null statusCode and errorType for timeout', () {
-    final options = prepare(RequestOptions(
-      method: 'GET',
-      baseUrl: 'https://api.example.com',
-      path: '/slow',
-    ));
+  test(
+    'onError emits entry with null statusCode and errorType for timeout',
+    () {
+      final options = prepare(
+        RequestOptions(
+          method: 'GET',
+          baseUrl: 'https://api.example.com',
+          path: '/slow',
+        ),
+      );
 
-    final err = DioException(
-      requestOptions: options,
-      type: DioExceptionType.connectionTimeout,
-      message: 'Connection timed out',
-    );
+      final err = DioException(
+        requestOptions: options,
+        type: DioExceptionType.connectionTimeout,
+        message: 'Connection timed out',
+      );
 
-    interceptor.onError(err, _SwallowErrorHandler());
+      interceptor.onError(err, _SwallowErrorHandler());
 
-    expect(sink, hasLength(1));
-    final entry = sink.single;
-    expect(entry.statusCode, isNull);
-    expect(entry.isError, isTrue);
-    expect(entry.statusLabel, 'ERR');
-    expect(entry.errorType, 'connectionTimeout');
-    expect(entry.errorMessage, 'Connection timed out');
-  });
+      expect(sink, hasLength(1));
+      final entry = sink.single;
+      expect(entry.statusCode, isNull);
+      expect(entry.isError, isTrue);
+      expect(entry.statusLabel, 'ERR');
+      expect(entry.errorType, 'connectionTimeout');
+      expect(entry.errorMessage, 'Connection timed out');
+    },
+  );
 
   test('onError with server response records statusCode', () {
-    final options = prepare(RequestOptions(
-      method: 'GET',
-      baseUrl: 'https://api.example.com',
-      path: '/resource',
-    ));
+    final options = prepare(
+      RequestOptions(
+        method: 'GET',
+        baseUrl: 'https://api.example.com',
+        path: '/resource',
+      ),
+    );
 
     final response = Response<Object?>(
       requestOptions: options,

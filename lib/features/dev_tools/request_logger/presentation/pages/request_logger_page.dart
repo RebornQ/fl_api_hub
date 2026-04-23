@@ -115,9 +115,7 @@ class RequestLoggerPage extends ConsumerWidget {
           thickness: 1,
           color: Theme.of(context).colorScheme.outlineVariant.withAlpha(40),
         ),
-        Expanded(
-          child: RequestLogDetailView(entry: selectedEntry),
-        ),
+        Expanded(child: RequestLogDetailView(entry: selectedEntry)),
       ],
     );
   }

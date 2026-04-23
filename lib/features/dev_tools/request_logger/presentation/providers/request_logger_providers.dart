@@ -88,21 +88,23 @@ final filteredRequestLogsProvider = Provider<List<RequestLogEntry>>((ref) {
   if (filter.isDefault) return reversed;
 
   final keyword = filter.keyword.trim().toLowerCase();
-  return reversed.where((entry) {
-    if (keyword.isNotEmpty && !entry.url.toLowerCase().contains(keyword)) {
-      return false;
-    }
-    switch (filter.statusBucket) {
-      case StatusBucket.all:
-        return true;
-      case StatusBucket.success:
-        return entry.isSuccess;
-      case StatusBucket.clientError:
-        return entry.isClientError;
-      case StatusBucket.serverError:
-        return entry.isServerError;
-      case StatusBucket.error:
-        return entry.isError;
-    }
-  }).toList(growable: false);
+  return reversed
+      .where((entry) {
+        if (keyword.isNotEmpty && !entry.url.toLowerCase().contains(keyword)) {
+          return false;
+        }
+        switch (filter.statusBucket) {
+          case StatusBucket.all:
+            return true;
+          case StatusBucket.success:
+            return entry.isSuccess;
+          case StatusBucket.clientError:
+            return entry.isClientError;
+          case StatusBucket.serverError:
+            return entry.isServerError;
+          case StatusBucket.error:
+            return entry.isError;
+        }
+      })
+      .toList(growable: false);
 });

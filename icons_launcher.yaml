@@ -1,0 +1,29 @@
+icons_launcher:
+  image_path: "icons/icon-hub-1024-new.png"
+
+  platforms:
+    android:
+      enable: true
+      image_path: "icons/icon-hub-1024-new.png"
+      adaptive_background_color: "#D2D0E8"
+      adaptive_foreground_image: "icons/icon-hub-1024-new.png"
+
+    ios:
+      enable: true
+      image_path: "icons/icon-hub-1024-ios.png"
+
+    web:
+      enable: true
+      image_path: "icons/icon-hub-1024-new.png"
+
+    macos:
+      enable: true
+      image_path: "icons/icon-hub-1024-new.png"
+
+    windows:
+      enable: true
+      image_path: "icons/icon-hub-1024-new.png"
+
+    linux:
+      enable: true
+      image_path: "icons/icon-hub-1024-new.png"

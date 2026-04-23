@@ -403,3 +403,51 @@ Renamed project across all platforms: Dart package name, application ID, display
 ### Next Steps
 
 - None - task complete
+
+
+## Session 33: 签到列表选中高亮 + 键盘导航
+
+**Date**: 2026-04-23
+**Task**: 签到列表选中高亮 + 键盘导航
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## 改动内容
+
+| 改动 | 说明 |
+|------|------|
+| CheckInResultCard | 添加 `isSelected` 属性，选中时 primaryContainer 背景 + 1.5px 边框 |
+| 键盘导航 | 宽屏布局 Focus + ArrowUp/ArrowDown 切换账号详情 |
+| 选中清除 | 过滤/搜索变更时自动清除选中状态 |
+| 分割线通顶 | 将 header 移入宽屏 Row 左侧面板，VerticalDivider 全高 |
+| 测试 | 新增 5 个 widget 测试（选中高亮、键盘导航、边界行为） |
+
+**修改文件**:
+- `lib/features/check_in/presentation/widgets/check_in_result_card.dart`
+- `lib/features/check_in/presentation/pages/check_in_page.dart`
+- `lib/features/check_in/presentation/widgets/check_in_filter_bar.dart`
+- `test/features/check_in/presentation/pages/check_in_page_test.dart`
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `a8b4882` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

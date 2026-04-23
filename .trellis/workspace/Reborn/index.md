@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 32
+- **Total Sessions**: 33
 - **Last Active**: 2026-04-23
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~405 | Active |
+| `journal-2.md` | ~453 | Active |
 | `journal-1.md` | ~1977 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 33 | 2026-04-23 | 签到列表选中高亮 + 键盘导航 | `a8b4882` | `main` |
 | 32 | 2026-04-23 | 账号刷新FAB + 保存后可达性检测 | `e73b1f5` | `main` |
 | 31 | 2026-04-23 | 签到页 FAB 标准化改造 | `bd6c37b` | `main` |
 | 30 | 2026-04-23 | 账号列表宽屏 Master-Detail 布局 | `111b3e6` | `main` |

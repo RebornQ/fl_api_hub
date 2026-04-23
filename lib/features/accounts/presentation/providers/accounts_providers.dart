@@ -26,3 +26,10 @@ final accountsRepositoryProvider = Provider<AccountsRepository>((ref) {
 final accountsProvider = AsyncNotifierProvider<AccountsNotifier, List<Account>>(
   AccountsNotifier.new,
 );
+
+/// Tracks the currently selected account ID in wide-screen master-detail layout.
+///
+/// When the viewport is >= 900 px, tapping an account card updates this provider
+/// instead of pushing a full-screen edit page. The right-hand detail pane watches
+/// this to decide which account's edit form to display.
+final selectedAccountIdProvider = StateProvider<String?>((_) => null);

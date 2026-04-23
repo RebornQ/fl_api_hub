@@ -19,11 +19,15 @@ class AccountCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
 
+  /// Whether this card is currently selected (wide-screen master-detail).
+  final bool isSelected;
+
   const AccountCard({
     super.key,
     required this.account,
     this.onTap,
     this.onLongPress,
+    this.isSelected = false,
   });
 
   @override
@@ -33,81 +37,100 @@ class AccountCard extends StatelessWidget {
 
     final isDisabled = !account.enabled;
 
+    final Color cardColor;
+    final BoxBorder? border;
+    if (isSelected) {
+      cardColor = colorScheme.primaryContainer;
+      border = Border.all(
+        color: colorScheme.primary.withValues(alpha: 0.5),
+        width: 1.5,
+      );
+    } else {
+      cardColor = isDisabled
+          ? colorScheme.surfaceContainerLow
+          : colorScheme.surfaceContainerLowest;
+      border = null;
+    }
+
     return Card(
       margin: EdgeInsets.zero,
-      color: isDisabled
-          ? colorScheme.surfaceContainerLow
-          : colorScheme.surfaceContainerLowest,
+      color: cardColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
-      child: InkWell(
-        onTap: onTap,
-        onLongPress: onLongPress,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: AnimatedOpacity(
-            opacity: isDisabled ? 0.6 : 1.0,
-            duration: const Duration(milliseconds: 200),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Left: info.
-                Expanded(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Status dot.
-                      _StatusDot(account: account),
-                      const SizedBox(width: AppSpacing.sm + 4),
-                      // Name + type + URL.
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Account name.
-                            Text(
-                              account.name,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                height: 1.3,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: border,
+        ),
+        child: InkWell(
+          onTap: onTap,
+          onLongPress: onLongPress,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: AnimatedOpacity(
+              opacity: isDisabled ? 0.6 : 1.0,
+              duration: const Duration(milliseconds: 200),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Left: info.
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Status dot.
+                        _StatusDot(account: account),
+                        const SizedBox(width: AppSpacing.sm + 4),
+                        // Name + type + URL.
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Account name.
+                              Text(
+                                account.name,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.3,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
-                            // Site type label.
-                            Text(
-                              account.siteType.displayName,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w500,
+                              const SizedBox(height: 4),
+                              // Site type label.
+                              Text(
+                                account.siteType.displayName,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 2),
-                            // Base URL (truncated).
-                            Text(
-                              _stripScheme(account.baseUrl),
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: colorScheme.outline,
+                              const SizedBox(height: 2),
+                              // Base URL (truncated).
+                              Text(
+                                _stripScheme(account.baseUrl),
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: colorScheme.outline,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                // Right: balance + status text.
-                _BalanceColumn(
-                  account: account,
-                  colorScheme: colorScheme,
-                  theme: theme,
-                ),
-              ],
+                  // Right: balance + status text.
+                  _BalanceColumn(
+                    account: account,
+                    colorScheme: colorScheme,
+                    theme: theme,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

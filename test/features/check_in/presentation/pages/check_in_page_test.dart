@@ -18,7 +18,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:fl_all_api_hub/core/network/site_type.dart';
 import 'package:fl_all_api_hub/core/result/result.dart';
 import 'package:fl_all_api_hub/features/accounts/domain/entities/account.dart';
-import 'package:fl_all_api_hub/features/accounts/presentation/providers/accounts_providers.dart';
+import 'package:fl_all_api_hub/features/accounts/presentation/providers/accounts_providers.dart'
+    hide selectedAccountIdProvider;
 import 'package:fl_all_api_hub/features/check_in/domain/entities/check_in_result.dart';
 import 'package:fl_all_api_hub/features/check_in/domain/entities/check_in_task.dart';
 import 'package:fl_all_api_hub/features/check_in/domain/repositories/check_in_repository.dart';

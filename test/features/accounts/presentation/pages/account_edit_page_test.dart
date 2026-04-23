@@ -117,8 +117,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('新增账号'), findsOneWidget);
-      // Primary button reads "添加账号" in add mode.
-      expect(find.widgetWithText(FilledButton, '添加账号'), findsOneWidget);
+      // Save FAB is hidden until the form becomes dirty.
+      expect(find.byKey(const ValueKey('primarySaveButton')), findsNothing);
     });
 
     testWidgets('rocket_launch button only appears for managed site types', (
@@ -199,7 +199,7 @@ void main() {
         'admin',
       );
       await tester.enterText(find.byKey(const ValueKey('userIdField')), '42');
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(const ValueKey('primarySaveButton')));
       await tester.pumpAndSettle();
@@ -224,7 +224,7 @@ void main() {
         find.byKey(const ValueKey('nameField')),
         'Renamed',
       );
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(const ValueKey('primarySaveButton')));
       await tester.pumpAndSettle();
@@ -244,7 +244,7 @@ void main() {
           find.byKey(const ValueKey('nameField')),
           'Changed',
         );
-        await tester.pump();
+        await tester.pumpAndSettle();
 
         await tester.tap(find.byTooltip('关闭'));
         await tester.pumpAndSettle();
@@ -272,7 +272,7 @@ void main() {
         find.byKey(const ValueKey('urlField')),
         'not-a-url',
       );
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(const ValueKey('primarySaveButton')));
       await tester.pumpAndSettle();

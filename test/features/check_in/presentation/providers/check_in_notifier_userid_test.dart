@@ -19,6 +19,7 @@ import 'package:fl_all_api_hub/core/network/site_adapter.dart';
 import 'package:fl_all_api_hub/core/network/site_type.dart';
 import 'package:fl_all_api_hub/core/result/result.dart';
 import 'package:fl_all_api_hub/features/accounts/domain/entities/account.dart';
+import 'package:fl_all_api_hub/features/accounts/domain/entities/check_in_config.dart';
 import 'package:fl_all_api_hub/features/accounts/domain/repositories/accounts_repository.dart';
 import 'package:fl_all_api_hub/features/accounts/presentation/providers/accounts_providers.dart';
 import 'package:fl_all_api_hub/features/check_in/data/datasources/check_in_remote_datasource.dart';
@@ -78,6 +79,7 @@ Account _account({
   String? token,
   int userId = 42,
   bool enabled = true,
+  bool autoCheckInEnabled = true,
 }) {
   return Account(
     id: id,
@@ -88,6 +90,7 @@ Account _account({
     accessToken: token,
     userId: userId,
     enabled: enabled,
+    checkIn: CheckInConfig(autoCheckInEnabled: autoCheckInEnabled),
     createdAt: DateTime(2026, 4, 22),
     updatedAt: DateTime(2026, 4, 22),
   );

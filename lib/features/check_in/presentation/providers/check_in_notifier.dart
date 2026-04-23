@@ -109,16 +109,44 @@ class CheckInNotifier extends AsyncNotifier<List<CheckInTask>> {
     final task = taskResult.dataOrNull;
     if (task == null) return null;
 
-    if (!task.enabled) return null;
-
     // 2. Load the account.
     final accountResult = await accountsRepo.getById(task.accountId);
     final account = accountResult.dataOrNull;
     if (account == null) return null;
 
-    // Silently skip disabled accounts — no history record is produced, so
-    // automatic schedulers won't flood the timeline with "skipped" entries.
-    if (!account.enabled) return null;
+    // 2a. Disabled account guard. Create a skipped result with message.
+    if (!account.enabled) {
+      final now = DateTime.now();
+      final result = CheckInResult(
+        id: const Uuid().v4(),
+        taskId: task.id,
+        accountId: task.accountId,
+        status: CheckInStatus.skipped,
+        message: '账号已禁用',
+        executedAt: now,
+      );
+      await checkInRepo.saveResult(result);
+      await checkInRepo.saveTask(task.copyWith(lastRunAt: now, updatedAt: now));
+      await _refreshTasks();
+      return result;
+    }
+
+    // 2b. Auto check-in disabled guard. Create a skipped result with message.
+    if (!account.checkIn.autoCheckInEnabled) {
+      final now = DateTime.now();
+      final result = CheckInResult(
+        id: const Uuid().v4(),
+        taskId: task.id,
+        accountId: task.accountId,
+        status: CheckInStatus.skipped,
+        message: '自动签到已关闭',
+        executedAt: now,
+      );
+      await checkInRepo.saveResult(result);
+      await checkInRepo.saveTask(task.copyWith(lastRunAt: now, updatedAt: now));
+      await _refreshTasks();
+      return result;
+    }
 
     // 3. Read the access token from the account entity.
     final token = account.accessToken;
@@ -254,14 +282,16 @@ class CheckInNotifier extends AsyncNotifier<List<CheckInTask>> {
     await _refreshTasks();
 
     final tasks = state.valueOrNull ?? [];
-    final enabled = tasks.where((t) => t.enabled).toList();
     final results = <CheckInResult?>[];
 
     // Process in chunks of 5 for concurrency control.
-    for (var i = 0; i < enabled.length; i += 5) {
-      final chunk = enabled.skip(i).take(5);
+    // Process ALL tasks (including disabled) so that skip messages
+    // ("账号已禁用" / "自动签到已关闭") are generated for every account.
+    for (var i = 0; i < tasks.length; i += 5) {
+      final chunk = tasks.skip(i).take(5);
       final chunkResults = await Future.wait(
         chunk.map((t) => executeCheckIn(t.id)),
+        eagerError: false,
       );
       results.addAll(chunkResults);
     }
@@ -286,6 +316,7 @@ class CheckInNotifier extends AsyncNotifier<List<CheckInTask>> {
       final chunk = taskIds.skip(i).take(5);
       final chunkResults = await Future.wait(
         chunk.map((id) => executeCheckIn(id)),
+        eagerError: false,
       );
       results.addAll(chunkResults);
     }

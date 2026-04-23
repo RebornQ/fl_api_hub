@@ -85,7 +85,7 @@ void main() {
 
   group('CheckInNotifier.executeCheckIn', () {
     test(
-      'returns null and does NOT save a result when the account is disabled',
+      'saves a skipped result when the account is disabled',
       () async {
         // Make sure build() resolves before we invoke executeCheckIn.
         await container.read(checkInProvider.future);
@@ -96,17 +96,23 @@ void main() {
         when(
           () => mockAccountsRepo.getById('acc-1'),
         ).thenAnswer((_) async => Success(disabledAccount));
+        when(() => mockCheckInRepo.saveResult(any())).thenAnswer(
+          (inv) async =>
+              Success<CheckInResult>(inv.positionalArguments[0] as CheckInResult),
+        );
+        when(() => mockCheckInRepo.saveTask(any())).thenAnswer(
+          (inv) async =>
+              Success<CheckInTask>(inv.positionalArguments[0] as CheckInTask),
+        );
 
         final result = await container
             .read(checkInProvider.notifier)
             .executeCheckIn('task-1');
 
-        expect(result, isNull);
-
-        // Core regression assertion: disabled accounts must not produce any
-        // history entries. The flow stops BEFORE the token lookup and the
-        // remote call, and NO CheckInResult is persisted.
-        verifyNever(() => mockCheckInRepo.saveResult(any()));
+        expect(result, isNotNull);
+        expect(result!.status, CheckInStatus.skipped);
+        expect(result.message, '账号已禁用');
+        verify(() => mockCheckInRepo.saveResult(any())).called(1);
       },
     );
 
@@ -127,21 +133,46 @@ void main() {
       verifyNever(() => mockCheckInRepo.saveResult(any()));
     });
 
-    test('returns null when the task is disabled', () async {
-      await container.read(checkInProvider.future);
+    test(
+      'saves a skipped result when auto check-in is disabled but account is enabled',
+      () async {
+        await container.read(checkInProvider.future);
 
-      when(
-        () => mockCheckInRepo.getTaskById('task-2'),
-      ).thenAnswer((_) async => Success(disabledTask));
+        final enabledAccountWithAutoDisabled = Account(
+          id: 'acc-1',
+          name: 'Enabled but no auto check-in',
+          baseUrl: 'https://example.com',
+          siteType: SiteType.newApi,
+          authType: AuthType.accessToken,
+          enabled: true,
+          createdAt: DateTime(2026, 1, 1),
+          updatedAt: DateTime(2026, 1, 1),
+        );
 
-      final result = await container
-          .read(checkInProvider.notifier)
-          .executeCheckIn('task-2');
+        when(
+          () => mockCheckInRepo.getTaskById('task-2'),
+        ).thenAnswer((_) async => Success(disabledTask));
+        when(
+          () => mockAccountsRepo.getById('acc-1'),
+        ).thenAnswer((_) async => Success(enabledAccountWithAutoDisabled));
+        when(() => mockCheckInRepo.saveResult(any())).thenAnswer(
+          (inv) async =>
+              Success<CheckInResult>(inv.positionalArguments[0] as CheckInResult),
+        );
+        when(() => mockCheckInRepo.saveTask(any())).thenAnswer(
+          (inv) async =>
+              Success<CheckInTask>(inv.positionalArguments[0] as CheckInTask),
+        );
 
-      expect(result, isNull);
-      // Disabled task short-circuits before touching the accounts repo.
-      verifyNever(() => mockAccountsRepo.getById(any()));
-      verifyNever(() => mockCheckInRepo.saveResult(any()));
-    });
+        final result = await container
+            .read(checkInProvider.notifier)
+            .executeCheckIn('task-2');
+
+        expect(result, isNotNull);
+        expect(result!.status, CheckInStatus.skipped);
+        expect(result.message, '自动签到已关闭');
+        verify(() => mockCheckInRepo.saveResult(any())).called(1);
+      },
+    );
   });
 }

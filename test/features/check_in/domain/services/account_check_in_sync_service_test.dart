@@ -226,7 +226,7 @@ void main() {
       },
     );
 
-    test('does nothing when account opts out and never had a task', () async {
+    test('creates a disabled task when account opts out and never had a task', () async {
       final account = _account(id: 'acc-D', autoCheckInEnabled: false);
 
       when(
@@ -235,15 +235,23 @@ void main() {
       when(
         () => checkInRepo.getTasksByAccountId('acc-D'),
       ).thenAnswer((_) async => const Success<List<CheckInTask>>([]));
+      when(() => checkInRepo.saveTask(any())).thenAnswer(
+        (inv) async =>
+            Success<CheckInTask>(inv.positionalArguments[0] as CheckInTask),
+      );
 
       final result = await service.sync();
 
       final summary = (result as Success<SyncSummary>).data;
-      expect(summary.created, 0);
+      expect(summary.created, 1);
       expect(summary.enabledCount, 0);
       expect(summary.disabledCount, 0);
 
-      verifyNever(() => checkInRepo.saveTask(any()));
+      final captured = verify(() => checkInRepo.saveTask(captureAny())).captured;
+      final savedTask = captured.single as CheckInTask;
+      expect(savedTask.accountId, 'acc-D');
+      expect(savedTask.enabled, isFalse);
+
       verifyNever(() => checkInRepo.deleteTask(any()));
     });
 

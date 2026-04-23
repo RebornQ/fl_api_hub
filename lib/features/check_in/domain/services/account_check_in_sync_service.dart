@@ -144,13 +144,31 @@ class AccountCheckInSyncService {
           }
         }
       } else {
-        // Account opted out: keep any existing task but force enabled=false.
-        for (final task in existing) {
-          if (task.enabled) {
-            final updated = task.copyWith(enabled: false, updatedAt: _now());
-            final write = await _checkInRepo.saveTask(updated);
-            if (write is Success<CheckInTask>) {
-              disabledCount++;
+        // Account opted out: create a disabled task if none exists so that
+        // executeAll can produce a "自动签到已关闭" skip result; otherwise
+        // force any existing task to enabled=false.
+        if (existing.isEmpty) {
+          final now = _now();
+          final task = CheckInTask(
+            id: _newId(),
+            accountId: account.id,
+            enabled: false,
+            scheduleTime: defaultScheduleTime,
+            createdAt: now,
+            updatedAt: now,
+          );
+          final write = await _checkInRepo.saveTask(task);
+          if (write is Success<CheckInTask>) {
+            created++;
+          }
+        } else {
+          for (final task in existing) {
+            if (task.enabled) {
+              final updated = task.copyWith(enabled: false, updatedAt: _now());
+              final write = await _checkInRepo.saveTask(updated);
+              if (write is Success<CheckInTask>) {
+                disabledCount++;
+              }
             }
           }
         }

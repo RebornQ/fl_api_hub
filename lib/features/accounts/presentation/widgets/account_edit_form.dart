@@ -67,6 +67,7 @@ class AccountEditFormState extends ConsumerState<AccountEditForm> {
   late SiteType _siteType;
   late AuthType _authType;
   late bool _excludeFromTotalBalance;
+  late bool _enabled;
   late List<String> _tagIds;
   late CheckInConfig _checkIn;
   late String? _redemptionUrl;
@@ -104,6 +105,7 @@ class AccountEditFormState extends ConsumerState<AccountEditForm> {
     _siteType = a?.siteType ?? SiteType.unknown;
     _authType = a?.authType ?? _siteType.defaultAuthType;
     _excludeFromTotalBalance = a?.excludeFromTotalBalance ?? false;
+    _enabled = a?.enabled ?? true;
     _tagIds = List<String>.from(a?.tagIds ?? const []);
     _checkIn = a?.checkIn ?? CheckInConfig.disabled;
     _redemptionUrl = a?.redemptionUrl;
@@ -120,6 +122,7 @@ class AccountEditFormState extends ConsumerState<AccountEditForm> {
       siteType: _siteType,
       authType: _authType,
       excludeFromTotalBalance: _excludeFromTotalBalance,
+      enabled: _enabled,
       tagIds: _tagIds,
       checkIn: _checkIn,
       redemptionUrl: _redemptionUrl,
@@ -151,6 +154,7 @@ class AccountEditFormState extends ConsumerState<AccountEditForm> {
     siteType: _siteType,
     authType: _authType,
     excludeFromTotalBalance: _excludeFromTotalBalance,
+    enabled: _enabled,
     tagIds: _tagIds,
     checkIn: _checkIn,
     redemptionUrl: _redemptionUrl,
@@ -273,6 +277,20 @@ class AccountEditFormState extends ConsumerState<AccountEditForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        SwitchListTile(
+          key: const ValueKey('accountEnabledSwitch'),
+          contentPadding: EdgeInsets.zero,
+          title: Text('启用此账号', style: Theme.of(context).textTheme.bodyMedium),
+          subtitle: Text(
+            '禁用后，该账号将不参与签到操作',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          value: _enabled,
+          onChanged: (v) => setState(() => _enabled = v),
+        ),
+        const SizedBox(height: AppSpacing.md),
         TextFormField(
           key: const ValueKey('urlField'),
           controller: _urlController,
@@ -564,7 +582,7 @@ class AccountEditFormState extends ConsumerState<AccountEditForm> {
       siteType: _siteType,
       authType: _authType,
       accessToken: accessToken,
-      enabled: widget.account?.enabled ?? true,
+      enabled: _enabled,
       notes: notes,
       balance: widget.account?.balance,
       username: username,
@@ -599,6 +617,7 @@ class _FormSnapshot {
   final SiteType siteType;
   final AuthType authType;
   final bool excludeFromTotalBalance;
+  final bool enabled;
   final List<String> tagIds;
   final CheckInConfig checkIn;
   final String? redemptionUrl;
@@ -615,6 +634,7 @@ class _FormSnapshot {
     required this.siteType,
     required this.authType,
     required this.excludeFromTotalBalance,
+    required this.enabled,
     required this.tagIds,
     required this.checkIn,
     required this.redemptionUrl,
@@ -633,6 +653,7 @@ class _FormSnapshot {
     required AuthType authType,
     required bool excludeFromTotalBalance,
     required List<String> tagIds,
+    required bool enabled,
     required CheckInConfig checkIn,
     required String? redemptionUrl,
   }) {
@@ -648,6 +669,7 @@ class _FormSnapshot {
       siteType: siteType,
       authType: authType,
       excludeFromTotalBalance: excludeFromTotalBalance,
+      enabled: enabled,
       tagIds: List<String>.from(tagIds),
       checkIn: checkIn,
       redemptionUrl: redemptionUrl,
@@ -669,6 +691,7 @@ class _FormSnapshot {
     if (siteType != other.siteType) return false;
     if (authType != other.authType) return false;
     if (excludeFromTotalBalance != other.excludeFromTotalBalance) return false;
+    if (enabled != other.enabled) return false;
     if (checkIn != other.checkIn) return false;
     if (redemptionUrl != other.redemptionUrl) return false;
     if (tagIds.length != other.tagIds.length) return false;
@@ -691,6 +714,7 @@ class _FormSnapshot {
     siteType,
     authType,
     excludeFromTotalBalance,
+    enabled,
     Object.hashAll(tagIds),
     checkIn,
     redemptionUrl,

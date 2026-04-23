@@ -1,6 +1,6 @@
 /// Pill-shaped status badge for check-in results.
 ///
-/// Displays "成功" (green), "失败" (red), or "已跳过" (purple)
+/// Displays "成功" (green), "失败" (red), "已签到" (green), or "已跳过" (yellow)
 /// based on [CheckInStatus].
 library;
 
@@ -29,13 +29,13 @@ class CheckInStatusBadge extends StatelessWidget {
         '失败',
       ),
       CheckInStatus.skipped => (
-        const Color(0xFFEDE9FE),
-        const Color(0xFF6D28D9),
+        const Color(0xFFFEF3C7),
+        const Color(0xFF92400E),
         '已跳过',
       ),
       CheckInStatus.alreadyChecked => (
-        const Color(0xFFEDE9FE),
-        const Color(0xFF6D28D9),
+        const Color(0xFFD1FAE5),
+        const Color(0xFF047857),
         '已签到',
       ),
     };

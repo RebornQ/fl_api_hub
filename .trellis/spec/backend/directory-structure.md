@@ -149,9 +149,9 @@ The `checkIn()` methods in both `CommonApiAdapter` and `VeloeraApiAdapter` bypas
 | Condition | Status | UI Display | Stats Count |
 |-----------|--------|------------|-------------|
 | `success: true` | `success` | Green "成功" | Success |
-| `success: false` + "已签到" | `alreadyChecked` | Purple "已签到" | Success |
+| `success: false` + "已签到" | `alreadyChecked` | Green "已签到" | Success |
 | `success: false` + other | `failed` | Red "失败" | Failed |
-| Account disabled / no userId | `skipped` | Purple "已跳过" | Skipped |
+| Account disabled / no userId | `skipped` | Yellow "已跳过" | Skipped |
 
 ### Implementation Details
 

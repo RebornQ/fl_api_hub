@@ -235,6 +235,32 @@ class AccountEditFormState extends ConsumerState<AccountEditForm> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '启用此账号',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      Text(
+                        '禁用后，该账号将不参与签到操作',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Switch(
+                  value: _enabled,
+                  onChanged: (v) => setState(() => _enabled = v),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
             SectionCard(
               icon: Icons.language,
               title: '站点信息',
@@ -277,20 +303,6 @@ class AccountEditFormState extends ConsumerState<AccountEditForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SwitchListTile(
-          key: const ValueKey('accountEnabledSwitch'),
-          contentPadding: EdgeInsets.zero,
-          title: Text('启用此账号', style: Theme.of(context).textTheme.bodyMedium),
-          subtitle: Text(
-            '禁用后，该账号将不参与签到操作',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          value: _enabled,
-          onChanged: (v) => setState(() => _enabled = v),
-        ),
-        const SizedBox(height: AppSpacing.md),
         TextFormField(
           key: const ValueKey('urlField'),
           controller: _urlController,
@@ -458,7 +470,9 @@ class AccountEditFormState extends ConsumerState<AccountEditForm> {
           decoration: const InputDecoration(
             labelText: '备注',
             hintText: '可选，输入备注信息',
+            alignLabelWithHint: true,
           ),
+          textAlignVertical: TextAlignVertical.top,
           maxLines: 3,
           validator: _validateNotes,
           onChanged: (_) => setState(() {}),

@@ -123,38 +123,25 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
     );
   }
 
-  /// Primary FAB with solid brand color + rounded-2xl + ink splash.
   Widget _buildExecuteFab(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final disabled = _isExecuting;
-    return Hero(
-      tag: 'execute',
-      child: Opacity(
-        opacity: disabled ? 0.5 : 1.0,
-        child: Material(
-          color: colorScheme.primary,
-          borderRadius: BorderRadius.circular(16),
-          elevation: 4,
-          shadowColor: colorScheme.primary.withValues(alpha: 0.4),
-          child: InkWell(
-            onTap: disabled ? null : _executeAll,
-            borderRadius: BorderRadius.circular(16),
-            splashColor: colorScheme.onPrimary.withValues(alpha: 0.24),
-            highlightColor: colorScheme.onPrimary.withValues(alpha: 0.12),
-            child: SizedBox(
-              width: 64,
-              height: 64,
-              child: Center(
-                child: Icon(
-                  Icons.play_arrow,
-                  size: 32,
-                  color: colorScheme.onPrimary,
-                ),
+    return FloatingActionButton(
+      heroTag: 'execute',
+      onPressed: _isExecuting ? null : _executeAll,
+      backgroundColor: colorScheme.primary,
+      foregroundColor: colorScheme.onPrimary,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 4,
+      child: _isExecuting
+          ? const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                color: Colors.white,
               ),
-            ),
-          ),
-        ),
-      ),
+            )
+          : const Icon(Icons.play_arrow, size: 32),
     );
   }
 

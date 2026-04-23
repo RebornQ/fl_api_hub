@@ -168,3 +168,36 @@ Fix three regressions from commit 71068c0 which added `CheckInStatus.alreadyChec
 ### Next Steps
 
 - None - task complete
+
+
+## Session 27: Fix narrow-screen check-in detail page stale data
+
+**Date**: 2026-04-23
+**Task**: Fix narrow-screen check-in detail page stale data
+**Branch**: `main`
+
+### Summary
+
+Fixed narrow-screen check-in detail page not refreshing after executeAll(). Root cause: ref.listen in CheckInDetailView only fires while mounted; on narrow screens the page is pushed after latestResultPerAccountProvider already settled. Fix: invalidate accountCheckInHistoryProvider and accountCheckInStatsProvider before Navigator.push in _openDetail.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `6ba6c74` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

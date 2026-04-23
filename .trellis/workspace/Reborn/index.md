@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 26
+- **Total Sessions**: 27
 - **Last Active**: 2026-04-23
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~170 | Active |
+| `journal-2.md` | ~203 | Active |
 | `journal-1.md` | ~1977 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 27 | 2026-04-23 | Fix narrow-screen check-in detail page stale data | `6ba6c74` | `main` |
 | 26 | 2026-04-23 | fix(check-in): count alreadyChecked as success + fix data serialization | `7551856` | `main` |
 | 25 | 2026-04-23 | Fix check-in already-checked-in handling | `71068c0` | `main` |
 | 24 | 2026-04-23 | 实现请求记录器完整功能（B1-B4） | `3aec0ce` | `main` |

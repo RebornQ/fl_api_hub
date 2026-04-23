@@ -362,6 +362,12 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
     if (isWide) {
       ref.read(selectedAccountIdProvider.notifier).state = accountId;
     } else {
+      // Force invalidate cached providers so the pushed detail page always
+      // reads fresh data from the database (the wide-screen detail pane is
+      // always mounted and stays in sync via ref.listen, but narrow-screen
+      // pages are pushed after the data has already settled).
+      ref.invalidate(accountCheckInHistoryProvider(accountId));
+      ref.invalidate(accountCheckInStatsProvider(accountId));
       Navigator.push(
         context,
         MaterialPageRoute(

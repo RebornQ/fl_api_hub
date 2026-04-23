@@ -234,3 +234,42 @@ Renamed project across all platforms: Dart package name, application ID, display
 ### Next Steps
 
 - None - task complete
+
+
+## Session 29: Rename macOS app bundle to Fl All API Hub
+
+**Date**: 2026-04-23
+**Task**: Rename macOS app bundle to Fl All API Hub
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+| 变更 | 说明 |
+|------|------|
+| PRODUCT_NAME | `fl_all_api_hub` → `Fl All API Hub` |
+
+**修改文件**:
+- `macos/Runner/Configs/AppInfo.xcconfig`
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `efba8cb` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 28
+- **Total Sessions**: 29
 - **Last Active**: 2026-04-23
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~236 | Active |
+| `journal-2.md` | ~275 | Active |
 | `journal-1.md` | ~1977 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 29 | 2026-04-23 | Rename macOS app bundle to Fl All API Hub | `efba8cb` | `main` |
 | 28 | 2026-04-23 | Project rename: all_api_hub_flutter -> fl_all_api_hub | `4b6c01f` | `main` |
 | 27 | 2026-04-23 | Fix narrow-screen check-in detail page stale data | `6ba6c74` | `main` |
 | 26 | 2026-04-23 | fix(check-in): count alreadyChecked as success + fix data serialization | `7551856` | `main` |

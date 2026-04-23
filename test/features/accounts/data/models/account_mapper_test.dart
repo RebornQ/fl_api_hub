@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:all_api_hub_flutter/core/config/app_defaults.dart';
-import 'package:all_api_hub_flutter/core/network/site_type.dart';
-import 'package:all_api_hub_flutter/features/accounts/data/models/account_mapper.dart';
-import 'package:all_api_hub_flutter/features/accounts/domain/entities/account.dart';
-import 'package:all_api_hub_flutter/features/accounts/domain/entities/check_in_config.dart';
+import 'package:fl_all_api_hub/core/config/app_defaults.dart';
+import 'package:fl_all_api_hub/core/network/site_type.dart';
+import 'package:fl_all_api_hub/features/accounts/data/models/account_mapper.dart';
+import 'package:fl_all_api_hub/features/accounts/domain/entities/account.dart';
+import 'package:fl_all_api_hub/features/accounts/domain/entities/check_in_config.dart';
 
 void main() {
   group('AccountMapper', () {

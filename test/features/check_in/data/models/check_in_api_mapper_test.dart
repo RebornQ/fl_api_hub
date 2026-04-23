@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:all_api_hub_flutter/core/network/dto/check_in_result_dto.dart';
-import 'package:all_api_hub_flutter/core/network/dto/check_in_data_dto.dart';
-import 'package:all_api_hub_flutter/features/check_in/data/models/check_in_api_mapper.dart';
-import 'package:all_api_hub_flutter/features/check_in/domain/entities/check_in_result.dart';
+import 'package:fl_all_api_hub/core/network/dto/check_in_result_dto.dart';
+import 'package:fl_all_api_hub/core/network/dto/check_in_data_dto.dart';
+import 'package:fl_all_api_hub/features/check_in/data/models/check_in_api_mapper.dart';
+import 'package:fl_all_api_hub/features/check_in/domain/entities/check_in_result.dart';
 
 void main() {
   group('CheckInApiMapper', () {

@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.mallotec" "\0"
-            VALUE "FileDescription", "all_api_hub_flutter" "\0"
+            VALUE "FileDescription", "Fl All API Hub" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "all_api_hub_flutter" "\0"
+            VALUE "InternalName", "fl_all_api_hub" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.mallotec. All rights reserved." "\0"
-            VALUE "OriginalFilename", "all_api_hub_flutter.exe" "\0"
-            VALUE "ProductName", "all_api_hub_flutter" "\0"
+            VALUE "OriginalFilename", "fl_all_api_hub.exe" "\0"
+            VALUE "ProductName", "Fl All API Hub" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

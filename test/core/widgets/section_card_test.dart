@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:all_api_hub_flutter/app/theme/app_theme.dart';
-import 'package:all_api_hub_flutter/core/widgets/section_card.dart';
+import 'package:fl_all_api_hub/app/theme/app_theme.dart';
+import 'package:fl_all_api_hub/core/widgets/section_card.dart';
 
 void main() {
   group('SectionCard', () {

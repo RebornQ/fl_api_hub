@@ -1,12 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:all_api_hub_flutter/core/error/app_exception.dart';
-import 'package:all_api_hub_flutter/core/result/result.dart';
-import 'package:all_api_hub_flutter/features/check_in/data/datasources/check_in_local_datasource.dart';
-import 'package:all_api_hub_flutter/features/check_in/data/repositories/check_in_repository_impl.dart';
-import 'package:all_api_hub_flutter/features/check_in/domain/entities/check_in_result.dart';
-import 'package:all_api_hub_flutter/features/check_in/domain/entities/check_in_task.dart';
+import 'package:fl_all_api_hub/core/error/app_exception.dart';
+import 'package:fl_all_api_hub/core/result/result.dart';
+import 'package:fl_all_api_hub/features/check_in/data/datasources/check_in_local_datasource.dart';
+import 'package:fl_all_api_hub/features/check_in/data/repositories/check_in_repository_impl.dart';
+import 'package:fl_all_api_hub/features/check_in/domain/entities/check_in_result.dart';
+import 'package:fl_all_api_hub/features/check_in/domain/entities/check_in_task.dart';
 
 class MockCheckInLocalDataSource extends Mock
     implements CheckInLocalDataSource {}

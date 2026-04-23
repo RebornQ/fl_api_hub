@@ -1,5 +1,5 @@
-import 'package:all_api_hub_flutter/core/error/app_exception.dart';
-import 'package:all_api_hub_flutter/core/network/reachability_status.dart';
+import 'package:fl_all_api_hub/core/error/app_exception.dart';
+import 'package:fl_all_api_hub/core/network/reachability_status.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 

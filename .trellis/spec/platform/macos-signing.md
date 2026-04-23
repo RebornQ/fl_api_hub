@@ -197,7 +197,7 @@ with a development certificate` errors.
 ### Signing check (required)
 
 ```bash
-codesign -dvv build/macos/Build/Products/Debug/all_api_hub_flutter.app 2>&1
+codesign -dvv build/macos/Build/Products/Debug/fl_all_api_hub.app 2>&1
 ```
 
 Expected output contains:

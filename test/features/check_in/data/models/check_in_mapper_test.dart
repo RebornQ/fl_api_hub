@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:all_api_hub_flutter/features/check_in/data/models/check_in_mapper.dart';
-import 'package:all_api_hub_flutter/features/check_in/domain/entities/check_in_result.dart';
-import 'package:all_api_hub_flutter/features/check_in/domain/entities/check_in_task.dart';
+import 'package:fl_all_api_hub/features/check_in/data/models/check_in_mapper.dart';
+import 'package:fl_all_api_hub/features/check_in/domain/entities/check_in_result.dart';
+import 'package:fl_all_api_hub/features/check_in/domain/entities/check_in_task.dart';
 
 void main() {
   group('CheckInTaskMapper', () {

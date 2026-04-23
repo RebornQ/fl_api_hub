@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:all_api_hub_flutter/core/network/reachability_status.dart';
-import 'package:all_api_hub_flutter/core/network/site_type.dart';
-import 'package:all_api_hub_flutter/features/accounts/domain/entities/account.dart';
-import 'package:all_api_hub_flutter/features/accounts/domain/repositories/account_reachability_repository.dart';
-import 'package:all_api_hub_flutter/features/accounts/presentation/pages/accounts_page.dart';
-import 'package:all_api_hub_flutter/features/accounts/presentation/providers/account_reachability_providers.dart';
-import 'package:all_api_hub_flutter/features/accounts/presentation/providers/accounts_filter_providers.dart';
-import 'package:all_api_hub_flutter/features/accounts/presentation/providers/accounts_providers.dart';
-import 'package:all_api_hub_flutter/features/accounts/presentation/widgets/account_card.dart';
+import 'package:fl_all_api_hub/core/network/reachability_status.dart';
+import 'package:fl_all_api_hub/core/network/site_type.dart';
+import 'package:fl_all_api_hub/features/accounts/domain/entities/account.dart';
+import 'package:fl_all_api_hub/features/accounts/domain/repositories/account_reachability_repository.dart';
+import 'package:fl_all_api_hub/features/accounts/presentation/pages/accounts_page.dart';
+import 'package:fl_all_api_hub/features/accounts/presentation/providers/account_reachability_providers.dart';
+import 'package:fl_all_api_hub/features/accounts/presentation/providers/accounts_filter_providers.dart';
+import 'package:fl_all_api_hub/features/accounts/presentation/providers/accounts_providers.dart';
+import 'package:fl_all_api_hub/features/accounts/presentation/widgets/account_card.dart';
 
 /// In-memory fake so the page test doesn't need a Hive box to hydrate the
 /// reachability map on first watch.

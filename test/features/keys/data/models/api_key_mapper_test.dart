@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:all_api_hub_flutter/features/keys/data/models/api_key_mapper.dart';
-import 'package:all_api_hub_flutter/features/keys/domain/entities/api_key.dart';
+import 'package:fl_all_api_hub/features/keys/data/models/api_key_mapper.dart';
+import 'package:fl_all_api_hub/features/keys/domain/entities/api_key.dart';
 
 void main() {
   group('ApiKeyMapper', () {

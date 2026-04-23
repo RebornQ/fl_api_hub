@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:all_api_hub_flutter/features/dev_tools/request_logger/data/utils/curl_exporter.dart';
-import 'package:all_api_hub_flutter/features/dev_tools/request_logger/domain/entities/request_log_entry.dart';
+import 'package:fl_all_api_hub/features/dev_tools/request_logger/data/utils/curl_exporter.dart';
+import 'package:fl_all_api_hub/features/dev_tools/request_logger/domain/entities/request_log_entry.dart';
 
 RequestLogEntry _makeEntry({
   String method = 'GET',

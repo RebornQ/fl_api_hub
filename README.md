@@ -1,6 +1,6 @@
-# all_api_hub_flutter
+# Fl All API Hub
 
-An all-api-hub Flutter project.
+An All-API-Hub Flutter project.
 
 ## Getting Started
 

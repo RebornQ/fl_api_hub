@@ -1,5 +1,5 @@
-name: all_api_hub_flutter
-description: "An all-api-hub Flutter project."
+name: fl_all_api_hub
+description: "An All-API-Hub Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev

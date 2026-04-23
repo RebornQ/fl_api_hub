@@ -1,12 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:all_api_hub_flutter/core/error/app_exception.dart';
-import 'package:all_api_hub_flutter/core/network/site_type.dart';
-import 'package:all_api_hub_flutter/core/result/result.dart';
-import 'package:all_api_hub_flutter/features/accounts/data/datasources/accounts_local_datasource.dart';
-import 'package:all_api_hub_flutter/features/accounts/data/repositories/accounts_repository_impl.dart';
-import 'package:all_api_hub_flutter/features/accounts/domain/entities/account.dart';
+import 'package:fl_all_api_hub/core/error/app_exception.dart';
+import 'package:fl_all_api_hub/core/network/site_type.dart';
+import 'package:fl_all_api_hub/core/result/result.dart';
+import 'package:fl_all_api_hub/features/accounts/data/datasources/accounts_local_datasource.dart';
+import 'package:fl_all_api_hub/features/accounts/data/repositories/accounts_repository_impl.dart';
+import 'package:fl_all_api_hub/features/accounts/domain/entities/account.dart';
 
 class MockAccountsLocalDataSource extends Mock
     implements AccountsLocalDataSource {}

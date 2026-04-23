@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:all_api_hub_flutter/features/dev_tools/request_logger/domain/entities/request_log_entry.dart';
-import 'package:all_api_hub_flutter/features/dev_tools/request_logger/domain/entities/request_log_filter.dart';
-import 'package:all_api_hub_flutter/features/dev_tools/request_logger/domain/entities/status_bucket.dart';
-import 'package:all_api_hub_flutter/features/dev_tools/request_logger/presentation/providers/request_logger_providers.dart';
+import 'package:fl_all_api_hub/features/dev_tools/request_logger/domain/entities/request_log_entry.dart';
+import 'package:fl_all_api_hub/features/dev_tools/request_logger/domain/entities/request_log_filter.dart';
+import 'package:fl_all_api_hub/features/dev_tools/request_logger/domain/entities/status_bucket.dart';
+import 'package:fl_all_api_hub/features/dev_tools/request_logger/presentation/providers/request_logger_providers.dart';
 
 RequestLogEntry _entry({
   required int id,

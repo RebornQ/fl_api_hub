@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:all_api_hub_flutter/core/network/dto/check_in_status_dto.dart';
+import 'package:fl_all_api_hub/core/network/dto/check_in_status_dto.dart';
 
 void main() {
   group('CheckInStatusDto', () {

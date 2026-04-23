@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:all_api_hub_flutter/core/error/app_exception.dart';
-import 'package:all_api_hub_flutter/core/result/result.dart';
-import 'package:all_api_hub_flutter/features/keys/data/datasources/keys_local_datasource.dart';
-import 'package:all_api_hub_flutter/features/keys/data/repositories/keys_repository_impl.dart';
-import 'package:all_api_hub_flutter/features/keys/domain/entities/api_key.dart';
+import 'package:fl_all_api_hub/core/error/app_exception.dart';
+import 'package:fl_all_api_hub/core/result/result.dart';
+import 'package:fl_all_api_hub/features/keys/data/datasources/keys_local_datasource.dart';
+import 'package:fl_all_api_hub/features/keys/data/repositories/keys_repository_impl.dart';
+import 'package:fl_all_api_hub/features/keys/domain/entities/api_key.dart';
 
 class MockKeysLocalDataSource extends Mock implements KeysLocalDataSource {}
 

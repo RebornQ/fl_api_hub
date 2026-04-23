@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:all_api_hub_flutter/core/error/app_exception.dart';
-import 'package:all_api_hub_flutter/core/error/failure_mapper.dart';
+import 'package:fl_all_api_hub/core/error/app_exception.dart';
+import 'package:fl_all_api_hub/core/error/failure_mapper.dart';
 
 void main() {
   group('mapToAppException', () {

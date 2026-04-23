@@ -2,16 +2,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:all_api_hub_flutter/core/error/app_exception.dart';
-import 'package:all_api_hub_flutter/core/network/site_type.dart';
-import 'package:all_api_hub_flutter/core/result/result.dart';
-import 'package:all_api_hub_flutter/features/accounts/domain/entities/account.dart';
-import 'package:all_api_hub_flutter/features/accounts/domain/repositories/accounts_repository.dart';
-import 'package:all_api_hub_flutter/features/accounts/presentation/providers/accounts_providers.dart';
-import 'package:all_api_hub_flutter/features/check_in/domain/entities/check_in_result.dart';
-import 'package:all_api_hub_flutter/features/check_in/domain/entities/check_in_task.dart';
-import 'package:all_api_hub_flutter/features/check_in/domain/repositories/check_in_repository.dart';
-import 'package:all_api_hub_flutter/features/check_in/presentation/providers/check_in_providers.dart';
+import 'package:fl_all_api_hub/core/error/app_exception.dart';
+import 'package:fl_all_api_hub/core/network/site_type.dart';
+import 'package:fl_all_api_hub/core/result/result.dart';
+import 'package:fl_all_api_hub/features/accounts/domain/entities/account.dart';
+import 'package:fl_all_api_hub/features/accounts/domain/repositories/accounts_repository.dart';
+import 'package:fl_all_api_hub/features/accounts/presentation/providers/accounts_providers.dart';
+import 'package:fl_all_api_hub/features/check_in/domain/entities/check_in_result.dart';
+import 'package:fl_all_api_hub/features/check_in/domain/entities/check_in_task.dart';
+import 'package:fl_all_api_hub/features/check_in/domain/repositories/check_in_repository.dart';
+import 'package:fl_all_api_hub/features/check_in/presentation/providers/check_in_providers.dart';
 
 class MockCheckInRepository extends Mock implements CheckInRepository {}
 

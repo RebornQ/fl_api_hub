@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:all_api_hub_flutter/core/network/auth_interceptor.dart';
+import 'package:fl_all_api_hub/core/network/auth_interceptor.dart';
 
 void main() {
   late AuthInterceptor interceptor;

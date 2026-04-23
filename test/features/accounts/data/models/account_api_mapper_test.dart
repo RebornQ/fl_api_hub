@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:all_api_hub_flutter/core/network/dto/user_info_dto.dart';
-import 'package:all_api_hub_flutter/features/accounts/data/models/account_api_mapper.dart';
+import 'package:fl_all_api_hub/core/network/dto/user_info_dto.dart';
+import 'package:fl_all_api_hub/features/accounts/data/models/account_api_mapper.dart';
 
 void main() {
   group('AccountApiMapper', () {

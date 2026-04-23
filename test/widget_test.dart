@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import 'package:all_api_hub_flutter/app/app.dart';
+import 'package:fl_all_api_hub/app/app.dart';
 
 void main() {
   late Directory tempDir;

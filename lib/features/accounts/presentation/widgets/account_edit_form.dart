@@ -175,15 +175,13 @@ class AccountEditFormState extends ConsumerState<AccountEditForm> {
     try {
       final account = _buildAccountPayload();
       final notifier = ref.read(accountsProvider.notifier);
-      final wasEnabledBefore = widget.account?.enabled ?? false;
       if (_isEditing) {
         await notifier.saveAccount(account);
       } else {
         await notifier.create(account);
       }
 
-      final shouldRecheck =
-          account.enabled && (!_isEditing || !wasEnabledBefore);
+      final shouldRecheck = account.enabled;
       if (shouldRecheck) {
         unawaited(notifier.checkOne(account.id));
       }

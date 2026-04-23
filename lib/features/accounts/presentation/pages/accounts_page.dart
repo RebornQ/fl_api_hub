@@ -41,10 +41,14 @@ class AccountsPage extends ConsumerStatefulWidget {
   ConsumerState<AccountsPage> createState() => _AccountsPageState();
 }
 
-class _AccountsPageState extends ConsumerState<AccountsPage> {
+class _AccountsPageState extends ConsumerState<AccountsPage>
+    with SingleTickerProviderStateMixin {
   late final TextEditingController _searchController;
   Timer? _debounce;
   bool _hasSearchText = false;
+
+  late final AnimationController _refreshController;
+  bool _isRefreshing = false;
 
   /// Tracks whether the wide-screen detail panel has unsaved edits.
   final _detailDirtyNotifier = ValueNotifier<bool>(false);
@@ -64,6 +68,10 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
   @override
   void initState() {
     super.initState();
+    _refreshController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    );
     final initialQuery = ref.read(accountSearchQueryProvider);
     _searchController = TextEditingController(text: initialQuery);
     _hasSearchText = initialQuery.isNotEmpty;
@@ -77,6 +85,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
 
   @override
   void dispose() {
+    _refreshController.dispose();
     _debounce?.cancel();
     _detailDirtyNotifier.dispose();
     _wideFocusNode.dispose();
@@ -90,6 +99,16 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
     final hasText = _searchController.text.isNotEmpty;
     if (hasText != _hasSearchText) {
       setState(() => _hasSearchText = hasText);
+    }
+  }
+
+  Future<void> _handleRefresh() async {
+    setState(() => _isRefreshing = true);
+    _refreshController.repeat();
+    await ref.read(accountsProvider.notifier).checkAll(force: true);
+    if (mounted) {
+      _refreshController.stop();
+      setState(() => _isRefreshing = false);
     }
   }
 
@@ -171,8 +190,9 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
     } else {
       nextIndex = isUp ? currentIndex - 1 : currentIndex + 1;
     }
-    if (nextIndex < 0 || nextIndex >= list.length)
+    if (nextIndex < 0 || nextIndex >= list.length) {
       return KeyEventResult.handled;
+    }
 
     final targetId = list[nextIndex].id;
 
@@ -331,16 +351,14 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Secondary FAB (hidden when save is shown).
+            // Secondary FAB: refresh reachability (hidden when save is shown).
             if (!showSave)
               SizedBox(
                 width: 48,
                 height: 48,
                 child: FloatingActionButton(
-                  heroTag: 'search',
-                  onPressed: () {
-                    // TODO: implement scan duplicates
-                  },
+                  heroTag: 'accounts_refresh',
+                  onPressed: _isRefreshing ? null : _handleRefresh,
                   backgroundColor: Theme.of(
                     context,
                   ).colorScheme.secondaryContainer,
@@ -350,7 +368,10 @@ class _AccountsPageState extends ConsumerState<AccountsPage> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Icon(Icons.search),
+                  child: RotationTransition(
+                    turns: _refreshController,
+                    child: const Icon(Icons.refresh),
+                  ),
                 ),
               ),
             if (!showSave) const SizedBox(height: AppSpacing.md),

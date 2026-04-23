@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 35
+- **Total Sessions**: 36
 - **Last Active**: 2026-04-24
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~552 | Active |
+| `journal-2.md` | ~600 | Active |
 | `journal-1.md` | ~1977 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 36 | 2026-04-24 | 账号列表项签到状态图标 | `5c3140f` | `main` |
 | 35 | 2026-04-24 | fix(ui): badge colors and account form tweaks | `6d31dd2` | `main` |
 | 34 | 2026-04-24 | feat(accounts): add enable/disable toggle and check-in skip messages | `87b7f23` | `main` |
 | 33 | 2026-04-23 | 签到列表选中高亮 + 键盘导航 | `a8b4882` | `main` |

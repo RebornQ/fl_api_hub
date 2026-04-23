@@ -550,3 +550,51 @@ Renamed project across all platforms: Dart package name, application ID, display
 ### Next Steps
 
 - None - task complete
+
+
+## Session 36: 账号列表项签到状态图标
+
+**Date**: 2026-04-24
+**Task**: 账号列表项签到状态图标
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+| 改动 | 说明 |
+|------|------|
+| 新增 Provider | `latestResultByAccountProvider` — 将签到结果列表转为 Map<accountId, result>，支持 O(1) 查询 |
+| 修改 AccountCard | 转为 ConsumerWidget，账号名旁显示 14dp 签到状态图标 |
+| 新增纯函数 | `_resolveCheckInIcon` — 根据自动签到开关和今日结果返回图标/颜色 |
+
+**图标规则**：
+- 未开启自动签到 → 不显示
+- 今日 success/alreadyChecked → 绿色 check_circle
+- 今日 failed → 橙色 error
+- 无结果/非今日/skipped → 红色 cancel
+
+**修改文件**：
+- `lib/features/check_in/presentation/providers/check_in_providers.dart`
+- `lib/features/accounts/presentation/widgets/account_card.dart`
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `5c3140f` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

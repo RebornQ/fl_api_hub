@@ -598,3 +598,49 @@ Renamed project across all platforms: Dart package name, application ID, display
 ### Next Steps
 
 - None - task complete
+
+
+## Session 37: Generate app launcher icons for all platforms
+
+**Date**: 2026-04-24
+**Task**: Generate app launcher icons for all platforms
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+| Item | Description |
+|------|-------------|
+| Config | Created `icons_launcher.yaml` with platform-specific settings |
+| Source Icons | `icons/icon-hub-1024-new.png` (enlarged, padding removed), `icons/icon-hub-1024-ios.png` (#D2D0E8 background composited) |
+| Android | Adaptive icons with `#D2D0E8` background color + foreground image |
+| iOS | Pre-composited #D2D0E8 background (icons_launcher hardcodes white for alpha removal) |
+| macOS / Web / Windows / Linux | Generated from enlarged source icon |
+| Tool Scripts | `tool/composite_ios_icon.dart`, `tool/remove_icon_padding.dart` |
+
+**Key Decisions**:
+- Original icon had ~27% padding per side (content only 46% of canvas) — cropped and enlarged to ~95%
+- iOS uses separate pre-composited image because `icons_launcher` hardcodes `#FFFFFF` for alpha removal
+- All source icons consolidated in `icons/` directory
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `7ae3fa6` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

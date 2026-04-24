@@ -759,3 +759,66 @@ Renamed project across all platforms: Dart package name, application ID, display
 ### Next Steps
 
 - None - task complete
+
+
+## Session 40: Desktop Window Management & macOS Settings Menu
+
+**Date**: 2026-04-25
+**Task**: Desktop Window Management & macOS Settings Menu
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## Changes
+
+| Feature | Description |
+|---------|-------------|
+| macOS Settings Menu | Wire Cmd+, and Settings menu item to navigate to Settings tab via MethodChannel → Riverpod StateProvider |
+| Default Window Size | All desktop platforms: 80% of primary screen, minimum 1024×768 |
+| Window Persistence (macOS) | Save/restore window size & position via UserDefaults; fullscreen state not persisted |
+| Window Persistence (Windows) | Save/restore via Registry (HKEY_CURRENT_USER\Software\mallotec\flapihub) |
+| Linux Window Sizing | Calculate 80% of workarea via gdk_monitor_get_workarea; no persistence |
+| Riverpod Tab State | Tab index migrated from StatefulWidget local state to Riverpod StateProvider |
+| MethodChannel Bridge | New `lib/core/platform/app_method_channel.dart` encapsulates native→Flutter communication |
+
+**Files Modified**:
+- `lib/core/platform/app_method_channel.dart` (new)
+- `lib/app/router.dart` — added `tabIndexProvider` + `settingsTab` constant
+- `lib/app/shell/app_shell.dart` — converted to ConsumerStatefulWidget
+- `lib/app/app.dart` — removed ProviderScope (moved to main.dart)
+- `lib/main.dart` — ProviderContainer + UncontrolledProviderScope
+- `macos/Runner/MainFlutterWindow.swift` — window sizing + UserDefaults persistence
+- `macos/Runner/AppDelegate.swift` — MethodChannel + programmatic Settings menu wiring
+- `macos/Runner/Base.lproj/MainMenu.xib` — Preferences → Settings
+- `linux/runner/my_application.cc` — 80% screen + min size constraints
+- `windows/runner/main.cpp` — 80% + Registry read
+- `windows/runner/flutter_window.cpp` / `.h` — WM_GETMINMAXINFO + WM_CLOSE save
+
+## Key Decisions
+
+- **Native-first window management**: All sizing/persistence done in platform-native code (Swift/C++/C), not Flutter plugins
+- **Programmatic menu wiring**: Settings menu item wired at runtime in `applicationDidFinishLaunching` (before `super`) rather than XIB connections, which proved fragile
+- **ProviderContainer at top level**: Created in `main()` so MethodChannel callback can directly access Riverpod state without widget tree traversal
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `ab0110a` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

@@ -45,9 +45,7 @@
   "commit": null,
   "pr_url": null,
   "subtasks": [],
-  "children": [
-    "04-25-settings-ui"
-  ],
+  "children": [],
   "parent": null,
   "relatedFiles": [],
   "notes": "",

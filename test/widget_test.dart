@@ -1,12 +1,15 @@
 import 'dart:io';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:fl_api_hub/app/app.dart';
+import 'package:fl_api_hub/app/router.dart';
 
 void main() {
   late Directory tempDir;
+  late ProviderContainer container;
 
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp('hive_test_');
@@ -15,19 +18,28 @@ void main() {
       Hive.openBox('app_data'),
       Hive.openBox('accounts'),
       Hive.openBox('keys'),
+      Hive.openBox('tags'),
       Hive.openBox('check_in_tasks'),
       Hive.openBox('check_in_results'),
       Hive.openBox('scheduler_config'),
+      Hive.openBox('account_reachability'),
     ]);
+    container = ProviderContainer();
   });
 
   tearDown(() async {
+    container.dispose();
     await Hive.close();
     await tempDir.delete(recursive: true);
   });
 
   testWidgets('App shell renders with bottom navigation', (tester) async {
-    await tester.pumpWidget(const App());
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const App(),
+      ),
+    );
 
     // Default page is Check-in.
     expect(find.text('自动签到'), findsWidgets);
@@ -39,7 +51,12 @@ void main() {
   });
 
   testWidgets('Switching tabs updates the visible page', (tester) async {
-    await tester.pumpWidget(const App());
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const App(),
+      ),
+    );
 
     // Tap the Accounts tab.
     await tester.tap(find.text('账号'));

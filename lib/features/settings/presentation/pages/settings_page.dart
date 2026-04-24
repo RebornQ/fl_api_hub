@@ -8,6 +8,7 @@ library;
 import 'package:flutter/material.dart';
 
 import '../../../dev_tools/request_logger/presentation/pages/developer_options_page.dart';
+import '../widgets/appearance_settings.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -18,6 +19,8 @@ class SettingsPage extends StatelessWidget {
       body: SafeArea(
         child: ListView(
           children: [
+            const AppearanceSettings(),
+            const Divider(height: 1),
             ListTile(
               leading: const Icon(Icons.developer_mode_outlined),
               title: const Text('开发者选项'),

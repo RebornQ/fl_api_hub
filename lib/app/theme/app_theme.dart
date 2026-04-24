@@ -6,14 +6,13 @@ import 'design_tokens.dart';
 /// Application-wide Material 3 theme.
 ///
 /// Uses [ColorScheme.fromSeed] with the brand primary color so that the
-/// full tonal palette is generated automatically.
+/// full tonal palette is generated automatically. Call [buildFromScheme] to
+/// create a complete [ThemeData] from any [ColorScheme] (static or dynamic).
 abstract final class AppTheme {
-  static ThemeData get light {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: AppColors.primary,
-      brightness: Brightness.light,
-    );
-
+  /// Build a full [ThemeData] from the given [ColorScheme].
+  ///
+  /// Shared by both light and dark themes, and by dynamic (Monet) overrides.
+  static ThemeData buildFromScheme(ColorScheme colorScheme) {
     final textTheme = GoogleFonts.interTextTheme().apply(
       bodyColor: colorScheme.onSurface,
       displayColor: colorScheme.onSurface,
@@ -66,4 +65,20 @@ abstract final class AppTheme {
       ),
     );
   }
+
+  /// Static light theme using the brand seed color.
+  static ThemeData get light => buildFromScheme(
+    ColorScheme.fromSeed(
+      seedColor: AppColors.primary,
+      brightness: Brightness.light,
+    ),
+  );
+
+  /// Static dark theme using the brand seed color.
+  static ThemeData get dark => buildFromScheme(
+    ColorScheme.fromSeed(
+      seedColor: AppColors.primary,
+      brightness: Brightness.dark,
+    ),
+  );
 }

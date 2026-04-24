@@ -41,6 +41,7 @@ dependencies:
   uuid: ^4.5.3
   meta: ^1.17.0
   flutter_native_splash: ^2.4.7
+  dynamic_color: ^1.7.0
 
 dev_dependencies:
   flutter_test:

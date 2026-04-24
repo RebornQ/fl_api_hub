@@ -40,6 +40,7 @@ dependencies:
   hive_flutter: ^1.1.0
   uuid: ^4.5.3
   meta: ^1.17.0
+  flutter_native_splash: ^2.4.7
 
 dev_dependencies:
   flutter_test:

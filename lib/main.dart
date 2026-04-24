@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -9,7 +10,9 @@ import 'core/storage/hive_store.dart';
 import 'features/check_in/data/datasources/check_in_local_datasource.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+
   await initHive();
   await _migrateCheckInResultCap();
 
@@ -20,6 +23,8 @@ void main() async {
   };
 
   runApp(UncontrolledProviderScope(container: container, child: const App()));
+
+  FlutterNativeSplash.remove();
 }
 
 /// Silently trims per-account check-in results down to

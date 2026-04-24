@@ -4,6 +4,22 @@
 
 #include "flutter/generated_plugin_registrant.h"
 
+namespace {
+
+constexpr const wchar_t kWindowRegKey[] =
+    L"Software\\mallotec\\flapihub";
+
+constexpr int kMinWidth = 1024;
+constexpr int kMinHeight = 768;
+
+bool WriteRegDword(HKEY key, const wchar_t* name, DWORD value) {
+  return RegSetValueEx(key, name, 0, REG_DWORD,
+                       reinterpret_cast<const BYTE*>(&value),
+                       sizeof(DWORD)) == ERROR_SUCCESS;
+}
+
+}  // namespace
+
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
     : project_(project) {}
 
@@ -65,7 +81,42 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
     case WM_FONTCHANGE:
       flutter_controller_->engine()->ReloadSystemFonts();
       break;
+
+    case WM_GETMINMAXINFO: {
+      auto mmi = reinterpret_cast<MINMAXINFO*>(lparam);
+      mmi->ptMinTrackSize.x = kMinWidth;
+      mmi->ptMinTrackSize.y = kMinHeight;
+      return 0;
+    }
+
+    case WM_CLOSE:
+      SaveWindowState();
+      break;
   }
 
   return Win32Window::MessageHandler(hwnd, message, wparam, lparam);
+}
+
+void FlutterWindow::SaveWindowState() {
+  HWND hwnd = GetHandle();
+  if (!hwnd || IsZoomed(hwnd) || IsIconic(hwnd)) {
+    return;
+  }
+
+  RECT rect;
+  if (!GetWindowRect(hwnd, &rect)) {
+    return;
+  }
+
+  HKEY key;
+  if (RegCreateKeyEx(HKEY_CURRENT_USER, kWindowRegKey, 0, nullptr, 0,
+                     KEY_WRITE, nullptr, &key, nullptr) != ERROR_SUCCESS) {
+    return;
+  }
+
+  WriteRegDword(key, L"width", static_cast<DWORD>(rect.right - rect.left));
+  WriteRegDword(key, L"height", static_cast<DWORD>(rect.bottom - rect.top));
+  WriteRegDword(key, L"x", static_cast<DWORD>(rect.left));
+  WriteRegDword(key, L"y", static_cast<DWORD>(rect.top));
+  RegCloseKey(key);
 }

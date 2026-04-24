@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/accounts/presentation/pages/accounts_page.dart';
 import '../../features/check_in/presentation/pages/check_in_page.dart';
 import '../../features/keys/presentation/pages/keys_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
+import '../router.dart';
 
 /// Root shell with global top app bar and bottom navigation bar.
 ///
 /// Uses [IndexedStack] to preserve page state across tab switches.
 /// Tab order: Check-in → Accounts → Keys → Settings.
-class AppShell extends StatefulWidget {
+class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key});
 
   @override
-  State<AppShell> createState() => _AppShellState();
+  ConsumerState<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> {
-  int _currentIndex = 0;
-
+class _AppShellState extends ConsumerState<AppShell> {
   static const _pages = <Widget>[
     CheckInPage(),
     AccountsPage(),
@@ -28,14 +28,15 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
+    final currentIndex = ref.watch(tabIndexProvider);
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: _buildAppBar(context, colorScheme),
-      body: IndexedStack(index: _currentIndex, children: _pages),
+      body: IndexedStack(index: currentIndex, children: _pages),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
+        selectedIndex: currentIndex,
         onDestinationSelected: (index) {
-          setState(() => _currentIndex = index);
+          ref.read(tabIndexProvider.notifier).state = index;
         },
         destinations: const [
           NavigationDestination(

@@ -23,6 +23,9 @@ class FlutterWindow : public Win32Window {
                          LPARAM const lparam) noexcept override;
 
  private:
+  // Saves the current window position and size to the registry.
+  void SaveWindowState();
+
   // The project to run.
   flutter::DartProject project_;
 

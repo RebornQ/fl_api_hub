@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'app/app.dart';
+import 'app/router.dart';
+import 'core/platform/app_method_channel.dart';
 import 'core/storage/hive_store.dart';
 import 'features/check_in/data/datasources/check_in_local_datasource.dart';
 
@@ -9,7 +12,14 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initHive();
   await _migrateCheckInResultCap();
-  runApp(const App());
+
+  final container = ProviderContainer();
+  AppMethodChannel.init();
+  AppMethodChannel.onOpenSettings = () {
+    container.read(tabIndexProvider.notifier).state = AppRoutes.settingsTab;
+  };
+
+  runApp(UncontrolledProviderScope(container: container, child: const App()));
 }
 
 /// Silently trims per-account check-in results down to

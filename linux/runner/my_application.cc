@@ -52,7 +52,26 @@ static void my_application_activate(GApplication* application) {
     gtk_window_set_title(window, "Fl API Hub");
   }
 
-  gtk_window_set_default_size(window, 1280, 720);
+  // Calculate 80% of screen with minimum 1024x768.
+  {
+    GdkDisplay* display = gdk_display_get_default();
+    GdkMonitor* monitor = gdk_display_get_primary_monitor(display);
+    if (!monitor) {
+      monitor = gdk_display_get_monitor(display, 0);
+    }
+    GdkRectangle workarea;
+    gdk_monitor_get_workarea(monitor, &workarea);
+    gint w = (gint)(workarea.width * 0.8);
+    gint h = (gint)(workarea.height * 0.8);
+    if (w < 1024) w = 1024;
+    if (h < 768) h = 768;
+    gtk_window_set_default_size(window, w, h);
+
+    GdkGeometry hints;
+    hints.min_width = 1024;
+    hints.min_height = 768;
+    gtk_window_set_geometry_hints(window, nullptr, &hints, GDK_HINT_MIN_SIZE);
+  }
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();
   fl_dart_project_set_dart_entrypoint_arguments(

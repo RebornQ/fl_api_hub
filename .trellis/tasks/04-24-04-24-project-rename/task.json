@@ -45,9 +45,7 @@
   "commit": null,
   "pr_url": null,
   "subtasks": [],
-  "children": [
-    "04-24-04-24-rename-cross-platform"
-  ],
+  "children": [],
   "parent": null,
   "relatedFiles": [],
   "notes": "",

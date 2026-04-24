@@ -1,0 +1,59 @@
+{
+  "id": "04-24-project-rename",
+  "name": "04-24-project-rename",
+  "title": "项目改名: Fl All API Hub → Fl API Hub",
+  "description": "",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "Reborn",
+  "assignee": "Reborn",
+  "createdAt": "2026-04-24",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "04-24-04-24-rename-dart-layer",
+    "04-24-04-24-rename-android",
+    "04-24-04-24-rename-ios",
+    "04-24-04-24-rename-macos",
+    "04-24-04-24-rename-cross-platform"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

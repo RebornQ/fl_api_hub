@@ -46,7 +46,6 @@
   "pr_url": null,
   "subtasks": [],
   "children": [
-    "04-25-dark-theme",
     "04-25-app-entry-refactor",
     "04-25-settings-ui"
   ],

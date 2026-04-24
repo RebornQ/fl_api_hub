@@ -1,11 +1,11 @@
 {
-  "name": "Fl All API Hub",
-  "short_name": "Fl All API Hub",
+  "name": "Fl API Hub",
+  "short_name": "Fl API Hub",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#0175C2",
   "theme_color": "#0175C2",
-  "description": "An All-API-Hub Flutter project.",
+  "description": "An API-Hub Flutter project.",
   "orientation": "portrait-primary",
   "prefer_related_applications": false,
   "icons": [

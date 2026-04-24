@@ -2,19 +2,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:fl_all_api_hub/core/error/app_exception.dart';
-import 'package:fl_all_api_hub/core/network/api_request.dart';
-import 'package:fl_all_api_hub/core/network/dto/site_status_dto.dart';
-import 'package:fl_all_api_hub/core/network/dto/user_info_dto.dart';
-import 'package:fl_all_api_hub/core/network/reachability_status.dart';
-import 'package:fl_all_api_hub/core/network/site_type.dart';
-import 'package:fl_all_api_hub/core/result/result.dart';
-import 'package:fl_all_api_hub/features/accounts/data/datasources/accounts_remote_datasource.dart';
-import 'package:fl_all_api_hub/features/accounts/domain/entities/account.dart';
-import 'package:fl_all_api_hub/features/accounts/domain/repositories/account_reachability_repository.dart';
-import 'package:fl_all_api_hub/features/accounts/domain/repositories/accounts_repository.dart';
-import 'package:fl_all_api_hub/features/accounts/presentation/providers/account_reachability_providers.dart';
-import 'package:fl_all_api_hub/features/accounts/presentation/providers/accounts_providers.dart';
+import 'package:fl_api_hub/core/error/app_exception.dart';
+import 'package:fl_api_hub/core/network/api_request.dart';
+import 'package:fl_api_hub/core/network/dto/site_status_dto.dart';
+import 'package:fl_api_hub/core/network/dto/user_info_dto.dart';
+import 'package:fl_api_hub/core/network/reachability_status.dart';
+import 'package:fl_api_hub/core/network/site_type.dart';
+import 'package:fl_api_hub/core/result/result.dart';
+import 'package:fl_api_hub/features/accounts/data/datasources/accounts_remote_datasource.dart';
+import 'package:fl_api_hub/features/accounts/domain/entities/account.dart';
+import 'package:fl_api_hub/features/accounts/domain/repositories/account_reachability_repository.dart';
+import 'package:fl_api_hub/features/accounts/domain/repositories/accounts_repository.dart';
+import 'package:fl_api_hub/features/accounts/presentation/providers/account_reachability_providers.dart';
+import 'package:fl_api_hub/features/accounts/presentation/providers/accounts_providers.dart';
 
 class MockAccountsRepository extends Mock implements AccountsRepository {}
 

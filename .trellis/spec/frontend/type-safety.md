@@ -21,7 +21,7 @@ There is no separate runtime validation library in the repository yet.
 Current organization is file-local because the codebase is still small:
 
 - widget classes and their fields are declared in `lib/main.dart`
-- test code imports the public app entrypoint from `package:fl_all_api_hub/main.dart`
+- test code imports the public app entrypoint from `package:fl_api_hub/main.dart`
 
 Target organization for future work:
 

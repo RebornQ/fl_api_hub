@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:fl_all_api_hub/features/tags/data/models/tag_mapper.dart';
-import 'package:fl_all_api_hub/features/tags/domain/entities/tag.dart';
+import 'package:fl_api_hub/features/tags/data/models/tag_mapper.dart';
+import 'package:fl_api_hub/features/tags/domain/entities/tag.dart';
 
 void main() {
   group('Tag', () {

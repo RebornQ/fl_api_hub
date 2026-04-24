@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:fl_all_api_hub/features/check_in/data/models/scheduler_config_mapper.dart';
-import 'package:fl_all_api_hub/features/check_in/domain/entities/scheduler_config.dart';
+import 'package:fl_api_hub/features/check_in/data/models/scheduler_config_mapper.dart';
+import 'package:fl_api_hub/features/check_in/domain/entities/scheduler_config.dart';
 
 void main() {
   group('SchedulerConfigMapper', () {

@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:fl_all_api_hub/features/dev_tools/request_logger/data/interceptors/request_logger_interceptor.dart';
-import 'package:fl_all_api_hub/features/dev_tools/request_logger/domain/entities/request_log_entry.dart';
+import 'package:fl_api_hub/features/dev_tools/request_logger/data/interceptors/request_logger_interceptor.dart';
+import 'package:fl_api_hub/features/dev_tools/request_logger/domain/entities/request_log_entry.dart';
 
 /// Test-only [ErrorInterceptorHandler] that swallows [next]. Dio's real
 /// handler completes an internal completer with an error when [next] is

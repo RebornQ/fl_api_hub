@@ -15,15 +15,15 @@ library;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:fl_all_api_hub/core/error/app_exception.dart';
-import 'package:fl_all_api_hub/core/network/site_type.dart';
-import 'package:fl_all_api_hub/core/result/result.dart';
-import 'package:fl_all_api_hub/features/accounts/domain/entities/account.dart';
-import 'package:fl_all_api_hub/features/accounts/domain/entities/check_in_config.dart';
-import 'package:fl_all_api_hub/features/accounts/domain/repositories/accounts_repository.dart';
-import 'package:fl_all_api_hub/features/check_in/domain/entities/check_in_task.dart';
-import 'package:fl_all_api_hub/features/check_in/domain/repositories/check_in_repository.dart';
-import 'package:fl_all_api_hub/features/check_in/domain/services/account_check_in_sync_service.dart';
+import 'package:fl_api_hub/core/error/app_exception.dart';
+import 'package:fl_api_hub/core/network/site_type.dart';
+import 'package:fl_api_hub/core/result/result.dart';
+import 'package:fl_api_hub/features/accounts/domain/entities/account.dart';
+import 'package:fl_api_hub/features/accounts/domain/entities/check_in_config.dart';
+import 'package:fl_api_hub/features/accounts/domain/repositories/accounts_repository.dart';
+import 'package:fl_api_hub/features/check_in/domain/entities/check_in_task.dart';
+import 'package:fl_api_hub/features/check_in/domain/repositories/check_in_repository.dart';
+import 'package:fl_api_hub/features/check_in/domain/services/account_check_in_sync_service.dart';
 
 // ── Test doubles ────────────────────────────────────────────────────
 
@@ -226,34 +226,39 @@ void main() {
       },
     );
 
-    test('creates a disabled task when account opts out and never had a task', () async {
-      final account = _account(id: 'acc-D', autoCheckInEnabled: false);
+    test(
+      'creates a disabled task when account opts out and never had a task',
+      () async {
+        final account = _account(id: 'acc-D', autoCheckInEnabled: false);
 
-      when(
-        () => accountsRepo.getAll(),
-      ).thenAnswer((_) async => Success<List<Account>>([account]));
-      when(
-        () => checkInRepo.getTasksByAccountId('acc-D'),
-      ).thenAnswer((_) async => const Success<List<CheckInTask>>([]));
-      when(() => checkInRepo.saveTask(any())).thenAnswer(
-        (inv) async =>
-            Success<CheckInTask>(inv.positionalArguments[0] as CheckInTask),
-      );
+        when(
+          () => accountsRepo.getAll(),
+        ).thenAnswer((_) async => Success<List<Account>>([account]));
+        when(
+          () => checkInRepo.getTasksByAccountId('acc-D'),
+        ).thenAnswer((_) async => const Success<List<CheckInTask>>([]));
+        when(() => checkInRepo.saveTask(any())).thenAnswer(
+          (inv) async =>
+              Success<CheckInTask>(inv.positionalArguments[0] as CheckInTask),
+        );
 
-      final result = await service.sync();
+        final result = await service.sync();
 
-      final summary = (result as Success<SyncSummary>).data;
-      expect(summary.created, 1);
-      expect(summary.enabledCount, 0);
-      expect(summary.disabledCount, 0);
+        final summary = (result as Success<SyncSummary>).data;
+        expect(summary.created, 1);
+        expect(summary.enabledCount, 0);
+        expect(summary.disabledCount, 0);
 
-      final captured = verify(() => checkInRepo.saveTask(captureAny())).captured;
-      final savedTask = captured.single as CheckInTask;
-      expect(savedTask.accountId, 'acc-D');
-      expect(savedTask.enabled, isFalse);
+        final captured = verify(
+          () => checkInRepo.saveTask(captureAny()),
+        ).captured;
+        final savedTask = captured.single as CheckInTask;
+        expect(savedTask.accountId, 'acc-D');
+        expect(savedTask.enabled, isFalse);
 
-      verifyNever(() => checkInRepo.deleteTask(any()));
-    });
+        verifyNever(() => checkInRepo.deleteTask(any()));
+      },
+    );
 
     test(
       'is idempotent: second sync makes no new creations or toggles',

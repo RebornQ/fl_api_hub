@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fl_all_api_hub/core/error/app_exception.dart';
-import 'package:fl_all_api_hub/core/result/result.dart';
+import 'package:fl_api_hub/core/error/app_exception.dart';
+import 'package:fl_api_hub/core/result/result.dart';
 
 void main() {
   group('Result', () {

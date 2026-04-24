@@ -13,11 +13,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:fl_all_api_hub/core/error/app_exception.dart';
-import 'package:fl_all_api_hub/core/result/result.dart';
-import 'package:fl_all_api_hub/features/check_in/domain/entities/check_in_result.dart';
-import 'package:fl_all_api_hub/features/check_in/domain/repositories/check_in_repository.dart';
-import 'package:fl_all_api_hub/features/check_in/presentation/providers/check_in_providers.dart';
+import 'package:fl_api_hub/core/error/app_exception.dart';
+import 'package:fl_api_hub/core/result/result.dart';
+import 'package:fl_api_hub/features/check_in/domain/entities/check_in_result.dart';
+import 'package:fl_api_hub/features/check_in/domain/repositories/check_in_repository.dart';
+import 'package:fl_api_hub/features/check_in/presentation/providers/check_in_providers.dart';
 
 class _MockCheckInRepository extends Mock implements CheckInRepository {}
 

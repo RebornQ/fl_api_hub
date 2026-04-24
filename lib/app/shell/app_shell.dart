@@ -63,7 +63,7 @@ class _AppShellState extends State<AppShell> {
     );
   }
 
-  /// Global brand app bar: "API HUB" logo + wordmark on the left.
+  /// Global brand app bar: "Fl API HUB" logo + wordmark on the left.
   PreferredSizeWidget _buildAppBar(
     BuildContext context,
     ColorScheme colorScheme,
@@ -81,7 +81,7 @@ class _AppShellState extends State<AppShell> {
           Icon(Icons.hub, color: colorScheme.primary, size: 24),
           const SizedBox(width: 12),
           Text(
-            'API HUB',
+            'Fl API HUB',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: colorScheme.primary,
               fontWeight: FontWeight.w700,

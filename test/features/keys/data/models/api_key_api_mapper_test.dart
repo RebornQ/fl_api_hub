@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:fl_all_api_hub/core/network/dto/token_dto.dart';
-import 'package:fl_all_api_hub/features/keys/data/models/api_key_api_mapper.dart';
-import 'package:fl_all_api_hub/features/keys/domain/entities/api_key.dart';
+import 'package:fl_api_hub/core/network/dto/token_dto.dart';
+import 'package:fl_api_hub/features/keys/data/models/api_key_api_mapper.dart';
+import 'package:fl_api_hub/features/keys/domain/entities/api_key.dart';
 
 void main() {
   group('ApiKeyApiMapper', () {

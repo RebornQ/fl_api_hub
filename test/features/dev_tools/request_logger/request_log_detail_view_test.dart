@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:fl_all_api_hub/features/dev_tools/request_logger/domain/entities/request_log_entry.dart';
-import 'package:fl_all_api_hub/features/dev_tools/request_logger/presentation/widgets/request_log_detail_placeholder.dart';
+import 'package:fl_api_hub/features/dev_tools/request_logger/domain/entities/request_log_entry.dart';
+import 'package:fl_api_hub/features/dev_tools/request_logger/presentation/widgets/request_log_detail_placeholder.dart';
 
 RequestLogEntry _entry({
   int id = 1,

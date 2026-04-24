@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:fl_all_api_hub/features/dev_tools/request_logger/domain/entities/request_log_entry.dart';
-import 'package:fl_all_api_hub/features/dev_tools/request_logger/presentation/pages/request_logger_page.dart';
-import 'package:fl_all_api_hub/features/dev_tools/request_logger/presentation/providers/request_logger_providers.dart';
+import 'package:fl_api_hub/features/dev_tools/request_logger/domain/entities/request_log_entry.dart';
+import 'package:fl_api_hub/features/dev_tools/request_logger/presentation/pages/request_logger_page.dart';
+import 'package:fl_api_hub/features/dev_tools/request_logger/presentation/providers/request_logger_providers.dart';
 
 RequestLogEntry _entry({
   required int id,

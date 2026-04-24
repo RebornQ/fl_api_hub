@@ -1,4 +1,4 @@
-/// Typed exception hierarchy for the All API Hub application.
+/// Typed exception hierarchy for the Fl API Hub application.
 ///
 /// Every layer converts raw errors into one of these subtypes so that the
 /// presentation layer can display user-friendly messages without knowing

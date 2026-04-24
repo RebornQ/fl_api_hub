@@ -1,4 +1,4 @@
-package com.mallotec.reb.flallapihub
+package com.mallotec.reb.flapihub
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -2,15 +2,15 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:fl_all_api_hub/core/network/site_type.dart';
-import 'package:fl_all_api_hub/core/scheduler/check_in_scheduler_service.dart';
-import 'package:fl_all_api_hub/features/accounts/domain/entities/account.dart';
-import 'package:fl_all_api_hub/features/accounts/presentation/providers/accounts_providers.dart';
-import 'package:fl_all_api_hub/features/check_in/domain/entities/check_in_result.dart';
-import 'package:fl_all_api_hub/features/check_in/domain/entities/check_in_task.dart';
-import 'package:fl_all_api_hub/features/check_in/domain/entities/scheduler_config.dart';
-import 'package:fl_all_api_hub/features/check_in/presentation/providers/check_in_providers.dart';
-import 'package:fl_all_api_hub/features/check_in/presentation/providers/scheduler_config_notifier.dart';
+import 'package:fl_api_hub/core/network/site_type.dart';
+import 'package:fl_api_hub/core/scheduler/check_in_scheduler_service.dart';
+import 'package:fl_api_hub/features/accounts/domain/entities/account.dart';
+import 'package:fl_api_hub/features/accounts/presentation/providers/accounts_providers.dart';
+import 'package:fl_api_hub/features/check_in/domain/entities/check_in_result.dart';
+import 'package:fl_api_hub/features/check_in/domain/entities/check_in_task.dart';
+import 'package:fl_api_hub/features/check_in/domain/entities/scheduler_config.dart';
+import 'package:fl_api_hub/features/check_in/presentation/providers/check_in_providers.dart';
+import 'package:fl_api_hub/features/check_in/presentation/providers/scheduler_config_notifier.dart';
 
 /// Records [executeCheckIn] calls without touching repositories or the
 /// network. Its [build] seeds the provider state synchronously (via a

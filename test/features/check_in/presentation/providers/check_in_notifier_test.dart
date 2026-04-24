@@ -2,16 +2,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:fl_all_api_hub/core/error/app_exception.dart';
-import 'package:fl_all_api_hub/core/network/site_type.dart';
-import 'package:fl_all_api_hub/core/result/result.dart';
-import 'package:fl_all_api_hub/features/accounts/domain/entities/account.dart';
-import 'package:fl_all_api_hub/features/accounts/domain/repositories/accounts_repository.dart';
-import 'package:fl_all_api_hub/features/accounts/presentation/providers/accounts_providers.dart';
-import 'package:fl_all_api_hub/features/check_in/domain/entities/check_in_result.dart';
-import 'package:fl_all_api_hub/features/check_in/domain/entities/check_in_task.dart';
-import 'package:fl_all_api_hub/features/check_in/domain/repositories/check_in_repository.dart';
-import 'package:fl_all_api_hub/features/check_in/presentation/providers/check_in_providers.dart';
+import 'package:fl_api_hub/core/error/app_exception.dart';
+import 'package:fl_api_hub/core/network/site_type.dart';
+import 'package:fl_api_hub/core/result/result.dart';
+import 'package:fl_api_hub/features/accounts/domain/entities/account.dart';
+import 'package:fl_api_hub/features/accounts/domain/repositories/accounts_repository.dart';
+import 'package:fl_api_hub/features/accounts/presentation/providers/accounts_providers.dart';
+import 'package:fl_api_hub/features/check_in/domain/entities/check_in_result.dart';
+import 'package:fl_api_hub/features/check_in/domain/entities/check_in_task.dart';
+import 'package:fl_api_hub/features/check_in/domain/repositories/check_in_repository.dart';
+import 'package:fl_api_hub/features/check_in/presentation/providers/check_in_providers.dart';
 
 class MockCheckInRepository extends Mock implements CheckInRepository {}
 
@@ -84,37 +84,34 @@ void main() {
   });
 
   group('CheckInNotifier.executeCheckIn', () {
-    test(
-      'saves a skipped result when the account is disabled',
-      () async {
-        // Make sure build() resolves before we invoke executeCheckIn.
-        await container.read(checkInProvider.future);
+    test('saves a skipped result when the account is disabled', () async {
+      // Make sure build() resolves before we invoke executeCheckIn.
+      await container.read(checkInProvider.future);
 
-        when(
-          () => mockCheckInRepo.getTaskById('task-1'),
-        ).thenAnswer((_) async => Success(enabledTask));
-        when(
-          () => mockAccountsRepo.getById('acc-1'),
-        ).thenAnswer((_) async => Success(disabledAccount));
-        when(() => mockCheckInRepo.saveResult(any())).thenAnswer(
-          (inv) async =>
-              Success<CheckInResult>(inv.positionalArguments[0] as CheckInResult),
-        );
-        when(() => mockCheckInRepo.saveTask(any())).thenAnswer(
-          (inv) async =>
-              Success<CheckInTask>(inv.positionalArguments[0] as CheckInTask),
-        );
+      when(
+        () => mockCheckInRepo.getTaskById('task-1'),
+      ).thenAnswer((_) async => Success(enabledTask));
+      when(
+        () => mockAccountsRepo.getById('acc-1'),
+      ).thenAnswer((_) async => Success(disabledAccount));
+      when(() => mockCheckInRepo.saveResult(any())).thenAnswer(
+        (inv) async =>
+            Success<CheckInResult>(inv.positionalArguments[0] as CheckInResult),
+      );
+      when(() => mockCheckInRepo.saveTask(any())).thenAnswer(
+        (inv) async =>
+            Success<CheckInTask>(inv.positionalArguments[0] as CheckInTask),
+      );
 
-        final result = await container
-            .read(checkInProvider.notifier)
-            .executeCheckIn('task-1');
+      final result = await container
+          .read(checkInProvider.notifier)
+          .executeCheckIn('task-1');
 
-        expect(result, isNotNull);
-        expect(result!.status, CheckInStatus.skipped);
-        expect(result.message, '账号已禁用');
-        verify(() => mockCheckInRepo.saveResult(any())).called(1);
-      },
-    );
+      expect(result, isNotNull);
+      expect(result!.status, CheckInStatus.skipped);
+      expect(result.message, '账号已禁用');
+      verify(() => mockCheckInRepo.saveResult(any())).called(1);
+    });
 
     test('returns null when the task is missing', () async {
       await container.read(checkInProvider.future);
@@ -156,8 +153,9 @@ void main() {
           () => mockAccountsRepo.getById('acc-1'),
         ).thenAnswer((_) async => Success(enabledAccountWithAutoDisabled));
         when(() => mockCheckInRepo.saveResult(any())).thenAnswer(
-          (inv) async =>
-              Success<CheckInResult>(inv.positionalArguments[0] as CheckInResult),
+          (inv) async => Success<CheckInResult>(
+            inv.positionalArguments[0] as CheckInResult,
+          ),
         );
         when(() => mockCheckInRepo.saveTask(any())).thenAnswer(
           (inv) async =>

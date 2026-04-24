@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:fl_all_api_hub/features/dev_tools/request_logger/data/utils/header_redactor.dart';
+import 'package:fl_api_hub/features/dev_tools/request_logger/data/utils/header_redactor.dart';
 
 void main() {
   group('maskSensitiveValue', () {

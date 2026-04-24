@@ -11,7 +11,6 @@ void main() {
 
   compositeImage(bg, src, dstX: 0, dstY: 0, srcX: 0, srcY: 0);
 
-  File('icons/icon-hub-1024-ios.png')
-      .writeAsBytesSync(encodePng(bg, level: 9));
+  File('icons/icon-hub-1024-ios.png').writeAsBytesSync(encodePng(bg, level: 9));
   print('Created icons/icon-hub-1024-ios.png');
 }

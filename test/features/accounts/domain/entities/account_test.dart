@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:fl_all_api_hub/core/config/app_defaults.dart';
-import 'package:fl_all_api_hub/core/network/site_type.dart';
-import 'package:fl_all_api_hub/features/accounts/domain/entities/account.dart';
-import 'package:fl_all_api_hub/features/accounts/domain/entities/check_in_config.dart';
+import 'package:fl_api_hub/core/config/app_defaults.dart';
+import 'package:fl_api_hub/core/network/site_type.dart';
+import 'package:fl_api_hub/features/accounts/domain/entities/account.dart';
+import 'package:fl_api_hub/features/accounts/domain/entities/check_in_config.dart';
 
 void main() {
   group('Account', () {

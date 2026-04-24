@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:fl_all_api_hub/app/theme/app_theme.dart';
-import 'package:fl_all_api_hub/features/accounts/domain/entities/check_in_config.dart';
-import 'package:fl_all_api_hub/features/accounts/presentation/widgets/check_in_config_section.dart';
+import 'package:fl_api_hub/app/theme/app_theme.dart';
+import 'package:fl_api_hub/features/accounts/domain/entities/check_in_config.dart';
+import 'package:fl_api_hub/features/accounts/presentation/widgets/check_in_config_section.dart';
 
 void main() {
   group('CheckInConfigSection', () {

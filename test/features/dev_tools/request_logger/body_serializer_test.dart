@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:fl_all_api_hub/features/dev_tools/request_logger/data/utils/body_serializer.dart';
+import 'package:fl_api_hub/features/dev_tools/request_logger/data/utils/body_serializer.dart';
 
 void main() {
   group('serializeRequestBody', () {

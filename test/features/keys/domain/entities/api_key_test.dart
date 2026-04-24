@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:fl_all_api_hub/features/keys/domain/entities/api_key.dart';
+import 'package:fl_api_hub/features/keys/domain/entities/api_key.dart';
 
 void main() {
   group('ApiKey', () {

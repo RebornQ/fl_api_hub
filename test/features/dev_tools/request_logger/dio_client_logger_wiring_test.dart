@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:fl_all_api_hub/core/network/dio_client.dart';
-import 'package:fl_all_api_hub/features/dev_tools/request_logger/data/interceptors/request_logger_interceptor.dart';
-import 'package:fl_all_api_hub/features/dev_tools/request_logger/presentation/providers/request_logger_providers.dart';
+import 'package:fl_api_hub/core/network/dio_client.dart';
+import 'package:fl_api_hub/features/dev_tools/request_logger/data/interceptors/request_logger_interceptor.dart';
+import 'package:fl_api_hub/features/dev_tools/request_logger/presentation/providers/request_logger_providers.dart';
 
 /// Verifies that [dioClientProvider] attaches / detaches the
 /// [RequestLoggerInterceptor] dynamically based on

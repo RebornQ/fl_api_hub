@@ -11,11 +11,11 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:fl_all_api_hub/core/network/api_request.dart';
-import 'package:fl_all_api_hub/core/network/adapters/veloera_api_adapter.dart';
-import 'package:fl_all_api_hub/core/network/dio_client.dart';
-import 'package:fl_all_api_hub/core/network/site_type.dart';
-import 'package:fl_all_api_hub/core/result/result.dart';
+import 'package:fl_api_hub/core/network/api_request.dart';
+import 'package:fl_api_hub/core/network/adapters/veloera_api_adapter.dart';
+import 'package:fl_api_hub/core/network/dio_client.dart';
+import 'package:fl_api_hub/core/network/site_type.dart';
+import 'package:fl_api_hub/core/result/result.dart';
 
 // ── Test doubles ────────────────────────────────────────────────────
 

@@ -4,9 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:fl_all_api_hub/features/check_in/data/datasources/check_in_local_datasource.dart';
-import 'package:fl_all_api_hub/features/check_in/data/models/check_in_mapper.dart';
-import 'package:fl_all_api_hub/features/check_in/domain/entities/check_in_result.dart';
+import 'package:fl_api_hub/features/check_in/data/datasources/check_in_local_datasource.dart';
+import 'package:fl_api_hub/features/check_in/data/models/check_in_mapper.dart';
+import 'package:fl_api_hub/features/check_in/domain/entities/check_in_result.dart';
 
 /// Helper to build a [CheckInResult] with minimal ceremony.
 CheckInResult _mk({

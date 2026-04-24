@@ -24,7 +24,9 @@ void main() {
   print('Image size: ${w}x$h');
   print('Content bounds: ($minX, $minY) -> ($maxX, $maxY)');
   print('Content size: ${maxX - minX + 1} x ${maxY - minY + 1}');
-  print('Padding: left=$minX right=${w - maxX - 1} top=$minY bottom=${h - maxY - 1}');
+  print(
+    'Padding: left=$minX right=${w - maxX - 1} top=$minY bottom=${h - maxY - 1}',
+  );
 
   // Crop with a small margin (3% of content size for breathing room)
   final contentW = maxX - minX + 1;
@@ -38,15 +40,27 @@ void main() {
 
   print('Crop region: ($cropX, $cropY) ${cropW}x$cropH (with 3% margin)');
 
-  final cropped = copyCrop(src, x: cropX, y: cropY, width: cropW, height: cropH);
-  final result = copyResize(cropped, width: 1024, height: 1024, interpolation: Interpolation.average);
+  final cropped = copyCrop(
+    src,
+    x: cropX,
+    y: cropY,
+    width: cropW,
+    height: cropH,
+  );
+  final result = copyResize(
+    cropped,
+    width: 1024,
+    height: 1024,
+    interpolation: Interpolation.average,
+  );
 
   // Ensure output directory exists
   final outDir = Directory('icons');
   if (!outDir.existsSync()) outDir.createSync();
 
-  File('icons/icon-hub-1024-new.png')
-      .writeAsBytesSync(encodePng(result, level: 9));
+  File(
+    'icons/icon-hub-1024-new.png',
+  ).writeAsBytesSync(encodePng(result, level: 9));
 
   print('Saved icons/icon-hub-1024-new.png (1024x1024)');
 }

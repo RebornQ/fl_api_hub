@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fl_all_api_hub/core/network/dto/site_status_dto.dart';
+import 'package:fl_api_hub/core/network/dto/site_status_dto.dart';
 
 void main() {
   group('SiteStatusDto', () {

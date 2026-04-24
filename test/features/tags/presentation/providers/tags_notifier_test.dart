@@ -2,18 +2,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:fl_all_api_hub/core/error/app_exception.dart';
-import 'package:fl_all_api_hub/core/network/site_type.dart';
-import 'package:fl_all_api_hub/core/result/result.dart';
-import 'package:fl_all_api_hub/features/accounts/domain/entities/account.dart';
-import 'package:fl_all_api_hub/features/accounts/domain/repositories/account_reachability_repository.dart';
-import 'package:fl_all_api_hub/features/accounts/domain/repositories/accounts_repository.dart';
-import 'package:fl_all_api_hub/features/accounts/presentation/providers/account_reachability_providers.dart';
-import 'package:fl_all_api_hub/features/accounts/presentation/providers/accounts_providers.dart';
-import 'package:fl_all_api_hub/core/network/reachability_status.dart';
-import 'package:fl_all_api_hub/features/tags/domain/entities/tag.dart';
-import 'package:fl_all_api_hub/features/tags/domain/repositories/tags_repository.dart';
-import 'package:fl_all_api_hub/features/tags/presentation/providers/tags_providers.dart';
+import 'package:fl_api_hub/core/error/app_exception.dart';
+import 'package:fl_api_hub/core/network/site_type.dart';
+import 'package:fl_api_hub/core/result/result.dart';
+import 'package:fl_api_hub/features/accounts/domain/entities/account.dart';
+import 'package:fl_api_hub/features/accounts/domain/repositories/account_reachability_repository.dart';
+import 'package:fl_api_hub/features/accounts/domain/repositories/accounts_repository.dart';
+import 'package:fl_api_hub/features/accounts/presentation/providers/account_reachability_providers.dart';
+import 'package:fl_api_hub/features/accounts/presentation/providers/accounts_providers.dart';
+import 'package:fl_api_hub/core/network/reachability_status.dart';
+import 'package:fl_api_hub/features/tags/domain/entities/tag.dart';
+import 'package:fl_api_hub/features/tags/domain/repositories/tags_repository.dart';
+import 'package:fl_api_hub/features/tags/presentation/providers/tags_providers.dart';
 
 class MockTagsRepository extends Mock implements TagsRepository {}
 

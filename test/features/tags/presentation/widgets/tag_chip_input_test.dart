@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:fl_all_api_hub/app/theme/app_theme.dart';
-import 'package:fl_all_api_hub/core/result/result.dart';
-import 'package:fl_all_api_hub/features/tags/domain/entities/tag.dart';
-import 'package:fl_all_api_hub/features/tags/domain/repositories/tags_repository.dart';
-import 'package:fl_all_api_hub/features/tags/presentation/providers/tags_providers.dart';
-import 'package:fl_all_api_hub/features/tags/presentation/widgets/tag_chip_input.dart';
+import 'package:fl_api_hub/app/theme/app_theme.dart';
+import 'package:fl_api_hub/core/result/result.dart';
+import 'package:fl_api_hub/features/tags/domain/entities/tag.dart';
+import 'package:fl_api_hub/features/tags/domain/repositories/tags_repository.dart';
+import 'package:fl_api_hub/features/tags/presentation/providers/tags_providers.dart';
+import 'package:fl_api_hub/features/tags/presentation/widgets/tag_chip_input.dart';
 
 class MockTagsRepository extends Mock implements TagsRepository {}
 

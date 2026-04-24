@@ -1,12 +1,12 @@
 icons_launcher:
-  image_path: "icons/icon-hub-1024-new.png"
+  image_path: "icons/icon-hub-1024-play-512.png"
 
   platforms:
     android:
       enable: true
-      image_path: "icons/icon-hub-1024-new.png"
-      adaptive_background_color: "#D2D0E8"
-      adaptive_foreground_image: "icons/icon-hub-1024-new.png"
+      image_path: "icons/icon-hub-1024-play-512.png"
+      adaptive_background_color: "#FFFFFF"
+      adaptive_foreground_image: "icons/icon-hub-512-foreground.png"
 
     ios:
       enable: true
@@ -14,16 +14,16 @@ icons_launcher:
 
     web:
       enable: true
-      image_path: "icons/icon-hub-1024-new.png"
+      image_path: "icons/icon-hub-1024-play-512.png"
 
     macos:
       enable: true
-      image_path: "icons/icon-hub-1024-new.png"
+      image_path: "icons/icon-hub-1024-macOS.png"
 
     windows:
       enable: true
-      image_path: "icons/icon-hub-1024-new.png"
+      image_path: "icons/icon-hub-1024-play-512.png"
 
     linux:
       enable: true
-      image_path: "icons/icon-hub-1024-new.png"
+      image_path: "icons/icon-hub-1024-play-512.png"

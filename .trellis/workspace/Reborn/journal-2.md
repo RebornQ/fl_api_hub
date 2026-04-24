@@ -701,3 +701,61 @@ Renamed project across all platforms: Dart package name, application ID, display
 ### Next Steps
 
 - None - task complete
+
+
+## Session 39: Fix app icons — scale content to safe zone
+
+**Date**: 2026-04-24
+**Task**: Fix app icons — scale content to safe zone
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## 问题
+源图 `icon-hub-1024-new.png` 的图标内容几乎填满整个 1024x1024 画布，导致 Android Adaptive Icon 的圆形/圆角遮罩裁掉边缘内容。
+
+## 方案
+- 用 Python Pillow 从源图提取内容，按不同平台规范缩放并生成专用源图
+- 拆分为多平台专用源图：Android 前景（透明 66%）、通用图标（白底 75%）、macOS（白底圆角 75%）、iOS（白底 75%）、Google Play 512px
+
+## 生成的新文件
+| 文件 | 尺寸 | 背景 | 内容缩放 | 用途 |
+|------|------|------|----------|------|
+| `icons/icon-hub-1024-foreground.png` | 1024x1024 | 透明 | 66% | Android Adaptive Icon 前景层 |
+| `icons/icon-hub-512-foreground.png` | 512x512 | 透明 | 66% | Android Adaptive Icon 前景层 (512) |
+| `icons/icon-hub-1024-new-v2.png` | 1024x1024 | 白色 | 75% | 通用图标 (web/Windows/Linux) |
+| `icons/icon-hub-1024-ios.png` | 1024x1024 | 白色 | 75% | iOS 图标 |
+| `icons/icon-hub-1024-macOS.png` | 1024x1024 | 白色+圆角 | 75% | macOS 图标 |
+| `icons/icon-hub-1024-play-512.png` | 512x512 | 白色 | 75% | Google Play 商店图标 |
+
+## 修改的配置
+- `icons_launcher.yaml` — Android adaptive foreground 改为专用前景图，macOS 改为圆角专用图
+
+## 关键学习
+- Android Adaptive Icon 安全区是内圈 66%，四周各留 17% 边距
+- iOS/macOS 系统自动应用圆角遮罩，但 macOS 需要手动在源图中添加圆角
+- Google Play 商店图标是 512x512 完整正方形，不加圆角（Play 动态添加）
+- 不同平台需要不同的源图（透明前景 vs 带背景），不能一图通用
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `7bbfff4` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 38
+- **Total Sessions**: 39
 - **Last Active**: 2026-04-24
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~703 | Active |
+| `journal-2.md` | ~761 | Active |
 | `journal-1.md` | ~1977 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 39 | 2026-04-24 | Fix app icons — scale content to safe zone | `7bbfff4` | `main` |
 | 38 | 2026-04-24 | 项目改名: Fl All API Hub → Fl API Hub | `b4e2185` | `main` |
 | 37 | 2026-04-24 | Generate app launcher icons for all platforms | `7ae3fa6` | `main` |
 | 36 | 2026-04-24 | 账号列表项签到状态图标 | `5c3140f` | `main` |

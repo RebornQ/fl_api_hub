@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 40
+- **Total Sessions**: 41
 - **Last Active**: 2026-04-25
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~824 | Active |
+| `journal-2.md` | ~881 | Active |
 | `journal-1.md` | ~1977 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 41 | 2026-04-25 | Add native splash screen for Android & iOS | `f158ff1`, `4d8054e` | `main` |
 | 40 | 2026-04-25 | Desktop Window Management & macOS Settings Menu | `ab0110a` | `main` |
 | 39 | 2026-04-24 | Fix app icons — scale content to safe zone | `7bbfff4` | `main` |
 | 38 | 2026-04-24 | 项目改名: Fl All API Hub → Fl API Hub | `b4e2185` | `main` |

@@ -822,3 +822,60 @@ Renamed project across all platforms: Dart package name, application ID, display
 ### Next Steps
 
 - None - task complete
+
+
+## Session 41: Add native splash screen for Android & iOS
+
+**Date**: 2026-04-25
+**Task**: Add native splash screen for Android & iOS
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+| Item | Detail |
+|------|--------|
+| Package | flutter_native_splash ^2.4.7 |
+| Platforms | Android + iOS |
+| Light mode | White bg + adaptive icon foreground logo + "Fl API Hub" branding |
+| Dark mode | #1C1B1F bg + same logo + white branding text |
+| Android 12+ | SplashScreen API with icon animation + branding |
+| Init coord | FlutterNativeSplash.preserve() → await init → remove() |
+
+**Files Created**:
+- `flutter_native_splash.yaml` — splash config
+- `icons/splash/` — 6 source images (logo + branding, light/dark, android12)
+- `android/app/src/main/res/drawable-*/` — all density splash resources
+- `android/app/src/main/res/values-v31/` — Android 12+ styles
+- `ios/Runner/Assets.xcassets/BrandingImage.imageset/` — branding images
+- `ios/Runner/Assets.xcassets/LaunchBackground.imageset/` — background images
+
+**Files Modified**:
+- `lib/main.dart` — added preserve/remove splash calls
+- `pubspec.yaml` — added flutter_native_splash dependency
+- `android/app/src/main/res/values*/styles.xml` — launch theme
+- `ios/Runner/Base.lproj/LaunchScreen.storyboard` — branded launch screen
+- `ios/Runner/Info.plist` — status bar hidden during splash
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f158ff1` | (see git log) |
+| `4d8054e` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

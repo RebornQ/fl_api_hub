@@ -46,7 +46,6 @@
   "pr_url": null,
   "subtasks": [],
   "children": [
-    "04-25-domain",
     "04-25-data",
     "04-25-presentation-providers",
     "04-25-dark-theme",

@@ -46,7 +46,6 @@
   "pr_url": null,
   "subtasks": [],
   "children": [
-    "04-24-04-24-rename-ios",
     "04-24-04-24-rename-macos",
     "04-24-04-24-rename-cross-platform"
   ],

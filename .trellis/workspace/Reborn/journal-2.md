@@ -879,3 +879,68 @@ Renamed project across all platforms: Dart package name, application ID, display
 ### Next Steps
 
 - None - task complete
+
+
+## Session 42: Dark theme + dynamic Monet color
+
+**Date**: 2026-04-25
+**Task**: Dark theme + dynamic Monet color
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## Feature: Dark theme & dynamic Monet color
+
+| Area | Description |
+|------|-------------|
+| Domain layer | `ThemePreference` entity with `AppThemeMode` enum (system/light/dark) + `dynamicColorEnabled` bool |
+| Data layer | `ThemeLocalDataSource` (Hive `app_data` box) + `ThemeRepositoryImpl` |
+| Presentation | `ThemeNotifier` (AsyncNotifier) + derived providers for `themeMode`, `dynamicColorEnabled`, `dynamicColorAvailable` |
+| Theme | Refactored `AppTheme.buildFromScheme(ColorScheme)` + new `AppTheme.dark` getter |
+| App entry | `ConsumerWidget` + `DynamicColorBuilder` wrapping `MaterialApp` with `themeMode`/`darkTheme` |
+| Settings UI | `AppearanceSettings` — SegmentedButton (auto/light/dark) + Switch (dynamic color, hidden when platform unsupported) |
+| Tests | Updated `widget_test.dart` with `UncontrolledProviderScope` wrapper |
+
+**New files (7)**:
+- `lib/features/settings/domain/entities/theme_preference.dart`
+- `lib/features/settings/domain/repositories/theme_repository.dart`
+- `lib/features/settings/data/datasources/theme_local_datasource.dart`
+- `lib/features/settings/data/repositories/theme_repository_impl.dart`
+- `lib/features/settings/presentation/providers/theme_notifier.dart`
+- `lib/features/settings/presentation/providers/theme_providers.dart`
+- `lib/features/settings/presentation/widgets/appearance_settings.dart`
+
+**Modified files (4 + 1 test)**:
+- `pubspec.yaml` — added `dynamic_color: ^1.7.0`
+- `lib/app/theme/app_theme.dart` — `buildFromScheme` refactor + `dark`
+- `lib/app/app.dart` — `ConsumerWidget` + `DynamicColorBuilder`
+- `lib/features/settings/presentation/pages/settings_page.dart` — appearance section
+- `test/widget_test.dart` — `ProviderScope` adaptation
+
+**Key decisions**:
+- Platform support auto-detected via `DynamicColorBuilder` callback; switch hidden when unavailable
+- Defaults: system theme mode + dynamic color enabled
+- Persistence: Hive `app_data` box (`theme_mode` / `dynamic_color_enabled` keys)
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f4034a6` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

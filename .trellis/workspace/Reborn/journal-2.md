@@ -644,3 +644,60 @@ Renamed project across all platforms: Dart package name, application ID, display
 ### Next Steps
 
 - None - task complete
+
+
+## Session 38: 项目改名: Fl All API Hub → Fl API Hub
+
+**Date**: 2026-04-24
+**Task**: 项目改名: Fl All API Hub → Fl API Hub
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## 变更范围
+
+| 类别 | 旧值 | 新值 | 影响文件数 |
+|------|------|------|-----------|
+| App ID | com.mallotec.reb.flallapihub | com.mallotec.reb.flapihub | 6 平台配置 |
+| 显示名 | Fl All API Hub | Fl API Hub | 8 平台文件 |
+| pubspec name | fl_all_api_hub | fl_api_hub | 1 + 58 test imports |
+| AppBar | API HUB | Fl API HUB | 1 |
+| 二进制名 | fl_all_api_hub | fl_api_hub | Linux/Windows/Snap |
+| macOS 产物 | fl_all_api_hub.app | Fl API Hub.app | pbxproj + xcscheme |
+
+## 验证结果
+
+- flutter analyze: No issues found
+- dart format: 0 changed
+- flutter test: 465/465 passed
+
+## 修复的问题
+
+- macOS pbxproj 中含空格的 path 值需要双引号包裹（Xcode 报错 Failed to load container）
+
+## Trellis 任务
+
+7 个任务全部归档（1 父任务 + 6 子任务）
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b4e2185` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

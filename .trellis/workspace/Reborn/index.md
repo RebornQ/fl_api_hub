@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 47
-- **Last Active**: 2026-04-25
+- **Total Sessions**: 48
+- **Last Active**: 2026-04-26
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~1226 | Active |
+| `journal-2.md` | ~1293 | Active |
 | `journal-1.md` | ~1977 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 48 | 2026-04-26 | Account reorder, swipe actions, check-in UX improvements | `8a21369` | `main` |
 | 47 | 2026-04-25 | fix: widescreen check-in detail panel not refreshing | `abe9c32` | `main` |
 | 46 | 2026-04-25 | 签到请求记录查看与持久化 | `34d8da8` | `main` |
 | 45 | 2026-04-25 | Settings page layout refactor & search bar improvements | `1a7bfbc`, `75280e1` | `main` |

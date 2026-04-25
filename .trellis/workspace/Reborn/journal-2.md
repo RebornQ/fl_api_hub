@@ -1224,3 +1224,70 @@ In widescreen master-detail layout (≥900px), the right-side detail panel frequ
 ### Next Steps
 
 - None - task complete
+
+
+## Session 48: Account reorder, swipe actions, check-in UX improvements
+
+**Date**: 2026-04-26
+**Task**: Account reorder, swipe actions, check-in UX improvements
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## 完成内容
+
+| 改动 | 说明 |
+|------|------|
+| Android 网络权限 | AndroidManifest.xml 添加 INTERNET 权限 |
+| 签到波纹修复 | 移除 `_TappableResultCard` 双层 Material/InkWell，直接用 `CheckInResultCard` 传 onTap |
+| 账号拖拽排序 | Account 实体新增 `sortOrder` 字段，ListView → ReorderableListView + Dismissible（长按拖拽排序 + 左滑删除 + 右滑签到） |
+| 新账号首位 | `create()` 方法计算 min sortOrder - 1 |
+| 返回键双击退出 | AppShell 添加 PopScope，首页两次返回退出，非首页先回签到 Tab |
+| 签到蒙层移除 | 移除全屏白色 overlay，保留 FAB 的 CircularProgressIndicator |
+| 签到逐条刷新 | executeAll/executeAllDue 每个 task 完成后立即 invalidate provider |
+| 签到列表跟随账号排序 | checkInAccountSummariesProvider 按 Account.sortOrder 排序 |
+
+**涉及文件 (18)**:
+- `android/app/src/main/AndroidManifest.xml`
+- `lib/app/shell/app_shell.dart`
+- `lib/features/accounts/domain/entities/account.dart`
+- `lib/features/accounts/data/models/account_mapper.dart`
+- `lib/features/accounts/presentation/providers/accounts_notifier.dart`
+- `lib/features/accounts/presentation/providers/accounts_filter_providers.dart`
+- `lib/features/accounts/presentation/pages/accounts_page.dart`
+- `lib/features/accounts/presentation/widgets/account_card.dart`
+- `lib/features/check_in/presentation/pages/check_in_page.dart`
+- `lib/features/check_in/presentation/providers/check_in_notifier.dart`
+- `lib/features/check_in/presentation/providers/check_in_providers.dart`
+- `lib/features/backup/presentation/pages/backup_page.dart`
+- `lib/features/check_in/data/datasources/check_in_request_log_local_datasource.dart`
+- `lib/features/check_in/presentation/pages/persisted_request_logs_page.dart`
+- `lib/features/check_in/presentation/providers/check_in_request_log_providers.dart`
+- `lib/features/keys/presentation/pages/keys_page.dart`
+- `lib/features/settings/presentation/pages/settings_page.dart`
+- `test/widget_test.dart`
+
+**验证**: `dart format` ✅ `flutter analyze` ✅ `flutter test` 489/489 ✅
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `8a21369` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

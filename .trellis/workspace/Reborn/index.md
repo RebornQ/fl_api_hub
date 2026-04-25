@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 46
+- **Total Sessions**: 47
 - **Last Active**: 2026-04-25
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~1176 | Active |
+| `journal-2.md` | ~1226 | Active |
 | `journal-1.md` | ~1977 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 47 | 2026-04-25 | fix: widescreen check-in detail panel not refreshing | `abe9c32` | `main` |
 | 46 | 2026-04-25 | 签到请求记录查看与持久化 | `34d8da8` | `main` |
 | 45 | 2026-04-25 | Settings page layout refactor & search bar improvements | `1a7bfbc`, `75280e1` | `main` |
 | 44 | 2026-04-25 | fix(backup): 备份恢复功能多项 bug 修复 | `8e70635` | `main` |

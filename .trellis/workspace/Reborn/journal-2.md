@@ -1174,3 +1174,53 @@ encrypt, crypto, share_plus, file_picker, path_provider
 ### Next Steps
 
 - None - task complete
+
+
+## Session 47: fix: widescreen check-in detail panel not refreshing
+
+**Date**: 2026-04-25
+**Task**: fix: widescreen check-in detail panel not refreshing
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## Bug Fix
+
+In widescreen master-detail layout (≥900px), the right-side detail panel frequently showed stale data after FAB batch check-in and when switching accounts. The refresh FAB worked correctly, but the execute FAB and account switching did not.
+
+## Root Cause
+
+1. **`ref.listen` race condition**: `CheckInDetailView` relied on `ref.listen(latestResultPerAccountProvider)` to invalidate detail providers, but the `AsyncLoading→AsyncData` transition could be missed due to widget rebuild interleaving during `_isExecuting` state changes.
+2. **Missing invalidation for other accounts**: `ref.listen` only invalidated the currently selected account's providers. Other accounts' cached providers were never refreshed after batch execution.
+
+## Changes
+
+| File | Change |
+|------|--------|
+| `check_in_page.dart` | `_executeAll()`: invalidate all accounts' `accountCheckInHistoryProvider` and `accountCheckInStatsProvider` after batch execution |
+| `check_in_detail_view.dart` | Add `didUpdateWidget` to invalidate providers when the displayed account changes |
+
+**Stats**: 2 files, +23 lines
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `abe9c32` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

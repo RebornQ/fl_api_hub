@@ -14,7 +14,7 @@ typedef CheckInFilterCallback =
     void Function(CheckInStatus? filter, String searchQuery);
 
 /// Combined filter chips + search bar widget.
-class CheckInFilterBar extends StatelessWidget {
+class CheckInFilterBar extends StatefulWidget {
   final CheckInStatus? selectedFilter;
   final String searchQuery;
   final int totalCount;
@@ -37,6 +37,38 @@ class CheckInFilterBar extends StatelessWidget {
   });
 
   @override
+  State<CheckInFilterBar> createState() => _CheckInFilterBarState();
+}
+
+class _CheckInFilterBarState extends State<CheckInFilterBar> {
+  final _searchController = TextEditingController();
+  bool _hasSearchText = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_onControllerChanged);
+  }
+
+  void _onControllerChanged() {
+    final hasText = _searchController.text.isNotEmpty;
+    if (hasText != _hasSearchText) {
+      setState(() => _hasSearchText = hasText);
+    }
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    widget.onSearchChanged('');
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -48,21 +80,32 @@ class CheckInFilterBar extends StatelessWidget {
           child: ListView(
             scrollDirection: Axis.horizontal,
             children: [
-              _buildChip(context, '全部 ($totalCount)', null),
+              _buildChip(context, '全部 (${widget.totalCount})', null),
               const SizedBox(width: AppSpacing.sm),
-              _buildChip(context, '成功 ($successCount)', CheckInStatus.success),
+              _buildChip(context, '成功 (${widget.successCount})', CheckInStatus.success),
               const SizedBox(width: AppSpacing.sm),
-              _buildChip(context, '失败 ($failedCount)', CheckInStatus.failed),
+              _buildChip(context, '失败 (${widget.failedCount})', CheckInStatus.failed),
               const SizedBox(width: AppSpacing.sm),
-              _buildChip(context, '已跳过 ($skippedCount)', CheckInStatus.skipped),
+              _buildChip(context, '已跳过 (${widget.skippedCount})', CheckInStatus.skipped),
             ],
           ),
         ),
         const SizedBox(height: AppSpacing.sm + 4),
         // Search bar.
         TextField(
+          controller: _searchController,
           decoration: InputDecoration(
             prefixIcon: const Icon(Icons.search),
+            suffixIcon: _hasSearchText
+                ? Padding(
+                    padding: const EdgeInsets.only(right: AppSpacing.xs),
+                    child: IconButton(
+                      tooltip: '清除',
+                      icon: const Icon(Icons.close),
+                      onPressed: _clearSearch,
+                    ),
+                  )
+                : null,
             hintText: '搜索账号名称或消息...',
             filled: true,
             fillColor: colorScheme.surfaceContainerHigh,
@@ -71,11 +114,11 @@ class CheckInFilterBar extends StatelessWidget {
               borderSide: BorderSide.none,
             ),
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.md + AppSpacing.xs,
+              horizontal: AppSpacing.sm,
+              vertical: AppSpacing.sm + AppSpacing.xs,
             ),
           ),
-          onChanged: onSearchChanged,
+          onChanged: widget.onSearchChanged,
         ),
       ],
     );
@@ -83,7 +126,7 @@ class CheckInFilterBar extends StatelessWidget {
 
   Widget _buildChip(BuildContext context, String label, CheckInStatus? filter) {
     final colorScheme = Theme.of(context).colorScheme;
-    final selected = selectedFilter == filter;
+    final selected = widget.selectedFilter == filter;
 
     return Material(
       color: selected
@@ -92,7 +135,7 @@ class CheckInFilterBar extends StatelessWidget {
       borderRadius: BorderRadius.circular(9999),
       child: InkWell(
         borderRadius: BorderRadius.circular(9999),
-        onTap: () => onFilterChanged(filter),
+        onTap: () => widget.onFilterChanged(filter),
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: 20,

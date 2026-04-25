@@ -488,10 +488,13 @@ class _AccountsPageState extends ConsumerState<AccountsPage>
             decoration: InputDecoration(
               prefixIcon: const Icon(Icons.search),
               suffixIcon: _hasSearchText
-                  ? IconButton(
-                      tooltip: '清除',
-                      icon: const Icon(Icons.close),
-                      onPressed: _clearSearch,
+                  ? Padding(
+                      padding: const EdgeInsets.only(right: AppSpacing.xs),
+                      child: IconButton(
+                        tooltip: '清除',
+                        icon: const Icon(Icons.close),
+                        onPressed: _clearSearch,
+                      ),
                     )
                   : null,
               hintText: '搜索账号、URL 或标签...',

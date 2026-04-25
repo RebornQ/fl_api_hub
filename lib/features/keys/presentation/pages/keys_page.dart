@@ -30,7 +30,32 @@ class KeysPage extends ConsumerStatefulWidget {
 class _KeysPageState extends ConsumerState<KeysPage> {
   String? _selectedAccountId;
   String _searchQuery = '';
+  final _searchController = TextEditingController();
+  bool _hasSearchText = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_onControllerChanged);
+  }
+
+  void _onControllerChanged() {
+    final hasText = _searchController.text.isNotEmpty;
+    if (hasText != _hasSearchText) {
+      setState(() => _hasSearchText = hasText);
+    }
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    setState(() => _searchQuery = '');
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     final accounts = ref.watch(accountsProvider);
@@ -310,9 +335,20 @@ class _KeysPageState extends ConsumerState<KeysPage> {
         AppSpacing.sm,
       ),
       child: TextField(
+        controller: _searchController,
         onChanged: (value) => setState(() => _searchQuery = value),
         decoration: InputDecoration(
           prefixIcon: const Icon(Icons.search),
+          suffixIcon: _hasSearchText
+              ? Padding(
+                  padding: const EdgeInsets.only(right: AppSpacing.xs),
+                  child: IconButton(
+                    tooltip: '清除',
+                    icon: const Icon(Icons.close),
+                    onPressed: _clearSearch,
+                  ),
+                )
+              : null,
           hintText: '搜索密钥名称...',
           filled: true,
           fillColor: colorScheme.surfaceContainerHigh,
@@ -321,8 +357,8 @@ class _KeysPageState extends ConsumerState<KeysPage> {
             borderSide: BorderSide.none,
           ),
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.md + AppSpacing.xs,
+            horizontal: AppSpacing.sm,
+            vertical: AppSpacing.sm + AppSpacing.xs,
           ),
         ),
       ),
@@ -356,14 +392,9 @@ class _KeysPageState extends ConsumerState<KeysPage> {
         physics: const AlwaysScrollableScrollPhysics(),
         child: SizedBox(
           height: MediaQuery.of(context).size.height * 0.3,
-          child: AppEmptyState(
+          child: const AppEmptyState(
             icon: Icons.vpn_key_outlined,
             message: '还没有添加任何密钥',
-            actionLabel: '添加密钥',
-            onAction: _selectedAccountId != null
-                ? () =>
-                      KeyFormSheet.show(context, accountId: _selectedAccountId!)
-                : null,
           ),
         ),
       );

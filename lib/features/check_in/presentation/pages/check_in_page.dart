@@ -19,6 +19,8 @@ import '../../../../app/theme/design_tokens.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_error_state.dart';
 import '../../../../core/widgets/app_loading_state.dart';
+import '../../../accounts/presentation/providers/accounts_providers.dart'
+    show accountsProvider;
 import '../../domain/entities/check_in_result.dart';
 import '../../domain/entities/check_in_task.dart';
 import '../providers/check_in_providers.dart';
@@ -483,6 +485,15 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
       final results = await ref.read(checkInProvider.notifier).executeAll();
 
       if (!mounted) return;
+
+      // Force-refresh every account's detail providers so that whichever
+      // account the user selects next (including the one already shown)
+      // displays up-to-date history and stats.
+      final accounts = ref.read(accountsProvider).valueOrNull ?? [];
+      for (final account in accounts) {
+        ref.invalidate(accountCheckInHistoryProvider(account.id));
+        ref.invalidate(accountCheckInStatsProvider(account.id));
+      }
 
       final success = results
           .where(

@@ -59,6 +59,18 @@ class _CheckInDetailViewState extends ConsumerState<CheckInDetailView> {
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(CheckInDetailView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.accountId != oldWidget.accountId) {
+      // The selected account changed — invalidate the new account's
+      // providers so the detail panel fetches fresh data from the DB
+      // instead of returning a stale cached value.
+      ref.invalidate(accountCheckInHistoryProvider(widget.accountId));
+      ref.invalidate(accountCheckInStatsProvider(widget.accountId));
+    }
+  }
+
   void _onScroll() {
     if (!_scrollController.hasClients) return;
     final position = _scrollController.position;

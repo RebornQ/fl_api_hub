@@ -21,7 +21,7 @@ class BackupPasswordStore {
   String? get password => _box.get(_keyPassword) as String?;
 
   /// Returns whether encryption is enabled (defaults to `true`).
-  bool get isEncrypted => _box.get(_keyEncrypted) as bool? ?? true;
+  bool get isEncrypted => _box.get(_keyEncrypted) as bool? ?? false;
 
   /// Saves [password] and enables encryption.
   Future<void> setPassword(String password) async {

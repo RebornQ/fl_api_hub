@@ -4,7 +4,6 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/error/app_exception.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../../data/datasources/backup_file_datasource.dart';
 import '../../domain/entities/backup_progress.dart';
@@ -21,10 +20,22 @@ class BackupPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(backupProvider);
 
+    ref.listen<BackupState>(backupProvider, (_, next) {
+      if (next is BackupError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(next.exception.message),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        ref.read(backupProvider.notifier).reset();
+      }
+    });
+
     return Scaffold(
       appBar: AppBar(title: const Text('数据管理')),
       body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
         children: [
           SectionCard(
             icon: Icons.backup_outlined,
@@ -35,7 +46,8 @@ class BackupPage extends ConsumerWidget {
                   leading: const Icon(Icons.upload_file),
                   title: const Text('创建备份'),
                   subtitle: const Text('将所有数据导出为文件'),
-                  trailing: state is BackupInProgress
+                  trailing:
+                      state is BackupInProgress && state.op == BackupOp.create
                       ? const SizedBox(
                           width: 20,
                           height: 20,
@@ -45,11 +57,14 @@ class BackupPage extends ConsumerWidget {
                   enabled: state is! BackupInProgress,
                   onTap: () => _onCreateBackup(context, ref),
                 ),
+                if (state is BackupInProgress && state.op == BackupOp.create)
+                  _InlineProgress(progress: state.progress),
                 ListTile(
                   leading: const Icon(Icons.download),
                   title: const Text('恢复数据'),
                   subtitle: const Text('从备份文件导入数据'),
-                  trailing: state is BackupInProgress
+                  trailing:
+                      state is BackupInProgress && state.op == BackupOp.restore
                       ? const SizedBox(
                           width: 20,
                           height: 20,
@@ -59,17 +74,11 @@ class BackupPage extends ConsumerWidget {
                   enabled: state is! BackupInProgress,
                   onTap: () => _onRestore(context, ref),
                 ),
+                if (state is BackupInProgress && state.op == BackupOp.restore)
+                  _InlineProgress(progress: state.progress),
               ],
             ),
           ),
-          if (state is BackupInProgress) ...[
-            const SizedBox(height: 16),
-            _ProgressSection(progress: state.progress),
-          ],
-          if (state is BackupError) ...[
-            const SizedBox(height: 8),
-            _ErrorSection(exception: state.exception),
-          ],
           const SizedBox(height: 8),
           SectionCard(
             icon: Icons.lock_outline,
@@ -141,12 +150,16 @@ class BackupPage extends ConsumerWidget {
 
     String? password;
     if (isEncrypted) {
-      password = await showBackupPasswordDialog(
-        context,
-        isConfirm: false,
-        title: '输入备份密码',
-      );
-      if (password == null || !context.mounted) return;
+      final passwordStore = ref.read(backupPasswordStoreProvider);
+      password = passwordStore.password;
+      if (password == null) {
+        password = await showBackupPasswordDialog(
+          context,
+          isConfirm: false,
+          title: '输入备份密码',
+        );
+        if (password == null || !context.mounted) return;
+      }
     }
 
     // Choose restore mode.
@@ -190,9 +203,11 @@ class BackupPage extends ConsumerWidget {
       );
       if (password != null) {
         await passwordStore.setPassword(password);
+        ref.invalidate(isBackupEncryptedProvider);
       }
     } else {
       await passwordStore.clearPassword();
+      ref.invalidate(isBackupEncryptedProvider);
     }
   }
 
@@ -253,54 +268,25 @@ class BackupPage extends ConsumerWidget {
   }
 }
 
-class _ProgressSection extends StatelessWidget {
+class _InlineProgress extends StatelessWidget {
   final BackupProgress progress;
-  const _ProgressSection({required this.progress});
+
+  const _InlineProgress({required this.progress});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
       child: Column(
         children: [
           LinearProgressIndicator(value: progress.progress),
-          const SizedBox(height: 8),
-          Text(progress.phase.label, style: theme.textTheme.bodySmall),
-        ],
-      ),
-    );
-  }
-}
-
-class _ErrorSection extends StatelessWidget {
-  final AppException exception;
-  const _ErrorSection({required this.exception});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Card(
-        color: theme.colorScheme.errorContainer,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Icon(Icons.error_outline, color: theme.colorScheme.error),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  exception.message,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onErrorContainer,
-                  ),
-                ),
-              ),
-            ],
+          const SizedBox(height: 4),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(progress.phase.label, style: theme.textTheme.bodySmall),
           ),
-        ),
+        ],
       ),
     );
   }

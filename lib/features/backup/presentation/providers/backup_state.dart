@@ -5,6 +5,9 @@ import '../../../../core/error/app_exception.dart';
 import '../../domain/entities/backup_progress.dart';
 import '../../domain/repositories/backup_repository.dart';
 
+/// Which operation is in progress.
+enum BackupOp { create, restore }
+
 /// Sealed state for the backup feature.
 sealed class BackupState {
   const BackupState();
@@ -18,7 +21,8 @@ class BackupIdle extends BackupState {
 /// Operation in progress with phase and progress info.
 class BackupInProgress extends BackupState {
   final BackupProgress progress;
-  const BackupInProgress(this.progress);
+  final BackupOp op;
+  const BackupInProgress(this.progress, this.op);
 }
 
 /// Backup created successfully; file is ready for export.

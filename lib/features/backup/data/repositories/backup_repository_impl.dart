@@ -6,18 +6,19 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import '../../../../core/error/app_exception.dart';
 import '../../../../core/result/result.dart';
+import '../../domain/entities/backup_progress.dart';
+import '../../domain/repositories/backup_repository.dart';
 import '../datasources/backup_file_datasource.dart';
 import '../datasources/backup_hive_reader.dart';
 import '../models/backup_codec.dart';
 import '../models/backup_data.dart';
 import '../models/backup_metadata.dart';
 import '../models/merge_strategy.dart';
-import '../../domain/entities/backup_progress.dart';
-import '../../domain/repositories/backup_repository.dart';
 
 class BackupRepositoryImpl implements BackupRepository {
   final BackupHiveReader _hiveReader;
@@ -37,33 +38,29 @@ class BackupRepositoryImpl implements BackupRepository {
       _emit(BackupPhase.readingData, 0.1);
       final data = _hiveReader.readAll();
 
-      // Phase 2: Build JSON.
+      // Phases 2–4: JSON serialization + optional encryption in isolate.
       _emit(BackupPhase.buildingBackup, 0.3);
-      final dataJson = jsonEncode(data.toMap());
+      final bytes = await Isolate.run(() {
+        final dataMap = data.toMap();
+        final dataJson = jsonEncode(dataMap);
+        final checksum = BackupCodec.computeChecksum(dataJson);
 
-      // Phase 3: Compute checksum.
-      _emit(BackupPhase.computingChecksum, 0.4);
-      final checksum = BackupCodec.computeChecksum(dataJson);
+        final metadata = BackupMetadata(
+          version: 1,
+          encrypted: password != null,
+          timestamp: DateTime.now(),
+          appVersion: '1.0.0',
+          // TODO: read from package_info
+          checksum: checksum,
+        );
+        final envelope = {...metadata.toMap(), 'data': dataMap};
+        final envelopeJson = jsonEncode(envelope);
 
-      // Build full backup envelope.
-      final metadata = BackupMetadata(
-        version: 1,
-        encrypted: password != null,
-        timestamp: DateTime.now(),
-        appVersion: '1.0.0', // TODO: read from package_info
-        checksum: checksum,
-      );
-      final envelope = {...metadata.toMap(), 'data': data.toMap()};
-      final envelopeJson = jsonEncode(envelope);
-
-      // Phase 4: Encrypt (optional).
-      _emit(BackupPhase.encrypting, 0.6);
-      final Uint8List bytes;
-      if (password != null) {
-        bytes = BackupCodec.encrypt(envelopeJson, password);
-      } else {
-        bytes = Uint8List.fromList(utf8.encode(envelopeJson));
-      }
+        if (password != null) {
+          return BackupCodec.encrypt(envelopeJson, password);
+        }
+        return Uint8List.fromList(utf8.encode(envelopeJson));
+      });
 
       // Phase 5: Write to temp file.
       _emit(BackupPhase.writingFile, 0.8);
@@ -102,7 +99,9 @@ class BackupRepositoryImpl implements BackupRepository {
           return const Failure(BackupException(message: '备份文件已加密，请输入密码'));
         }
         try {
-          envelopeJson = BackupCodec.decrypt(bytes, password);
+          envelopeJson = await Isolate.run(
+            () => BackupCodec.decrypt(bytes, password),
+          );
         } on FormatException {
           return const Failure(BackupException(message: '密码错误，无法解密备份文件'));
         }

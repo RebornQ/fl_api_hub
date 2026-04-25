@@ -21,8 +21,9 @@ class BackupNotifier extends StateNotifier<BackupState> {
 
   /// Creates a backup using the stored password (if any).
   Future<void> createBackup() async {
-    state = const BackupInProgress(
+    state = BackupInProgress(
       BackupProgress(phase: BackupPhase.readingData, progress: 0),
+      BackupOp.create,
     );
     _listenProgress();
 
@@ -46,8 +47,9 @@ class BackupNotifier extends StateNotifier<BackupState> {
     String? password,
     required bool replace,
   }) async {
-    state = const BackupInProgress(
+    state = BackupInProgress(
       BackupProgress(phase: BackupPhase.decrypting, progress: 0),
+      BackupOp.restore,
     );
     _listenProgress();
 
@@ -74,7 +76,9 @@ class BackupNotifier extends StateNotifier<BackupState> {
     _progressSub?.cancel();
     _progressSub = _repository.progressStream.listen((progress) {
       if (mounted) {
-        state = BackupInProgress(progress);
+        final current = state;
+        final op = current is BackupInProgress ? current.op : BackupOp.create;
+        state = BackupInProgress(progress, op);
       }
     });
   }

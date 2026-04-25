@@ -59,8 +59,7 @@ class BackupFileDataSource {
   Future<String?> pickFile() async {
     final result = await FilePicker.platform.pickFiles(
       dialogTitle: '选择备份文件',
-      type: FileType.custom,
-      allowedExtensions: ['flhbkp', 'json'],
+      type: FileType.any,
     );
     return result?.files.single.path;
   }

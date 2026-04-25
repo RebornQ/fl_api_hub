@@ -52,10 +52,6 @@ class MergeResult {
   BackupData local,
   BackupData incoming,
 ) {
-  // Build ID sets for referential integrity checks.
-  final localTagIds = {for (final t in local.tags) t['id'] as String};
-  final localAccountIds = {for (final a in local.accounts) a['id'] as String};
-
   // 1. Tags: merge by ID, handle synonym conflicts.
   final mergedTags = <String, Map<String, dynamic>>{};
   for (final tag in local.tags) {
@@ -91,7 +87,6 @@ class MergeResult {
       }
     }
   }
-  final mergedTagIds = mergedTags.keys.toSet();
 
   // 2. Accounts: merge by ID.
   final mergedAccounts = <String, Map<String, dynamic>>{};

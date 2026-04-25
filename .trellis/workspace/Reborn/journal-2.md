@@ -1291,3 +1291,45 @@ In widescreen master-detail layout (≥900px), the right-side detail panel frequ
 ### Next Steps
 
 - None - task complete
+
+
+## Session 49: Hive storage subdirectory per platform
+
+**Date**: 2026-04-26
+**Task**: Hive storage subdirectory per platform
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+| 变更 | 说明 |
+|------|------|
+| Hive 初始化 | `initHive()` 改为按平台传 `subDir`：桌面 `.fl-api-hub/hive`，移动端 `hive` |
+| 新增 import | `dart:io` Platform + `flutter/foundation.dart` kIsWeb |
+
+**修改文件**:
+- `lib/core/storage/hive_store.dart`
+
+**验证**: `flutter analyze` 0 errors, `flutter test` 489 passed
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `791885e` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

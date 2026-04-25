@@ -1105,3 +1105,72 @@ encrypt, crypto, share_plus, file_picker, path_provider
 ### Next Steps
 
 - None - task complete
+
+
+## Session 46: 签到请求记录查看与持久化
+
+**Date**: 2026-04-25
+**Task**: 签到请求记录查看与持久化
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## 目标
+
+为签到详情页的每条签到记录添加网络请求记录查看功能，便于排查签到失败原因。请求记录持久化到 Hive，页面复用现有 RequestLogger UI 组件。
+
+## 实现概要
+
+| 模块 | 改动 |
+|------|------|
+| Correlation ID 机制 | `ApiRequest.correlationId` → `CommonApiAdapter._buildExtra()` → `RequestLoggerInterceptor` 捕获并写入 `RequestLogEntry` |
+| 持久化存储 | 新增 Hive box `check_in_request_logs`，`CheckInRequestLogLocalDataSource` + Mapper + Repository |
+| 拦截器改为常驻 | `dioClientProvider` 始终挂载 `RequestLoggerInterceptor`，按需推入内存缓冲 / Hive |
+| 级联删除 | 删除签到结果时同步清理关联请求日志（clearAll / prune / deleteTask） |
+| Provider 刷新 | 签到执行/删除后 invalidate `allPersistedRequestLogsProvider` |
+| UI 导航 | `CheckInResultCard` 可点击 → `CheckInRequestLogsPage` 复用 `RequestLogListTile` / `RequestLogDetailView` |
+| 开发者选项 | 新增「查看持久化请求」入口（仅 kDebugMode），含清空功能 |
+| 请求详情 | 概览卡片增加 correlationId 显示 |
+
+## 新增文件（7）
+- `check_in_request_log_local_datasource.dart`
+- `check_in_request_log_mapper.dart`
+- `check_in_request_log_repository.dart` (接口)
+- `check_in_request_log_repository_impl.dart`
+- `check_in_request_log_providers.dart`
+- `check_in_request_logs_page.dart`
+- `persisted_request_logs_page.dart`
+
+## 修改文件（17）
+- Core: `api_request.dart`, `dio_client.dart`, `common_api_adapter.dart`, `hive_store.dart`, `main.dart`
+- Entities: `request_log_entry.dart`, `request_logger_interceptor.dart`
+- Check-in: `check_in_local_datasource.dart`, `check_in_notifier.dart`, `account_check_in_history_notifier.dart`, `check_in_detail_view.dart`, `check_in_result_card.dart`, `check_in_filter_bar.dart`
+- Dev-tools: `developer_options_page.dart`, `request_log_detail_placeholder.dart`
+- Tests: `check_in_local_datasource_test.dart`, `dio_client_logger_wiring_test.dart`
+
+## 验证
+- `flutter analyze`: 0 errors (3 既有 info/warning)
+- `flutter test`: 489/489 passed
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `34d8da8` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

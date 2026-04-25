@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 42
+- **Total Sessions**: 43
 - **Last Active**: 2026-04-25
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~946 | Active |
+| `journal-2.md` | ~1020 | Active |
 | `journal-1.md` | ~1977 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 43 | 2026-04-25 | feat(backup): 数据管理 — 备份与恢复（完整实现） | - | `main` |
 | 42 | 2026-04-25 | Dark theme + dynamic Monet color | `f4034a6` | `main` |
 | 41 | 2026-04-25 | Add native splash screen for Android & iOS | `f158ff1`, `4d8054e` | `main` |
 | 40 | 2026-04-25 | Desktop Window Management & macOS Settings Menu | `ab0110a` | `main` |

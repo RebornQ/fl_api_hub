@@ -35,10 +35,7 @@ void main() {
 
   testWidgets('App shell renders with bottom navigation', (tester) async {
     await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
-        child: const App(),
-      ),
+      UncontrolledProviderScope(container: container, child: const App()),
     );
 
     // Default page is Check-in.
@@ -52,10 +49,7 @@ void main() {
 
   testWidgets('Switching tabs updates the visible page', (tester) async {
     await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
-        child: const App(),
-      ),
+      UncontrolledProviderScope(container: container, child: const App()),
     );
 
     // Tap the Accounts tab.

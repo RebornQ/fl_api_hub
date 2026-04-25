@@ -77,3 +77,12 @@ final class UnknownException extends AppException {
     super.stackTrace,
   });
 }
+
+/// Backup/restore operation failures.
+final class BackupException extends AppException {
+  const BackupException({
+    required super.message,
+    super.originalError,
+    super.stackTrace,
+  });
+}

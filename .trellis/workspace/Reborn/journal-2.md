@@ -944,3 +944,77 @@ Renamed project across all platforms: Dart package name, application ID, display
 ### Next Steps
 
 - None - task complete
+
+
+## Session 43: feat(backup): 数据管理 — 备份与恢复（完整实现）
+
+**Date**: 2026-04-25
+**Task**: feat(backup): 数据管理 — 备份与恢复（完整实现）
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## Feature: 备份与恢复（数据管理模块）
+
+### 新增功能
+| 模块 | 说明 |
+|------|------|
+| 加密备份 | AES-256-GCM + PBKDF2 密钥派生，可选密码加密 |
+| 明文备份 | 支持不加密 JSON 格式导出 |
+| 智能合并 | 按 ID + updatedAt 匹配，孤儿实体跳过，标签同名加后缀 |
+| 全量替换 | 清空后写入备份数据 |
+| 双导出方式 | 系统分享(share_plus) + 保存到文件(file_picker) |
+| 密码持久化 | app_data Hive Box，自动复用 |
+| 进度指示 | 阶段枚举 + 0.0~1.0 进度条 |
+| 错误提示 | BackupException 层次，密码错误/校验失败/文件损坏等 |
+| UI 入口 | 设置页 SectionCard「数据管理」→ 子页面 |
+
+### 技术架构
+- Clean Architecture + Feature-First: `features/backup/{data,domain,presentation}/`
+- 7 个 Hive Box 全量备份（排除 account_reachability 缓存）
+- 备份格式：JSON（未加密）或二进制（加密），扩展名 .flbkp
+- 文件检测：首字节 `{` 为 JSON，否则为加密二进制
+
+### 新增依赖
+encrypt, crypto, share_plus, file_picker, path_provider
+
+### 测试
+- 491 个测试全部通过（含 26 个新增备份相关测试）
+- flutter analyze 无新增警告
+
+### Bug 修复（手动测试后）
+- 临时目录不存在 → create(recursive: true)
+- 保存文件无反应 → file_picker saveFile 手动写 bytes
+- 导出后按钮不恢复 → 操作完成后 reset() 回 BackupIdle
+
+**新增文件 (21)**:
+- lib/features/backup/data/ (7 files)
+- lib/features/backup/domain/ (2 files)
+- lib/features/backup/presentation/ (6 files)
+- test/features/backup/ (4 files)
+- .trellis/tasks/04-25-04-25-backup-restore/ (5 files)
+
+**修改文件 (2)**:
+- lib/core/error/app_exception.dart — 新增 BackupException
+- lib/features/settings/presentation/pages/settings_page.dart — 新增数据管理入口
+
+
+### Git Commits
+
+(No commits - planning session)
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

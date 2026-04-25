@@ -65,6 +65,10 @@ class RequestLogEntry {
   /// `receiveTimeout`, `cancel`, `unknown`).
   final String? errorType;
 
+  /// Optional correlation ID that links this request to a business operation
+  /// (e.g. a specific check-in execution). Set via `ApiRequest.correlationId`.
+  final String? correlationId;
+
   const RequestLogEntry({
     required this.id,
     required this.startedAt,
@@ -80,6 +84,7 @@ class RequestLogEntry {
     this.responseBody,
     this.errorMessage,
     this.errorType,
+    this.correlationId,
   });
 
   /// `true` when there is no status code — transport-level failure.

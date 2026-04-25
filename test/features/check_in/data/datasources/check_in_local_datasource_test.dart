@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:fl_api_hub/features/check_in/data/datasources/check_in_local_datasource.dart';
+import 'package:fl_api_hub/features/check_in/data/datasources/check_in_request_log_local_datasource.dart';
 import 'package:fl_api_hub/features/check_in/data/models/check_in_mapper.dart';
 import 'package:fl_api_hub/features/check_in/domain/entities/check_in_result.dart';
 
@@ -29,6 +30,7 @@ void main() {
   late Directory tempDir;
   late Box taskBox;
   late Box resultBox;
+  late Box requestLogBox;
   late CheckInLocalDataSource ds;
 
   setUpAll(() async {
@@ -47,12 +49,18 @@ void main() {
     final uid = const Uuid().v4();
     taskBox = await Hive.openBox('check_in_tasks_$uid');
     resultBox = await Hive.openBox('check_in_results_$uid');
-    ds = CheckInLocalDataSource(taskBox, resultBox);
+    requestLogBox = await Hive.openBox('check_in_request_logs_$uid');
+    ds = CheckInLocalDataSource(
+      taskBox,
+      resultBox,
+      CheckInRequestLogLocalDataSource(requestLogBox),
+    );
   });
 
   tearDown(() async {
     await taskBox.deleteFromDisk();
     await resultBox.deleteFromDisk();
+    await requestLogBox.deleteFromDisk();
   });
 
   /// Writes a [CheckInResult] directly into the backing box without going

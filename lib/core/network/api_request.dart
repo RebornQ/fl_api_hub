@@ -31,10 +31,17 @@ class ApiRequest {
   /// header and let the backend fall back to token-based identification.
   final int? userId;
 
+  /// Optional correlation ID used to associate a network request with a
+  /// business operation (e.g. a check-in result). When non-null, the
+  /// interceptor will persist the captured [RequestLogEntry] so it can be
+  /// retrieved later by this ID.
+  final String? correlationId;
+
   const ApiRequest({
     required this.baseUrl,
     this.authToken,
     required this.authType,
     this.userId,
+    this.correlationId,
   });
 }

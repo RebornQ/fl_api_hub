@@ -17,6 +17,7 @@ import '../../data/models/check_in_api_mapper.dart';
 import '../../domain/entities/check_in_result.dart';
 import '../../domain/entities/check_in_task.dart';
 import 'check_in_providers.dart';
+import 'check_in_request_log_providers.dart';
 
 /// SiteTypes whose check-in REST protocol is not yet implemented in this
 /// app. Accounts carrying one of these types will still appear in the
@@ -194,12 +195,18 @@ class CheckInNotifier extends AsyncNotifier<List<CheckInTask>> {
       return result;
     }
 
-    // 4. Build the request.
+    // 4. Build the request. Use the pre-generated resultId as correlationId
+    //    so the request logger can persist the captured request alongside the
+    //    check-in result.
+    final now = DateTime.now();
+    final resultId = const Uuid().v4();
+
     final request = ApiRequest(
       baseUrl: account.baseUrl,
       authToken: token,
       authType: account.authType,
       userId: account.userId,
+      correlationId: resultId,
     );
 
     // 5. Call the remote API.
@@ -209,8 +216,6 @@ class CheckInNotifier extends AsyncNotifier<List<CheckInTask>> {
     final apiResult = await remoteDs.checkIn(request);
 
     // 6–7. Handle response.
-    final now = DateTime.now();
-    final resultId = const Uuid().v4();
 
     return apiResult.when(
       onSuccess: (dto) async {
@@ -301,6 +306,7 @@ class CheckInNotifier extends AsyncNotifier<List<CheckInTask>> {
     // ([checkInStatsProvider], [checkInAccountSummariesProvider]) recompute
     // transitively.
     ref.invalidate(latestResultPerAccountProvider);
+    ref.invalidate(allPersistedRequestLogsProvider);
 
     return results;
   }
@@ -322,6 +328,7 @@ class CheckInNotifier extends AsyncNotifier<List<CheckInTask>> {
     }
 
     ref.invalidate(latestResultPerAccountProvider);
+    ref.invalidate(allPersistedRequestLogsProvider);
 
     return results;
   }

@@ -10,6 +10,7 @@ library;
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/check_in/data/datasources/check_in_request_log_local_datasource.dart';
 import '../../features/dev_tools/request_logger/data/interceptors/request_logger_interceptor.dart';
 import '../../features/dev_tools/request_logger/presentation/providers/request_logger_providers.dart';
 import 'auth_interceptor.dart';
@@ -58,48 +59,30 @@ class DioClient {
 
 /// Riverpod provider for the application-wide [DioClient].
 ///
-/// The provider also owns the lifecycle of the dev-tools
-/// [RequestLoggerInterceptor]: when [requestLoggerEnabledProvider] becomes
-/// `true`, a fresh interceptor is attached that pushes completed entries
-/// into the ring buffer. When the switch flips back to `false`, the
-/// interceptor is detached so captured headers/bodies stop flowing — but
-/// already-recorded entries are left in place (users clear them
-/// explicitly from the list page).
+/// The [RequestLoggerInterceptor] is always attached so that requests with a
+/// `correlationId` are always captured for persistence. The in-memory ring
+/// buffer is only populated when [requestLoggerEnabledProvider] is `true`.
 final dioClientProvider = Provider<DioClient>((ref) {
   final client = DioClient();
 
-  void attachLogger() {
-    // Ensure at most one instance is attached; removing first keeps the
-    // method idempotent when called from the initial-state branch below
-    // and again from ref.listen.
-    client.removeInterceptorsOfType<RequestLoggerInterceptor>();
-    client.addInterceptor(
-      RequestLoggerInterceptor(
-        onComplete: (entry) =>
-            ref.read(requestLogBufferProvider.notifier).add(entry),
-      ),
-    );
-  }
-
-  void detachLogger() {
-    client.removeInterceptorsOfType<RequestLoggerInterceptor>();
-  }
-
-  // Sync initial state. `ref.read` does not establish a subscription so
-  // the provider does not rebuild on switch changes; we drive the dynamic
-  // mount through `ref.listen` below.
-  if (ref.read(requestLoggerEnabledProvider)) {
-    attachLogger();
-  }
-
-  ref.listen<bool>(requestLoggerEnabledProvider, (previous, next) {
-    if (previous == next) return;
-    if (next) {
-      attachLogger();
-    } else {
-      detachLogger();
-    }
-  });
+  // Always attach the interceptor. It captures every request/response;
+  // the callback decides what to do with each entry.
+  client.addInterceptor(
+    RequestLoggerInterceptor(
+      onComplete: (entry) {
+        // 1. Push to dev-tools in-memory buffer when enabled.
+        if (ref.read(requestLoggerEnabledProvider)) {
+          ref.read(requestLogBufferProvider.notifier).add(entry);
+        }
+        // 2. Persist to Hive when a correlation ID is present (e.g. check-in).
+        if (entry.correlationId case final cid?) {
+          ref
+              .read(checkInRequestLogLocalDataSourceProvider)
+              .saveLog(cid, entry);
+        }
+      },
+    ),
+  );
 
   return client;
 });

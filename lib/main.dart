@@ -8,6 +8,7 @@ import 'app/router.dart';
 import 'core/platform/app_method_channel.dart';
 import 'core/storage/hive_store.dart';
 import 'features/check_in/data/datasources/check_in_local_datasource.dart';
+import 'features/check_in/data/datasources/check_in_request_log_local_datasource.dart';
 
 void main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -39,6 +40,7 @@ Future<void> _migrateCheckInResultCap() async {
     final ds = CheckInLocalDataSource(
       Hive.box('check_in_tasks'),
       Hive.box('check_in_results'),
+      CheckInRequestLogLocalDataSource(Hive.box('check_in_request_logs')),
     );
     await ds.migrateResultsToCap();
   } catch (_) {

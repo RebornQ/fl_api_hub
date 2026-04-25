@@ -72,15 +72,7 @@ class CommonApiAdapter implements SiteAdapter {
     try {
       final response = await dioClient.dio.request(
         '/api/user/checkin',
-        options: Options(
-          method: 'POST',
-          extra: {
-            'apiBaseUrl': request.baseUrl,
-            'apiAuthToken': request.authToken,
-            'apiAuthType': request.authType.name,
-            'apiUserId': request.userId,
-          },
-        ),
+        options: Options(method: 'POST', extra: _buildExtra(request)),
       );
 
       // For check-in, we parse the DTO directly from the response without
@@ -220,15 +212,7 @@ class CommonApiAdapter implements SiteAdapter {
     try {
       final response = await dioClient.dio.request(
         path,
-        options: Options(
-          method: method,
-          extra: {
-            'apiBaseUrl': request.baseUrl,
-            'apiAuthToken': request.authToken,
-            'apiAuthType': request.authType.name,
-            'apiUserId': request.userId,
-          },
-        ),
+        options: Options(method: method, extra: _buildExtra(request)),
         queryParameters: queryParameters,
         data: data,
       );
@@ -261,15 +245,22 @@ class CommonApiAdapter implements SiteAdapter {
     }
   }
 
+  /// Builds the per-request extra map carried through Dio [Options].
+  Map<String, dynamic> _buildExtra(ApiRequest request) {
+    final extra = <String, dynamic>{
+      'apiBaseUrl': request.baseUrl,
+      'apiAuthToken': request.authToken,
+      'apiAuthType': request.authType.name,
+      'apiUserId': request.userId,
+    };
+    if (request.correlationId case final id?) {
+      extra['__correlation_id'] = id;
+    }
+    return extra;
+  }
+
   /// Builds Dio [Options] with per-request baseUrl and auth context.
   Options _buildOptions(ApiRequest request) {
-    return Options(
-      extra: {
-        'apiBaseUrl': request.baseUrl,
-        'apiAuthToken': request.authToken,
-        'apiAuthType': request.authType.name,
-        'apiUserId': request.userId,
-      },
-    );
+    return Options(extra: _buildExtra(request));
   }
 }

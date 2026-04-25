@@ -20,6 +20,7 @@ import '../../../../core/widgets/app_error_state.dart';
 import '../../../../core/widgets/app_loading_state.dart';
 import '../../../accounts/presentation/providers/accounts_providers.dart';
 import '../../domain/entities/check_in_result.dart';
+import '../pages/check_in_request_logs_page.dart';
 import '../providers/check_in_providers.dart';
 import 'account_check_in_summary_card.dart';
 import 'check_in_result_card.dart';
@@ -229,6 +230,12 @@ class _CheckInDetailViewState extends ConsumerState<CheckInDetailView> {
             display: CheckInResultDisplay(
               result: result,
               accountName: accountName,
+            ),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => CheckInRequestLogsPage(resultId: result.id),
+              ),
             ),
           ),
         );

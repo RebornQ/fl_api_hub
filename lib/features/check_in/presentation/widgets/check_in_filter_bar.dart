@@ -82,11 +82,23 @@ class _CheckInFilterBarState extends State<CheckInFilterBar> {
             children: [
               _buildChip(context, '全部 (${widget.totalCount})', null),
               const SizedBox(width: AppSpacing.sm),
-              _buildChip(context, '成功 (${widget.successCount})', CheckInStatus.success),
+              _buildChip(
+                context,
+                '成功 (${widget.successCount})',
+                CheckInStatus.success,
+              ),
               const SizedBox(width: AppSpacing.sm),
-              _buildChip(context, '失败 (${widget.failedCount})', CheckInStatus.failed),
+              _buildChip(
+                context,
+                '失败 (${widget.failedCount})',
+                CheckInStatus.failed,
+              ),
               const SizedBox(width: AppSpacing.sm),
-              _buildChip(context, '已跳过 (${widget.skippedCount})', CheckInStatus.skipped),
+              _buildChip(
+                context,
+                '已跳过 (${widget.skippedCount})',
+                CheckInStatus.skipped,
+              ),
             ],
           ),
         ),

@@ -6,11 +6,13 @@
 /// following the same `ListTile` pattern.
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../app/theme/design_tokens.dart';
 import '../../../../../core/widgets/section_card.dart';
+import '../../../../check_in/presentation/pages/persisted_request_logs_page.dart';
 import '../providers/request_logger_providers.dart';
 import 'request_logger_page.dart';
 
@@ -63,6 +65,23 @@ class DeveloperOptionsPage extends ConsumerWidget {
                     );
                   },
                 ),
+                if (kDebugMode)
+                  ListTile(
+                    leading: const Icon(Icons.storage_outlined),
+                    title: const Text('查看持久化请求'),
+                    subtitle: Text(
+                      '查看所有持久化的请求记录（Hive）',
+                      style: TextStyle(color: colorScheme.onSurfaceVariant),
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const PersistedRequestLogsPage(),
+                        ),
+                      );
+                    },
+                  ),
               ],
             ),
           ),

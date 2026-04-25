@@ -123,6 +123,10 @@ class _OverviewCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.xs),
             _InfoRow(label: '结束', value: _formatTime(entry.endedAt!)),
           ],
+          if (entry.correlationId != null) ...[
+            const SizedBox(height: AppSpacing.xs),
+            _InfoRow(label: '关联ID', value: entry.correlationId!),
+          ],
         ],
       ),
     );

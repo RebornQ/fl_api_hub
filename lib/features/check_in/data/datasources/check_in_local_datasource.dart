@@ -7,6 +7,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import 'check_in_request_log_local_datasource.dart';
 import '../../domain/entities/check_in_result.dart';
 import '../../domain/entities/check_in_task.dart';
 import '../models/check_in_mapper.dart';
@@ -27,8 +28,9 @@ const kCheckInResultsCapPerAccount = 50;
 class CheckInLocalDataSource {
   final Box _taskBox;
   final Box _resultBox;
+  final CheckInRequestLogLocalDataSource _requestLogDs;
 
-  CheckInLocalDataSource(this._taskBox, this._resultBox);
+  CheckInLocalDataSource(this._taskBox, this._resultBox, this._requestLogDs);
 
   // ── Task operations ──────────────────────────────────────────────
 
@@ -188,6 +190,7 @@ class CheckInLocalDataSource {
 
   /// Deletes every result belonging to [accountId].
   ///
+  /// Also removes the associated request logs for each deleted result.
   /// Returns the number of records removed.
   Future<int> deleteAllResultsByAccountId(String accountId) async {
     final idsToDelete = _resultBox.values
@@ -196,6 +199,7 @@ class CheckInLocalDataSource {
         .map((map) => map['id'] as String)
         .toList();
     for (final id in idsToDelete) {
+      await _requestLogDs.deleteLogsByCorrelationId(id);
       await _resultBox.delete(id);
     }
     return idsToDelete.length;
@@ -214,6 +218,7 @@ class CheckInLocalDataSource {
     if (results.length <= keep) return 0;
     final toDelete = results.skip(keep).toList();
     for (final r in toDelete) {
+      await _requestLogDs.deleteLogsByCorrelationId(r.id);
       await _resultBox.delete(r.id);
     }
     return toDelete.length;
@@ -242,6 +247,7 @@ class CheckInLocalDataSource {
   Future<void> _deleteResultsByTaskId(String taskId) async {
     final results = getResultsByTaskId(taskId);
     for (final result in results) {
+      await _requestLogDs.deleteLogsByCorrelationId(result.id);
       await _resultBox.delete(result.id);
     }
   }
@@ -252,5 +258,6 @@ final checkInLocalDataSourceProvider = Provider<CheckInLocalDataSource>((ref) {
   return CheckInLocalDataSource(
     Hive.box(_taskBoxName),
     Hive.box(_resultBoxName),
+    ref.read(checkInRequestLogLocalDataSourceProvider),
   );
 });

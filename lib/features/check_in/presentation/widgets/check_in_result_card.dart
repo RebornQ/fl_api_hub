@@ -1,6 +1,8 @@
 /// Result card for a single check-in execution record.
 ///
 /// Displays account name, colored message, status badge, and timestamp.
+/// Tapping the card navigates to the request log detail page for that
+/// check-in execution.
 library;
 
 import 'package:flutter/material.dart';
@@ -17,10 +19,14 @@ class CheckInResultCard extends StatelessWidget {
   /// Whether this card is currently selected (wide-screen master-detail).
   final bool isSelected;
 
+  /// Callback when the card is tapped to view request logs.
+  final VoidCallback? onTap;
+
   const CheckInResultCard({
     super.key,
     required this.display,
     this.isSelected = false,
+    this.onTap,
   });
 
   @override
@@ -41,21 +47,19 @@ class CheckInResultCard extends StatelessWidget {
       border = null;
     }
 
-    return Card(
-      margin: EdgeInsets.zero,
+    return Material(
       color: cardColor,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(AppRadius.lg),
+      child: InkWell(
         borderRadius: BorderRadius.circular(AppRadius.lg),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: isSelected
-              ? border
-              : Border.all(color: colorScheme.outlineVariant.withAlpha(15)),
-        ),
-        child: Padding(
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            border: isSelected
+                ? border
+                : Border.all(color: colorScheme.outlineVariant.withAlpha(15)),
+          ),
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/result/result.dart';
 import '../../domain/entities/check_in_result.dart';
 import 'check_in_providers.dart';
+import 'check_in_request_log_providers.dart';
 
 /// Page size for the account history detail view.
 const kCheckInDetailPageSize = 20;
@@ -117,6 +118,7 @@ class AccountCheckInHistoryNotifier
 
     ref.invalidate(latestResultPerAccountProvider);
     ref.invalidate(accountCheckInStatsProvider(arg));
+    ref.invalidate(allPersistedRequestLogsProvider);
 
     state = const AsyncData(AccountCheckInHistoryState.empty);
   }

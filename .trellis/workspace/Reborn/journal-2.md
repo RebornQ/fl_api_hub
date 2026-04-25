@@ -1018,3 +1018,36 @@ encrypt, crypto, share_plus, file_picker, path_provider
 ### Next Steps
 
 - None - task complete
+
+
+## Session 44: fix(backup): 备份恢复功能多项 bug 修复
+
+**Date**: 2026-04-25
+**Task**: fix(backup): 备份恢复功能多项 bug 修复
+**Branch**: `main`
+
+### Summary
+
+修复备份恢复功能的 7 个问题：Android 文件选择器无法选中 .flhbkp、创建备份和加密恢复卡 UI、加密开关切换无反应、操作状态耦合、错误提示持久停留、恢复后数据未刷新、加密恢复重复输密码
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `8e70635` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

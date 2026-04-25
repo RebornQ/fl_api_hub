@@ -1,0 +1,53 @@
+{
+  "id": "android",
+  "name": "android",
+  "title": "Android网络权限 + 签到波纹 + 账号拖拽排序 + 返回键首页",
+  "description": "四项小改动：AndroidManifest添加INTERNET权限；签到列表修复双层InkWell波纹问题；账号列表支持长按拖拽排序+左滑删除；AppShell添加PopScope返回首页逻辑",
+  "status": "completed",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "Reborn",
+  "assignee": "Reborn",
+  "createdAt": "2026-04-25",
+  "completedAt": "2026-04-26",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

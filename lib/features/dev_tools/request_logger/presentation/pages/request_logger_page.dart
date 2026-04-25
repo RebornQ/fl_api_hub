@@ -241,13 +241,14 @@ class RequestLoggerPage extends ConsumerWidget {
 
 class _AppBarEnabledSwitch extends ConsumerWidget {
   final bool enabled;
+
   const _AppBarEnabledSwitch({required this.enabled});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-      child: Switch.adaptive(
+      child: Switch(
         value: enabled,
         onChanged: (value) =>
             ref.read(requestLoggerEnabledProvider.notifier).state = value,

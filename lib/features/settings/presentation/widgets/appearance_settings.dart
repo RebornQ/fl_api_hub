@@ -18,24 +18,13 @@ class AppearanceSettings extends ConsumerWidget {
     final dynamicAvailable = ref.watch(dynamicColorAvailableProvider);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Text(
-            '外观',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-        ),
         _ThemeModeSelector(
           current: themeMode,
           onSelected: (mode) =>
               ref.read(themeProvider.notifier).setThemeMode(mode),
         ),
-        if (dynamicAvailable) ...[
-          const Divider(height: 1, indent: 16, endIndent: 16),
+        if (dynamicAvailable)
           SwitchListTile(
             secondary: const Icon(Icons.palette_outlined),
             title: const Text('动态取色'),
@@ -44,7 +33,6 @@ class AppearanceSettings extends ConsumerWidget {
             onChanged: (v) =>
                 ref.read(themeProvider.notifier).setDynamicColorEnabled(v),
           ),
-        ],
       ],
     );
   }
@@ -58,29 +46,30 @@ class _ThemeModeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: SegmentedButton<AppThemeMode>(
-        segments: const [
-          ButtonSegment(
-            value: AppThemeMode.system,
-            label: Text('自动'),
-            icon: Icon(Icons.brightness_auto),
+    // ListTile layout: leading(56) + content + trailing(~240 for 3 segments)
+    // Show title only when enough horizontal space remains.
+    const minTitleWidth = 100;
+    const estimatedTrailing = 240;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final showTitle =
+            constraints.maxWidth - estimatedTrailing - 56 > minTitleWidth;
+        return ListTile(
+          leading: const Icon(Icons.brightness_6_outlined),
+          title: showTitle ? const Text('主题模式') : null,
+          subtitle: showTitle ? const Text('选择应用的外观主题') : null,
+          trailing: SegmentedButton<AppThemeMode>(
+            segments: const [
+              ButtonSegment(value: AppThemeMode.system, label: Text('自动')),
+              ButtonSegment(value: AppThemeMode.light, label: Text('浅色')),
+              ButtonSegment(value: AppThemeMode.dark, label: Text('深色')),
+            ],
+            selected: {current},
+            onSelectionChanged: (s) => onSelected(s.first),
           ),
-          ButtonSegment(
-            value: AppThemeMode.light,
-            label: Text('浅色'),
-            icon: Icon(Icons.light_mode),
-          ),
-          ButtonSegment(
-            value: AppThemeMode.dark,
-            label: Text('深色'),
-            icon: Icon(Icons.dark_mode),
-          ),
-        ],
-        selected: {current},
-        onSelectionChanged: (s) => onSelected(s.first),
-      ),
+        );
+      },
     );
   }
 }

@@ -7,6 +7,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../../../../app/theme/design_tokens.dart';
 import '../../../backup/presentation/pages/backup_page.dart';
 import '../../../dev_tools/request_logger/presentation/pages/developer_options_page.dart';
 import '../../../../core/widgets/section_card.dart';
@@ -18,29 +19,36 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: ListView(
-          children: [
-            const AppearanceSettings(),
-            const Divider(height: 1),
-            SectionCard(
-              icon: Icons.storage_outlined,
-              title: '数据管理',
-              child: ListTile(
-                leading: const Icon(Icons.backup_outlined),
-                title: const Text('备份与恢复'),
-                subtitle: const Text('导出、导入或加密备份数据'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(builder: (_) => const BackupPage()),
-                  );
-                },
-              ),
+      body: ListView(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm, horizontal: AppSpacing.sm),
+        children: [
+          SectionCard(
+            icon: Icons.palette_outlined,
+            title: '外观',
+            child: const AppearanceSettings(),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          SectionCard(
+            icon: Icons.storage_outlined,
+            title: '数据管理',
+            child: ListTile(
+              leading: const Icon(Icons.backup_outlined),
+              title: const Text('备份与恢复'),
+              subtitle: const Text('导出、导入或加密备份数据'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => const BackupPage()),
+                );
+              },
             ),
-            const Divider(height: 1),
-            ListTile(
-              leading: const Icon(Icons.developer_mode_outlined),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          SectionCard(
+            icon: Icons.developer_mode_outlined,
+            title: '开发者',
+            child: ListTile(
+              leading: const Icon(Icons.code),
               title: const Text('开发者选项'),
               subtitle: const Text('请求记录器等调试工具'),
               trailing: const Icon(Icons.chevron_right),
@@ -52,9 +60,8 @@ class SettingsPage extends StatelessWidget {
                 );
               },
             ),
-            const Divider(height: 1),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

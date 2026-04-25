@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../app/theme/design_tokens.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../../data/datasources/backup_file_datasource.dart';
 import '../../domain/entities/backup_progress.dart';
@@ -35,7 +36,7 @@ class BackupPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('数据管理')),
       body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm, horizontal: AppSpacing.sm),
         children: [
           SectionCard(
             icon: Icons.backup_outlined,
@@ -79,7 +80,7 @@ class BackupPage extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           SectionCard(
             icon: Icons.lock_outline,
             title: '加密设置',

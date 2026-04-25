@@ -5,6 +5,9 @@
 /// for entity-specific serialization.
 library;
 
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -52,7 +55,13 @@ class HiveStoreImpl implements KeyValueStore {
 /// - `scheduler_config` — auto-check-in scheduler configuration
 /// - `account_reachability` — cached website reachability per account
 Future<void> initHive() async {
-  await Hive.initFlutter();
+  if (kIsWeb) {
+    await Hive.initFlutter();
+  } else if (Platform.isMacOS || Platform.isLinux || Platform.isWindows) {
+    await Hive.initFlutter('.fl-api-hub/hive');
+  } else {
+    await Hive.initFlutter('hive');
+  }
   await Future.wait([
     Hive.openBox('app_data'),
     Hive.openBox('accounts'),

@@ -37,7 +37,10 @@ class PersistedRequestLogsPage extends ConsumerWidget {
           }
           return Column(
             children: [
-              _SummaryBar(count: logs.length, onClear: () => _confirmClear(context, ref)),
+              _SummaryBar(
+                count: logs.length,
+                onClear: () => _confirmClear(context, ref),
+              ),
               Expanded(child: _LogList(logs: logs)),
             ],
           );
@@ -81,7 +84,12 @@ class _SummaryBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.sm, 0),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.sm,
+        0,
+      ),
       child: Row(
         children: [
           Text('共 $count 条', style: Theme.of(context).textTheme.bodySmall),
@@ -104,7 +112,12 @@ class _LogList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.xs, AppSpacing.md, AppSpacing.xl),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.xs,
+        AppSpacing.md,
+        AppSpacing.xl,
+      ),
       itemCount: logs.length,
       separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
       itemBuilder: (context, index) {

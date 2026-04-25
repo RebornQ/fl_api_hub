@@ -20,7 +20,10 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm, horizontal: AppSpacing.sm),
+        padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.sm,
+          horizontal: AppSpacing.sm,
+        ),
         children: [
           SectionCard(
             icon: Icons.palette_outlined,

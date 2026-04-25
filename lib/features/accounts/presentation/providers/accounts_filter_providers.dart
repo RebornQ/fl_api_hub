@@ -120,11 +120,12 @@ final filteredAccountsProvider = Provider<AsyncValue<FilteredAccountsView>>((
     final filtered = searched.where(filter.matches).toList();
 
     // Stable partition — enabled first, disabled sunk to the bottom.
-    // O(n) without relying on List.sort's stability guarantees.
-    final sorted = <Account>[
-      ...filtered.where((a) => a.enabled),
-      ...filtered.where((a) => !a.enabled),
-    ];
+    // Within each partition, respect user-defined sortOrder.
+    final enabledAccounts = filtered.where((a) => a.enabled).toList()
+      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    final disabledAccounts = filtered.where((a) => !a.enabled).toList()
+      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    final sorted = <Account>[...enabledAccounts, ...disabledAccounts];
 
     return (
       list: sorted,

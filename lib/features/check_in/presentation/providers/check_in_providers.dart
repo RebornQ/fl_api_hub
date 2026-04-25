@@ -136,9 +136,10 @@ final checkInAccountSummariesProvider =
       final resultsAsync = ref.watch(latestResultPerAccountProvider);
       final accounts = ref.watch(accountsProvider).valueOrNull ?? [];
       final accountMap = {for (final a in accounts) a.id: a.name};
+      final sortOrderMap = {for (final a in accounts) a.id: a.sortOrder};
 
-      return resultsAsync.whenData(
-        (results) => results
+      return resultsAsync.whenData((results) {
+        final summaries = results
             .where((r) => accountMap.containsKey(r.accountId))
             .map(
               (r) => CheckInResultDisplay(
@@ -146,8 +147,15 @@ final checkInAccountSummariesProvider =
                 accountName: accountMap[r.accountId]!,
               ),
             )
-            .toList(),
-      );
+            .toList();
+        // Sort by the same sortOrder used on the accounts management page.
+        summaries.sort(
+          (a, b) => (sortOrderMap[a.result.accountId] ?? 0).compareTo(
+            sortOrderMap[b.result.accountId] ?? 0,
+          ),
+        );
+        return summaries;
+      });
     });
 
 /// Selected account id for the wide-screen master-detail view.

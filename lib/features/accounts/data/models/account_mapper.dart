@@ -34,6 +34,7 @@ class AccountMapper {
     'redemptionUrl': account.redemptionUrl,
     'createdAt': account.createdAt.toIso8601String(),
     'updatedAt': account.updatedAt.toIso8601String(),
+    'sortOrder': account.sortOrder,
   };
 
   /// Deserializes a map back into an [Account].
@@ -69,6 +70,7 @@ class AccountMapper {
       redemptionUrl: map['redemptionUrl'] as String?,
       createdAt: DateTime.parse(map['createdAt'] as String),
       updatedAt: DateTime.parse(map['updatedAt'] as String),
+      sortOrder: (map['sortOrder'] as int?) ?? 0,
     );
   }
 

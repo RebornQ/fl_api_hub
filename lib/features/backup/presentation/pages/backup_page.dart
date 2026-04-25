@@ -36,7 +36,10 @@ class BackupPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('数据管理')),
       body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm, horizontal: AppSpacing.sm),
+        padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.sm,
+          horizontal: AppSpacing.sm,
+        ),
         children: [
           SectionCard(
             icon: Icons.backup_outlined,
@@ -147,6 +150,7 @@ class BackupPage extends ConsumerWidget {
 
     // Read first byte to detect encryption.
     final bytes = await fileDataSource.readFile(filePath);
+    if (!context.mounted) return;
     final isEncrypted = bytes.isNotEmpty && bytes[0] != 0x7B;
 
     String? password;

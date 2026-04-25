@@ -2,7 +2,7 @@
 ///
 /// Matches the Stitch design: horizontal layout with a status indicator dot
 /// on the left, account info in the middle, and balance on the right.
-/// Tapping the card opens edit; long-pressing triggers delete confirmation.
+/// Tapping the card opens edit.
 library;
 
 import 'package:flutter/material.dart';
@@ -19,7 +19,6 @@ import '../providers/account_reachability_providers.dart';
 class AccountCard extends ConsumerWidget {
   final Account account;
   final VoidCallback? onTap;
-  final VoidCallback? onLongPress;
 
   /// Whether this card is currently selected (wide-screen master-detail).
   final bool isSelected;
@@ -28,7 +27,6 @@ class AccountCard extends ConsumerWidget {
     super.key,
     required this.account,
     this.onTap,
-    this.onLongPress,
     this.isSelected = false,
   });
 
@@ -76,7 +74,6 @@ class AccountCard extends ConsumerWidget {
         ),
         child: InkWell(
           onTap: onTap,
-          onLongPress: onLongPress,
           borderRadius: BorderRadius.circular(AppRadius.lg),
           child: Padding(
             padding: const EdgeInsets.all(20),

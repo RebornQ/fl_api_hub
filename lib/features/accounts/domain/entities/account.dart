@@ -94,6 +94,10 @@ class Account {
   /// Timestamp when this account was last modified.
   final DateTime updatedAt;
 
+  /// User-defined sort position within the enabled or disabled partition.
+  /// Lower values appear first. Defaults to `0` for legacy records.
+  final int sortOrder;
+
   const Account({
     required this.id,
     required this.name,
@@ -114,6 +118,7 @@ class Account {
     this.redemptionUrl,
     required this.createdAt,
     required this.updatedAt,
+    this.sortOrder = 0,
   });
 
   /// Creates a copy of this account with the given fields replaced.
@@ -137,6 +142,7 @@ class Account {
     String? redemptionUrl,
     DateTime? createdAt,
     DateTime? updatedAt,
+    int? sortOrder,
   }) {
     return Account(
       id: id ?? this.id,
@@ -159,6 +165,7 @@ class Account {
       redemptionUrl: redemptionUrl ?? this.redemptionUrl,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      sortOrder: sortOrder ?? this.sortOrder,
     );
   }
 
@@ -188,6 +195,7 @@ class Account {
     if (redemptionUrl != other.redemptionUrl) return false;
     if (createdAt != other.createdAt) return false;
     if (updatedAt != other.updatedAt) return false;
+    if (sortOrder != other.sortOrder) return false;
     return true;
   }
 

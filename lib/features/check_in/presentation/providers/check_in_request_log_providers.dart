@@ -12,23 +12,24 @@ import '../../domain/repositories/check_in_request_log_repository.dart';
 /// Repository provider for check-in request log persistence.
 final checkInRequestLogRepositoryProvider =
     Provider<CheckInRequestLogRepository>((ref) {
-  return CheckInRequestLogRepositoryImpl(
-    ref.read(checkInRequestLogLocalDataSourceProvider),
-  );
-});
+      return CheckInRequestLogRepositoryImpl(
+        ref.read(checkInRequestLogLocalDataSourceProvider),
+      );
+    });
 
 /// Loads request logs for a specific check-in result.
 ///
 /// Parameterized by the check-in result ID (which equals the correlation ID).
 final checkInRequestLogsProvider =
     FutureProvider.family<List<RequestLogEntry>, String>((ref, resultId) async {
-  final repo = ref.read(checkInRequestLogRepositoryProvider);
-  final result = await repo.getLogsByCorrelationId(resultId);
-  return result.when(onSuccess: (logs) => logs, onFailure: (_) => const []);
-});
+      final repo = ref.read(checkInRequestLogRepositoryProvider);
+      final result = await repo.getLogsByCorrelationId(resultId);
+      return result.when(onSuccess: (logs) => logs, onFailure: (_) => const []);
+    });
 
 /// Loads ALL persisted request logs, newest first.
-final allPersistedRequestLogsProvider =
-    FutureProvider<List<RequestLogEntry>>((ref) async {
+final allPersistedRequestLogsProvider = FutureProvider<List<RequestLogEntry>>((
+  ref,
+) async {
   return ref.read(checkInRequestLogLocalDataSourceProvider).getAllLogs();
 });

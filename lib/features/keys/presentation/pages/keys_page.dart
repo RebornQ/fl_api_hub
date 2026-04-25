@@ -56,6 +56,7 @@ class _KeysPageState extends ConsumerState<KeysPage> {
     _searchController.dispose();
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     final accounts = ref.watch(accountsProvider);

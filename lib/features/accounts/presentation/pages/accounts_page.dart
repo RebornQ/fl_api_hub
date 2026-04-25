@@ -17,9 +17,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/design_tokens.dart';
+import '../../../../core/result/result.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_error_state.dart';
 import '../../../../core/widgets/app_loading_state.dart';
+import '../../../check_in/domain/entities/check_in_result.dart';
+import '../../../check_in/presentation/providers/check_in_providers.dart'
+    hide selectedAccountIdProvider;
 import '../../domain/entities/account.dart';
 import '../providers/accounts_filter_providers.dart';
 import '../providers/accounts_providers.dart';
@@ -597,39 +601,169 @@ class _AccountsPageState extends ConsumerState<AccountsPage>
       }
     }
 
-    return ListView.builder(
+    return ReorderableListView.builder(
+      buildDefaultDragHandles: false,
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: EdgeInsets.only(bottom: isWide ? 24 : 160),
+      padding: EdgeInsets.only(
+        bottom: isWide
+            ? 24
+            : 160 /*, left: AppSpacing.md, right: AppSpacing.md*/,
+      ),
       itemCount: accounts.length,
+      onReorder: (oldIndex, newIndex) {
+        if (oldIndex < newIndex) newIndex -= 1;
+        final reordered = List<Account>.from(accounts);
+        final item = reordered.removeAt(oldIndex);
+        reordered.insert(newIndex, item);
+        ref.read(accountsProvider.notifier).reorder(reordered);
+      },
       itemBuilder: (context, index) {
         final account = accounts[index];
         final isSelected = isWide && account.id == selectedId;
         final itemKey = isWide ? _itemKeys[account.id] : null;
 
-        return Padding(
-          key: itemKey,
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.xs,
+        final colorScheme = Theme.of(context).colorScheme;
+        final checkInBg = Container(
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.only(left: 24),
+          decoration: BoxDecoration(
+            color: colorScheme.primary,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
-          child: AccountCard(
-            account: account,
-            isSelected: isSelected,
-            onTap: () {
-              if (isWide) {
-                _onWideCardTap(account);
-              } else {
-                AccountEditPage.push(context, account: account);
-              }
-            },
-            onLongPress: () => _confirmDelete(context, ref, account),
+          child: Icon(Icons.check_circle_outline, color: colorScheme.onPrimary),
+        );
+        final deleteBg = Container(
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: 24),
+          decoration: BoxDecoration(
+            color: colorScheme.error,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+          ),
+          child: Icon(Icons.delete_outline, color: colorScheme.onError),
+        );
+
+        return Dismissible(
+          key: ValueKey(account.id),
+          direction: account.enabled
+              ? DismissDirection.horizontal
+              : DismissDirection.endToStart,
+          confirmDismiss: (direction) async {
+            if (direction == DismissDirection.startToEnd) {
+              _performCheckIn(account);
+              return false;
+            }
+            return _confirmDelete(context, ref, account);
+          },
+          background: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.xs,
+            ),
+            child: account.enabled ? checkInBg : deleteBg,
+          ),
+          secondaryBackground: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.xs,
+            ),
+            child: deleteBg,
+          ),
+          child: Padding(
+            key: itemKey,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.xs,
+            ),
+            child: ReorderableDelayedDragStartListener(
+              index: index,
+              child: AccountCard(
+                account: account,
+                isSelected: isSelected,
+                onTap: () {
+                  if (isWide) {
+                    _onWideCardTap(account);
+                  } else {
+                    AccountEditPage.push(context, account: account);
+                  }
+                },
+              ),
+            ),
           ),
         );
       },
     );
   }
 
-  Future<void> _confirmDelete(
+  /// Fires a single check-in for [account] and shows a SnackBar with the
+  /// result. Runs in the background (fire-and-forget) so the card snaps back
+  /// immediately on swipe.
+  void _performCheckIn(Account account) {
+    final messenger = ScaffoldMessenger.of(context);
+    () async {
+      try {
+        final repo = ref.read(checkInRepositoryProvider);
+        final tasksResult = await repo.getTasksByAccountId(account.id);
+        final tasks = tasksResult.dataOrNull ?? [];
+        if (tasks.isEmpty) {
+          messenger.clearSnackBars();
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text('「${account.name}」暂无签到任务'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+        final result = await ref
+            .read(checkInProvider.notifier)
+            .executeCheckIn(tasks.first.id);
+        if (!mounted) return;
+
+        // Refresh check-in page providers so the result shows up immediately.
+        ref.invalidate(latestResultPerAccountProvider);
+        ref.invalidate(accountCheckInHistoryProvider(account.id));
+        ref.invalidate(accountCheckInStatsProvider(account.id));
+
+        messenger.clearSnackBars();
+        if (result == null) {
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text('「${account.name}」签到未执行'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+        final msg = switch (result.status) {
+          CheckInStatus.success =>
+            '「${account.name}」签到成功${result.message != null ? '：${result.message}' : ''}',
+          CheckInStatus.alreadyChecked => '「${account.name}」今日已签到',
+          CheckInStatus.failed =>
+            '「${account.name}」签到失败${result.message != null ? '：${result.message}' : ''}',
+          CheckInStatus.skipped =>
+            '「${account.name}」已跳过${result.message != null ? '：${result.message}' : ''}',
+        };
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(msg),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        messenger.clearSnackBars();
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('「${account.name}」签到异常：$e'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }();
+  }
+
+  Future<bool?> _confirmDelete(
     BuildContext context,
     WidgetRef ref,
     Account account,
@@ -659,6 +793,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage>
         ref.read(selectedAccountIdProvider.notifier).state = null;
       }
     }
+    return confirmed;
   }
 }
 

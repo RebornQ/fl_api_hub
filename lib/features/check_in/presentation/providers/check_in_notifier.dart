@@ -295,7 +295,12 @@ class CheckInNotifier extends AsyncNotifier<List<CheckInTask>> {
     for (var i = 0; i < tasks.length; i += 5) {
       final chunk = tasks.skip(i).take(5);
       final chunkResults = await Future.wait(
-        chunk.map((t) => executeCheckIn(t.id)),
+        chunk.map((t) async {
+          final result = await executeCheckIn(t.id);
+          // Refresh UI as each task completes so the user sees live progress.
+          ref.invalidate(latestResultPerAccountProvider);
+          return result;
+        }),
         eagerError: false,
       );
       results.addAll(chunkResults);
@@ -321,7 +326,11 @@ class CheckInNotifier extends AsyncNotifier<List<CheckInTask>> {
     for (var i = 0; i < taskIds.length; i += 5) {
       final chunk = taskIds.skip(i).take(5);
       final chunkResults = await Future.wait(
-        chunk.map((id) => executeCheckIn(id)),
+        chunk.map((id) async {
+          final result = await executeCheckIn(id);
+          ref.invalidate(latestResultPerAccountProvider);
+          return result;
+        }),
         eagerError: false,
       );
       results.addAll(chunkResults);

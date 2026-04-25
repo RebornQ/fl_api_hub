@@ -5,7 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:fl_api_hub/app/app.dart';
-import 'package:fl_api_hub/app/router.dart';
 
 void main() {
   late Directory tempDir;

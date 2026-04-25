@@ -46,10 +46,20 @@ class AccountsNotifier extends AsyncNotifier<List<Account>> {
   }
 
   /// Creates a new account and refreshes the list.
+  ///
+  /// The new account's [Account.sortOrder] is set to place it at the top
+  /// of the list (one less than the current minimum sortOrder).
   Future<void> create(Account account) async {
+    final current = state.valueOrNull ?? <Account>[];
+    final minSortOrder = current.fold<int>(
+      0,
+      (min, a) => a.sortOrder < min ? a.sortOrder : min,
+    );
+    final sorted = account.copyWith(sortOrder: minSortOrder - 1);
+
     state = const AsyncLoading();
     final repo = ref.read(accountsRepositoryProvider);
-    final result = await repo.create(account);
+    final result = await repo.create(sorted);
     switch (result) {
       case Success():
         final updated = await repo.getAll();
@@ -116,6 +126,42 @@ class AccountsNotifier extends AsyncNotifier<List<Account>> {
         }
       case Failure(:final exception):
         state = AsyncError(exception, StackTrace.current);
+    }
+  }
+
+  /// Persists a new sort order for accounts after drag-to-reorder.
+  ///
+  /// [reordered] is the full list of accounts in the desired display order.
+  /// Each account's [Account.sortOrder] is updated to match its index, and
+  /// only accounts whose order actually changed are written to storage.
+  Future<void> reorder(List<Account> reordered) async {
+    final current = state.valueOrNull;
+    if (current == null) return;
+
+    // Compute which accounts actually changed sortOrder.
+    final newOrders = {
+      for (var i = 0; i < reordered.length; i++) reordered[i].id: i,
+    };
+    final changed = <Account>[];
+    for (final a in reordered) {
+      if (newOrders[a.id] != a.sortOrder) {
+        changed.add(
+          a.copyWith(sortOrder: newOrders[a.id]!, updatedAt: DateTime.now()),
+        );
+      }
+    }
+    if (changed.isEmpty) return;
+
+    // Optimistic update.
+    state = AsyncData([
+      for (final a in current)
+        changed.firstWhere((c) => c.id == a.id, orElse: () => a),
+    ]);
+
+    // Persist.
+    final repo = ref.read(accountsRepositoryProvider);
+    for (final a in changed) {
+      await repo.update(a);
     }
   }
 

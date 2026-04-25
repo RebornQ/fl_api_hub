@@ -68,37 +68,20 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
           ref.invalidate(latestResultPerAccountProvider);
           ref.invalidate(checkInProvider);
         },
-        child: Stack(
-          children: [
-            SafeArea(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final isWide = constraints.maxWidth >= 900;
-                  return isWide
-                      ? _buildWideLayout(
-                          context,
-                          stats,
-                          summariesAsync,
-                          tasksAsync,
-                        )
-                      : _buildNarrowLayout(
-                          context,
-                          stats,
-                          summariesAsync,
-                          tasksAsync,
-                        );
-                },
-              ),
-            ),
-            // Loading overlay during execution.
-            if (_isExecuting)
-              const Positioned.fill(
-                child: ColoredBox(
-                  color: Color(0x66FFFFFF),
-                  child: AppLoadingState(message: '正在执行签到...'),
-                ),
-              ),
-          ],
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth >= 900;
+              return isWide
+                  ? _buildWideLayout(context, stats, summariesAsync, tasksAsync)
+                  : _buildNarrowLayout(
+                      context,
+                      stats,
+                      summariesAsync,
+                      tasksAsync,
+                    );
+            },
+          ),
         ),
       ),
       floatingActionButton: Column(
@@ -140,12 +123,12 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 4,
       child: _isExecuting
-          ? const SizedBox(
+          ? SizedBox(
               width: 24,
               height: 24,
               child: CircularProgressIndicator(
                 strokeWidth: 2.5,
-                color: Colors.white,
+                color: colorScheme.onPrimary,
               ),
             )
           : const Icon(Icons.play_arrow, size: 32),
@@ -375,7 +358,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
         return Padding(
           key: isWide ? _itemKeys[display.result.accountId] : null,
           padding: const EdgeInsets.symmetric(vertical: 4),
-          child: _TappableResultCard(
+          child: CheckInResultCard(
             display: display,
             isSelected: isSelected,
             onTap: () => _openDetail(display.result.accountId, isWide),
@@ -521,35 +504,6 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
         setState(() => _isExecuting = false);
       }
     }
-  }
-}
-
-/// Tappable wrapper around [CheckInResultCard] with ink ripple.
-///
-/// Kept private to this page so `CheckInResultCard` stays pure/non-tappable
-/// when reused in the detail list.
-class _TappableResultCard extends StatelessWidget {
-  final CheckInResultDisplay display;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _TappableResultCard({
-    required this.display,
-    this.isSelected = false,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(AppRadius.lg),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        child: CheckInResultCard(display: display, isSelected: isSelected),
-      ),
-    );
   }
 }
 

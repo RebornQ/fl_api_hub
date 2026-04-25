@@ -81,7 +81,7 @@ class CheckInRequestLogLocalDataSource {
 /// Riverpod provider for [CheckInRequestLogLocalDataSource].
 final checkInRequestLogLocalDataSourceProvider =
     Provider<CheckInRequestLogLocalDataSource>((ref) {
-  return CheckInRequestLogLocalDataSource(
-    Hive.box(kCheckInRequestLogBoxName),
-  );
-});
+      return CheckInRequestLogLocalDataSource(
+        Hive.box(kCheckInRequestLogBoxName),
+      );
+    });

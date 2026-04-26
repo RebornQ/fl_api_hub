@@ -112,14 +112,27 @@ class TokenDto {
 
   /// Parses quota from internal units, or converts USD to internal units.
   ///
-  /// Common API provides quota in internal units (int).
-  /// Sub2API provides quota in USD (num), which needs `× 500000`.
+  /// Common API provides quota in internal units (int or string of int).
+  /// Sub2API provides quota in USD (num or string), which needs `× 500000`.
   static int? _parseQuota(dynamic raw, {dynamic fallbackUsd}) {
+    // Direct value (Common API: internal units)
     if (raw is num) return raw.toInt();
-    // If the Common field is absent, try the Sub2API USD field.
-    if (raw == null && fallbackUsd is num) {
-      return (fallbackUsd * _kQuotaPerUnit).round();
+    if (raw is String) {
+      final parsed = double.tryParse(raw);
+      if (parsed != null) return parsed.toInt();
     }
+
+    // Fallback USD value (Sub2API: USD as num or string → convert to internal)
+    if (raw == null) {
+      if (fallbackUsd is num) {
+        return (fallbackUsd * _kQuotaPerUnit).round();
+      }
+      if (fallbackUsd is String) {
+        final parsed = double.tryParse(fallbackUsd);
+        if (parsed != null) return (parsed * _kQuotaPerUnit).round();
+      }
+    }
+
     return null;
   }
 

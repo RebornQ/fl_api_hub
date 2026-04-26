@@ -246,10 +246,21 @@ class Sub2ApiAdapter implements SiteAdapter {
     required String tokenId,
   }) async {
     try {
-      await _dioClient.dio.delete(
+      final response = await _dioClient.dio.delete(
         '/api/v1/keys/$tokenId',
         options: Options(extra: _buildExtra(request)),
       );
+
+      final json = response.data as Map<String, dynamic>;
+      if (!_isSuccess(json)) {
+        return Failure<void>(
+          NetworkException(
+            message:
+                json['message']?.toString() ?? 'Sub2API delete key failed',
+          ),
+        );
+      }
+
       return const Success(null);
     } on DioException catch (e, st) {
       return Failure(mapToAppException(e, st));

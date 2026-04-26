@@ -151,6 +151,30 @@ void main() {
       final dto = TokenDto.fromJson(json);
       expect(dto.usedQuota, 1000);
     });
+
+    test('Sub2API quota as string is parsed and converted', () {
+      final json = {'quota': '10.5'};
+      final dto = TokenDto.fromJson(json);
+      expect(dto.remainQuota, (10.5 * 500000).round());
+    });
+
+    test('Sub2API quota_used as string is parsed and converted', () {
+      final json = {'quota_used': '2.5'};
+      final dto = TokenDto.fromJson(json);
+      expect(dto.usedQuota, (2.5 * 500000).round());
+    });
+
+    test('Common remain_quota as string is parsed', () {
+      final json = {'remain_quota': '5000'};
+      final dto = TokenDto.fromJson(json);
+      expect(dto.remainQuota, 5000);
+    });
+
+    test('invalid string quota returns null', () {
+      final json = {'quota': 'not-a-number'};
+      final dto = TokenDto.fromJson(json);
+      expect(dto.remainQuota, isNull);
+    });
   });
 
   group('TokenListDto', () {

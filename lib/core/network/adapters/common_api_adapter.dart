@@ -120,13 +120,47 @@ class CommonApiAdapter implements SiteAdapter {
     int page = 0,
     int size = 100,
   }) async {
-    return performRequest<TokenListDto>(
-      method: 'GET',
-      path: '/api/token/',
-      request: request,
-      queryParameters: {'p': page, 'size': size},
-      fromJson: TokenListDto.fromJson,
-    );
+    try {
+      final response = await dioClient.dio.request(
+        '/api/token/',
+        options: Options(method: 'GET', extra: _buildExtra(request)),
+        queryParameters: {'p': page, 'size': size},
+      );
+
+      final json = response.data as Map<String, dynamic>;
+      final success = json['success'] as bool? ?? false;
+      if (!success) {
+        return Failure<TokenListDto>(
+          NetworkException(
+            message: json['message']?.toString() ?? 'List tokens failed',
+          ),
+        );
+      }
+
+      final data = json['data'];
+      // Format A: direct array — {"success":true, "data":[...]}
+      if (data is List) {
+        return Success<TokenListDto>(
+          TokenListDto.fromJson({'items': data}),
+        );
+      }
+      // Format B: paginated object — {"success":true, "data":{"items":[...],...}}
+      if (data is Map<String, dynamic>) {
+        return Success<TokenListDto>(TokenListDto.fromJson(data));
+      }
+
+      return const Success<TokenListDto>(TokenListDto(tokens: []));
+    } on DioException catch (e, st) {
+      return Failure<TokenListDto>(mapToAppException(e, st));
+    } catch (e, st) {
+      return Failure<TokenListDto>(
+        UnknownException(
+          message: e.toString(),
+          originalError: e,
+          stackTrace: st,
+        ),
+      );
+    }
   }
 
   @override
@@ -137,26 +171,53 @@ class CommonApiAdapter implements SiteAdapter {
     DateTime? expiresAt,
     bool unlimitedQuota = false,
   }) async {
-    final data = <String, dynamic>{
-      'name': name,
-      'remain_quota': quota ?? 0,
-      'expired_time': expiresAt != null
-          ? expiresAt.millisecondsSinceEpoch ~/ 1000
-          : -1,
-      'unlimited_quota': unlimitedQuota,
-      'model_limits_enabled': false,
-      'model_limits': '',
-      'allow_ips': '',
-      'group': '',
-    };
+    try {
+      final data = <String, dynamic>{
+        'name': name,
+        'remain_quota': quota ?? 0,
+        'expired_time': expiresAt != null
+            ? expiresAt.millisecondsSinceEpoch ~/ 1000
+            : -1,
+        'unlimited_quota': unlimitedQuota,
+        'model_limits_enabled': false,
+        'model_limits': '',
+        'allow_ips': '',
+        'group': '',
+      };
 
-    return performRequest<TokenDto>(
-      method: 'POST',
-      path: '/api/token/',
-      request: request,
-      data: data,
-      fromJson: TokenDto.fromJson,
-    );
+      final response = await dioClient.dio.request(
+        '/api/token/',
+        options: Options(method: 'POST', extra: _buildExtra(request)),
+        data: data,
+      );
+
+      final json = response.data as Map<String, dynamic>;
+      final success = json['success'] as bool? ?? false;
+      if (!success) {
+        return Failure<TokenDto>(
+          NetworkException(
+            message: json['message']?.toString() ?? 'Create token failed',
+          ),
+        );
+      }
+
+      // API returns data: null on success — return empty DTO.
+      final responseData = json['data'];
+      if (responseData is Map<String, dynamic>) {
+        return Success<TokenDto>(TokenDto.fromJson(responseData));
+      }
+      return const Success<TokenDto>(TokenDto());
+    } on DioException catch (e, st) {
+      return Failure<TokenDto>(mapToAppException(e, st));
+    } catch (e, st) {
+      return Failure<TokenDto>(
+        UnknownException(
+          message: e.toString(),
+          originalError: e,
+          stackTrace: st,
+        ),
+      );
+    }
   }
 
   @override
@@ -165,10 +226,21 @@ class CommonApiAdapter implements SiteAdapter {
     required String tokenId,
   }) async {
     try {
-      await dioClient.dio.delete(
+      final response = await dioClient.dio.delete(
         '/api/token/$tokenId',
         options: _buildOptions(request),
       );
+
+      final json = response.data as Map<String, dynamic>;
+      final success = json['success'] as bool? ?? false;
+      if (!success) {
+        return Failure<void>(
+          NetworkException(
+            message: json['message']?.toString() ?? 'Delete token failed',
+          ),
+        );
+      }
+
       return const Success<void>(null);
     } on DioException catch (e, st) {
       return Failure<void>(mapToAppException(e, st));
@@ -191,27 +263,54 @@ class CommonApiAdapter implements SiteAdapter {
     int? quota,
     DateTime? expiresAt,
   }) async {
-    final data = <String, dynamic>{
-      'id': int.tryParse(tokenId),
-      'name': name,
-      'remain_quota': quota ?? 0,
-      'expired_time': expiresAt != null
-          ? expiresAt.millisecondsSinceEpoch ~/ 1000
-          : -1,
-      'unlimited_quota': quota == null,
-      'model_limits_enabled': false,
-      'model_limits': '',
-      'allow_ips': '',
-      'group': '',
-    };
+    try {
+      final data = <String, dynamic>{
+        'id': int.tryParse(tokenId),
+        'name': name,
+        'remain_quota': quota ?? 0,
+        'expired_time': expiresAt != null
+            ? expiresAt.millisecondsSinceEpoch ~/ 1000
+            : -1,
+        'unlimited_quota': quota == null,
+        'model_limits_enabled': false,
+        'model_limits': '',
+        'allow_ips': '',
+        'group': '',
+      };
 
-    return performRequest<TokenDto>(
-      method: 'PUT',
-      path: '/api/token/',
-      request: request,
-      data: data,
-      fromJson: TokenDto.fromJson,
-    );
+      final response = await dioClient.dio.request(
+        '/api/token/',
+        options: Options(method: 'PUT', extra: _buildExtra(request)),
+        data: data,
+      );
+
+      final json = response.data as Map<String, dynamic>;
+      final success = json['success'] as bool? ?? false;
+      if (!success) {
+        return Failure<TokenDto>(
+          NetworkException(
+            message: json['message']?.toString() ?? 'Update token failed',
+          ),
+        );
+      }
+
+      // API returns data: null on success — return empty DTO.
+      final responseData = json['data'];
+      if (responseData is Map<String, dynamic>) {
+        return Success<TokenDto>(TokenDto.fromJson(responseData));
+      }
+      return const Success<TokenDto>(TokenDto());
+    } on DioException catch (e, st) {
+      return Failure<TokenDto>(mapToAppException(e, st));
+    } catch (e, st) {
+      return Failure<TokenDto>(
+        UnknownException(
+          message: e.toString(),
+          originalError: e,
+          stackTrace: st,
+        ),
+      );
+    }
   }
 
   @override

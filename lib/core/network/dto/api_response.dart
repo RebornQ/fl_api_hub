@@ -26,10 +26,15 @@ class ApiResponse<T> {
   /// [fromJson] converts the inner `data` map into type [T].
   /// When `success` is `false`, [data] is set to `null` regardless of
   /// the raw JSON content.
+  ///
+  /// When [allowNullData] is `true`, a `null` `data` field with
+  /// `success: true` is not treated as an error (e.g. create/update
+  /// responses that return `data: null` on success).
   static ApiResponse<T> fromJson<T>(
     Map<String, dynamic> json,
-    T Function(Map<String, dynamic>) fromJson,
-  ) {
+    T Function(Map<String, dynamic>) fromJson, {
+    bool allowNullData = false,
+  }) {
     final success = json['success'] as bool? ?? false;
     final message = json['message'] as String?;
 
@@ -39,6 +44,8 @@ class ApiResponse<T> {
       if (rawData is Map<String, dynamic>) {
         data = fromJson(rawData);
       }
+      // When allowNullData is true, null data is acceptable for
+      // operations like create/update that return `data: null`.
     }
 
     return ApiResponse<T>(success: success, message: message, data: data);

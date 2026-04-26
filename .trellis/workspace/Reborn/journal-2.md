@@ -1436,3 +1436,65 @@ In widescreen master-detail layout (≥900px), the right-side detail panel frequ
 ### Next Steps
 
 - None - task complete
+
+
+## Session 52: feat(keys): 完善密钥管理页面 — 远程联动 + 导出 + Sub2API
+
+**Date**: 2026-04-26
+**Task**: feat(keys): 完善密钥管理页面 — 远程联动 + 导出 + Sub2API
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## 概要
+
+将密钥管理从纯本地 CRUD 升级为远程 API 联动 + 本地缓存 + 外部工具导出 + Sub2API 适配。
+
+## 变更内容
+
+| 模块 | 变更 |
+|------|------|
+| Repository 远程优先 | `KeysRepositoryImpl` 重构：写操作→远程API→本地缓存，读操作→远程拉取→本地回退 |
+| SiteAdapter 扩展 | 新增 `updateToken()` 接口 + CommonApiAdapter 实现（`PUT /api/token/`） |
+| Sub2API 适配器 | 新增 `Sub2ApiAdapter`，支持 `/api/v1/keys/*` 端点和 `{code,message,data}` envelope |
+| 密钥解析 | `resolveKey()` 调用 `POST /api/token/{id}/key`，就地替换 state（不再被远程脱敏覆盖） |
+| 密钥脱敏 | 真实前缀+后缀掩码（`sk-abc12...789`），解析后自动显示原文 |
+| 复制功能 | 修复 `KeyCard._copyKey()` 和 `KeyValueRow` 内联复制 |
+| 导出功能 | Claude Code + Cherry Studio 配置格式化器 + 底部导出栏 |
+| Bug 修复 | Hive `_Map<dynamic,dynamic>` 强转、`expired_time=-1` 永不过期、`keyValue` 映射遗漏 |
+| UI 改进 | 移除加载蒙版改为 FAB 旋转动画，解析按钮独立旋转 |
+
+## 关键文件
+
+- `lib/core/network/site_adapter.dart` — +updateToken
+- `lib/core/network/adapters/common_api_adapter.dart` — 实现
+- `lib/core/network/adapters/sub2api_adapter.dart` — 新增
+- `lib/features/keys/data/repositories/keys_repository_impl.dart` — 远程优先重构
+- `lib/features/keys/presentation/providers/keys_notifier.dart` — resolve 就地更新
+- `lib/features/keys/presentation/providers/keys_providers.dart` — family provider
+- `lib/features/keys/presentation/widgets/key_value_row.dart` — 脱敏/解析/复制
+- `lib/features/keys/data/export/` — 导出格式化器
+- `lib/features/keys/presentation/widgets/key_export_bar.dart` — 导出栏
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `656d8bb` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

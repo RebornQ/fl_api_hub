@@ -52,12 +52,13 @@ class _KeyValueRowState extends ConsumerState<KeyValueRow> {
     final value = widget.keyValue;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.only(left: 0, right: 12, top: 8, bottom: 8),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppRadius.sm),
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Text(
             '密钥:',
@@ -67,7 +68,7 @@ class _KeyValueRowState extends ConsumerState<KeyValueRow> {
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
-          Expanded(
+          Flexible(
             child: Text(
               _displayText(value),
               style: TextStyle(
@@ -79,6 +80,7 @@ class _KeyValueRowState extends ConsumerState<KeyValueRow> {
               overflow: TextOverflow.ellipsis,
             ),
           ),
+          const SizedBox(width: AppSpacing.sm),
           // Copy button (visible when key is shown and not server-masked).
           if (_isVisible && _hasValue && !_isServerMasked)
             _SmallIconButton(
@@ -139,15 +141,15 @@ class _KeyValueRowState extends ConsumerState<KeyValueRow> {
       if (mounted) {
         // Auto-reveal after successful resolve.
         setState(() => _isVisible = true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('密钥已解析')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('密钥已解析')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('解析失败：$e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('解析失败：$e')));
       }
     } finally {
       if (mounted) setState(() => _isResolving = false);
@@ -156,9 +158,9 @@ class _KeyValueRowState extends ConsumerState<KeyValueRow> {
 
   void _copyToClipboard(String value) {
     Clipboard.setData(ClipboardData(text: value));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('已复制到剪贴板')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('已复制到剪贴板')));
   }
 }
 
@@ -196,10 +198,7 @@ class _ResolveButton extends StatefulWidget {
   final bool isResolving;
   final VoidCallback? onTap;
 
-  const _ResolveButton({
-    required this.isResolving,
-    this.onTap,
-  });
+  const _ResolveButton({required this.isResolving, this.onTap});
 
   @override
   State<_ResolveButton> createState() => _ResolveButtonState();
@@ -247,11 +246,7 @@ class _ResolveButtonState extends State<_ResolveButton>
           padding: const EdgeInsets.only(right: 4),
           child: RotationTransition(
             turns: _controller,
-            child: Icon(
-              Icons.refresh,
-              size: 16,
-              color: colorScheme.primary,
-            ),
+            child: Icon(Icons.refresh, size: 16, color: colorScheme.primary),
           ),
         ),
       ),

@@ -57,7 +57,10 @@ class TokenDto {
       status: json['status'] as int?,
       createdAt: _parseDateTime(json['created_time']),
       accessedAt: _parseDateTime(json['accessed_time']),
-      expiresAt: _parseDateTime(json['expired_time'], neverExpiresSentinel: true),
+      expiresAt: _parseDateTime(
+        json['expired_time'],
+        neverExpiresSentinel: true,
+      ),
     );
   }
 

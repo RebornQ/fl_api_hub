@@ -6,6 +6,7 @@ library;
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/design_tokens.dart';
+import '../../../../../core/config/app_defaults.dart';
 import '../../domain/entities/api_key.dart';
 
 /// Grid of key stats: remaining quota, used quota, expiry, and creation date.
@@ -69,10 +70,14 @@ class KeyQuotaGrid extends StatelessWidget {
     );
   }
 
-  String get _remainingQuota =>
-      apiKey.quota != null ? '\$${apiKey.remainingQuota}' : '无限额度';
+  String get _remainingQuota {
+    if (apiKey.quota == null) return '无限额度';
+    final remaining = (apiKey.quota! - apiKey.usedQuota) / kDefaultQuotaPerUnit;
+    return '\$${remaining.toStringAsFixed(2)}';
+  }
 
-  String get _usedQuota => '\$${(apiKey.usedQuota / 100).toStringAsFixed(2)}';
+  String get _usedQuota =>
+      '\$${(apiKey.usedQuota / kDefaultQuotaPerUnit).toStringAsFixed(2)}';
 
   String get _expiresAt =>
       apiKey.expiresAt != null ? _formatDate(apiKey.expiresAt!) : '永不过期';

@@ -25,17 +25,16 @@ class KeysRepositoryImpl implements KeysRepository {
     KeysRemoteDataSource? remote,
     ApiRequest? request,
     required KeysLocalDataSource local,
-  })  : _remote = remote,
-        _request = request,
-        _local = local;
+  }) : _remote = remote,
+       _request = request,
+       _local = local;
 
   /// Creates a remote-enabled repository.
   factory KeysRepositoryImpl({
     required KeysRemoteDataSource remote,
     required ApiRequest request,
     required KeysLocalDataSource local,
-  }) =>
-      KeysRepositoryImpl._(remote: remote, request: request, local: local);
+  }) => KeysRepositoryImpl._(remote: remote, request: request, local: local);
 
   /// Creates a local-only repository (no remote connectivity).
   factory KeysRepositoryImpl.localOnly(KeysLocalDataSource local) =>
@@ -181,16 +180,13 @@ class KeysRepositoryImpl implements KeysRepository {
         NetworkException(message: 'No remote connection available'),
       );
     }
-    final result = await _remote!.resolveTokenKey(
-      _request!,
-      tokenId: keyId,
-    );
+    final result = await _remote!.resolveTokenKey(_request!, tokenId: keyId);
     switch (result) {
       case Success(:final data):
         final existing = _local.getById(keyId);
-        final updated = (existing ??
-                ApiKeyApiMapper.toEntity(data, accountId: accountId))
-            .copyWith(keyValue: data.key);
+        final updated =
+            (existing ?? ApiKeyApiMapper.toEntity(data, accountId: accountId))
+                .copyWith(keyValue: data.key);
         await _local.save(updated);
         return Success(updated);
       case Failure(:final exception):
@@ -203,10 +199,7 @@ class KeysRepositoryImpl implements KeysRepository {
   // ---------------------------------------------------------------------------
 
   /// Replaces all locally cached keys for [accountId] with [keys].
-  Future<void> _replaceLocalCache(
-    String accountId,
-    List<ApiKey> keys,
-  ) async {
+  Future<void> _replaceLocalCache(String accountId, List<ApiKey> keys) async {
     await _local.deleteByAccountId(accountId);
     for (final key in keys) {
       await _local.save(key);

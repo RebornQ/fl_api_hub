@@ -27,11 +27,13 @@ class ClaudeCodeExporter {
   static String exportKeys(List<ApiKey> keys, String baseUrl) {
     final configs = keys
         .where((k) => k.keyValue != null && k.keyValue!.isNotEmpty)
-        .map((k) => <String, dynamic>{
-              'apiUrl': '$baseUrl/v1',
-              'apiKey': k.keyValue!,
-              'name': k.name,
-            })
+        .map(
+          (k) => <String, dynamic>{
+            'apiUrl': '$baseUrl/v1',
+            'apiKey': k.keyValue!,
+            'name': k.name,
+          },
+        )
         .toList();
     return const JsonEncoder.withIndent('  ').convert(configs);
   }

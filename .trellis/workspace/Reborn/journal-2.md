@@ -1498,3 +1498,25 @@ In widescreen master-detail layout (≥900px), the right-side detail panel frequ
 ### Next Steps
 
 - None - task complete
+
+---
+
+## Session 2026-04-26: Fix Key Quota & Remove Key Value from Form
+
+### Task
+`.trellis/tasks/04-26-fix-key-quota-and-forms`
+
+### What Changed
+
+**Modified (2):**
+- `lib/features/keys/presentation/widgets/key_quota_grid.dart` — Fixed quota display: `_remainingQuota` and `_usedQuota` now divide by `kDefaultQuotaPerUnit` (500000) to show correct USD amounts
+- `lib/features/keys/presentation/widgets/key_form_sheet.dart` — Removed "密钥值" input field entirely; changed quota input to accept USD (decimal) and auto-convert to raw API units via `kDefaultQuotaPerUnit`
+
+### Key Decisions
+- Quota input uses USD (user confirmed): `$1 = 500000 raw quota units`
+- Removed `keyValue` from form: add mode lets server generate key; edit mode preserves existing keyValue without exposing it
+- Used `kDefaultQuotaPerUnit` constant for consistency with account balance computation
+
+### Verification
+- `flutter analyze` → No issues
+- `flutter test` → 488/488 passed (1 pre-existing failure in account_edit_page_test unrelated to this change)

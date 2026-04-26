@@ -98,9 +98,7 @@ class KeyExportBar extends StatelessWidget {
         : ClaudeCodeExporter.exportKeys(keys, baseUrl);
     Clipboard.setData(ClipboardData(text: json));
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Claude Code 配置已复制到剪贴板（${keys.length} 个密钥）'),
-      ),
+      SnackBar(content: Text('Claude Code 配置已复制到剪贴板（${keys.length} 个密钥）')),
     );
   }
 
@@ -118,9 +116,7 @@ class KeyExportBar extends StatelessWidget {
           );
     Clipboard.setData(ClipboardData(text: json));
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Cherry Studio 配置已复制到剪贴板（${keys.length} 个密钥）'),
-      ),
+      SnackBar(content: Text('Cherry Studio 配置已复制到剪贴板（${keys.length} 个密钥）')),
     );
   }
 }

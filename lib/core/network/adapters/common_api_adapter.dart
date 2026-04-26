@@ -175,10 +175,7 @@ class CommonApiAdapter implements SiteAdapter {
     int? quota,
     DateTime? expiresAt,
   }) async {
-    final data = <String, dynamic>{
-      'id': int.tryParse(tokenId),
-      'name': name,
-    };
+    final data = <String, dynamic>{'id': int.tryParse(tokenId), 'name': name};
     if (quota != null) data['remain_quota'] = quota;
     if (expiresAt != null) {
       data['expired_time'] = expiresAt.millisecondsSinceEpoch ~/ 1000;

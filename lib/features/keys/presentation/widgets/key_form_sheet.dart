@@ -1,8 +1,7 @@
 /// Modal bottom sheet form for adding or editing an [ApiKey].
 ///
 /// When [apiKey] is `null`, the form operates in add mode. Otherwise it
-/// pre-populates fields from the given key, including the secret value
-/// stored on the entity itself.
+/// pre-populates fields from the given key.
 library;
 
 import 'package:flutter/material.dart';
@@ -10,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../app/theme/design_tokens.dart';
+import '../../../../../core/config/app_defaults.dart';
 import '../../../accounts/presentation/providers/accounts_providers.dart';
 import '../../domain/entities/api_key.dart';
 import '../providers/keys_providers.dart';
@@ -45,14 +45,11 @@ class KeyFormSheet extends ConsumerStatefulWidget {
 class _KeyFormSheetState extends ConsumerState<KeyFormSheet> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
-  late final TextEditingController _keyValueController;
   late final TextEditingController _quotaController;
   late final TextEditingController _expiresAtController;
 
   String? _selectedAccountId;
   DateTime? _selectedExpiry;
-  bool _obscureKey = true;
-  bool _keyModified = false;
   bool _isSubmitting = false;
 
   bool get _isEditing => widget.apiKey != null;
@@ -62,8 +59,11 @@ class _KeyFormSheetState extends ConsumerState<KeyFormSheet> {
     super.initState();
     final k = widget.apiKey;
     _nameController = TextEditingController(text: k?.name ?? '');
-    _keyValueController = TextEditingController(text: k?.keyValue ?? '');
-    _quotaController = TextEditingController(text: k?.quota?.toString() ?? '');
+    _quotaController = TextEditingController(
+      text: k?.quota != null
+          ? (k!.quota! / kDefaultQuotaPerUnit).toStringAsFixed(2)
+          : '',
+    );
     _expiresAtController = TextEditingController();
     _selectedAccountId = k?.accountId ?? widget.accountId;
     _selectedExpiry = k?.expiresAt;
@@ -76,7 +76,6 @@ class _KeyFormSheetState extends ConsumerState<KeyFormSheet> {
   @override
   void dispose() {
     _nameController.dispose();
-    _keyValueController.dispose();
     _quotaController.dispose();
     _expiresAtController.dispose();
     super.dispose();
@@ -136,35 +135,16 @@ class _KeyFormSheetState extends ConsumerState<KeyFormSheet> {
               ),
               const SizedBox(height: AppSpacing.md),
 
-              // Key value (secret).
-              TextFormField(
-                controller: _keyValueController,
-                decoration: InputDecoration(
-                  labelText: '密钥值',
-                  hintText: 'sk-...',
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscureKey
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                    ),
-                    onPressed: () => setState(() => _obscureKey = !_obscureKey),
-                  ),
-                ),
-                obscureText: _obscureKey,
-                textInputAction: TextInputAction.next,
-                onChanged: (_) => _keyModified = true,
-              ),
-              const SizedBox(height: AppSpacing.md),
-
-              // Quota (optional).
+              // Quota (optional, in USD).
               TextFormField(
                 controller: _quotaController,
                 decoration: const InputDecoration(
-                  labelText: '额度限制',
+                  labelText: '额度限制 (\$)',
                   hintText: '留空表示无限制',
                 ),
-                keyboardType: TextInputType.number,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 textInputAction: TextInputAction.next,
                 validator: _validateQuota,
               ),
@@ -226,7 +206,7 @@ class _KeyFormSheetState extends ConsumerState<KeyFormSheet> {
 
   String? _validateQuota(String? value) {
     if (value == null || value.trim().isEmpty) return null;
-    final parsed = int.tryParse(value.trim());
+    final parsed = double.tryParse(value.trim());
     if (parsed == null) return '请输入有效的数字';
     if (parsed <= 0) return '额度必须大于0';
     return null;
@@ -262,26 +242,21 @@ class _KeyFormSheetState extends ConsumerState<KeyFormSheet> {
 
     setState(() => _isSubmitting = true);
 
-    // Determine the secret value for the entity.
-    // Editing + key field untouched: keep the previously stored value.
-    // Otherwise: use the current field value (null when blank).
-    final String? keyValue;
-    if (_isEditing && !_keyModified) {
-      keyValue = widget.apiKey!.keyValue;
-    } else {
-      keyValue = _keyValueController.text.isEmpty
-          ? null
-          : _keyValueController.text;
-    }
-
     final now = DateTime.now();
     final quotaText = _quotaController.text.trim();
+    final int? rawQuota;
+    if (quotaText.isNotEmpty) {
+      rawQuota = (double.parse(quotaText) * kDefaultQuotaPerUnit).round();
+    } else {
+      rawQuota = null;
+    }
+
     final apiKey = ApiKey(
       id: _isEditing ? widget.apiKey!.id : const Uuid().v4(),
       accountId: _selectedAccountId!,
       name: _nameController.text.trim(),
-      keyValue: keyValue,
-      quota: quotaText.isNotEmpty ? int.tryParse(quotaText) : null,
+      keyValue: _isEditing ? widget.apiKey!.keyValue : null,
+      quota: rawQuota,
       usedQuota: _isEditing ? widget.apiKey!.usedQuota : 0,
       expiresAt: _selectedExpiry,
       createdAt: _isEditing ? widget.apiKey!.createdAt : now,
@@ -303,6 +278,7 @@ class _KeyFormSheetState extends ConsumerState<KeyFormSheet> {
       }
     } catch (e) {
       if (mounted) {
+        Navigator.of(context).pop();
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('操作失败：$e')));

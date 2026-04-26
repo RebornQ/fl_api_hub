@@ -138,21 +138,21 @@ class KeyCard extends StatelessWidget {
   void _copyKey(BuildContext context) {
     final value = apiKey.keyValue;
     if (value == null || value.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('密钥值为空')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('密钥值为空')));
       return;
     }
     if (value.contains('***') || value.contains('…')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('密钥已脱敏，请先点击解析按钮获取完整密钥')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('密钥已脱敏，请先点击解析按钮获取完整密钥')));
       return;
     }
     Clipboard.setData(ClipboardData(text: value));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('已复制到剪贴板')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('已复制到剪贴板')));
   }
 }
 

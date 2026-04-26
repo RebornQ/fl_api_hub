@@ -21,8 +21,10 @@ import 'keys_notifier.dart';
 ///
 /// When the account is found and has valid auth, creates a remote-enabled
 /// repository. Otherwise falls back to local-only mode.
-final keysRepositoryProvider =
-    Provider.family<KeysRepository, String>((ref, accountId) {
+final keysRepositoryProvider = Provider.family<KeysRepository, String>((
+  ref,
+  accountId,
+) {
   final local = ref.watch(keysLocalDataSourceProvider);
   final accounts = ref.watch(accountsProvider).valueOrNull ?? [];
   final account = accounts.where((a) => a.id == accountId).firstOrNull;

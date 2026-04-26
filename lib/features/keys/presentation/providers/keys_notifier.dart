@@ -17,15 +17,15 @@ class KeysNotifier extends FamilyAsyncNotifier<List<ApiKey>, String> {
   Future<List<ApiKey>> build(String accountId) async {
     final repo = ref.read(keysRepositoryProvider(accountId));
     final result = await repo.getByAccountId(accountId);
-    return result.when(
-      onSuccess: (keys) => keys,
-      onFailure: (e) => throw e,
-    );
+    return result.when(onSuccess: (keys) => keys, onFailure: (e) => throw e);
   }
 
-  /// Creates a new API key and refreshes the list.
+  /// Creates a new API key and refreshes the list on success.
+  ///
+  /// Does NOT transition the list to loading — the caller (form sheet)
+  /// manages its own loading indicator. Throws on failure so the caller
+  /// can display the error.
   Future<void> create(ApiKey apiKey) async {
-    state = const AsyncLoading();
     final repo = ref.read(keysRepositoryProvider(arg));
     final result = await repo.create(apiKey);
     switch (result) {
@@ -33,13 +33,14 @@ class KeysNotifier extends FamilyAsyncNotifier<List<ApiKey>, String> {
         final updated = await repo.getByAccountId(arg);
         state = AsyncData(updated.dataOrNull ?? []);
       case Failure(:final exception):
-        state = AsyncError(exception, StackTrace.current);
+        throw exception;
     }
   }
 
-  /// Updates an existing API key and refreshes the list.
+  /// Updates an existing API key and refreshes the list on success.
+  ///
+  /// Same approach as [create]: no loading state, throws on failure.
   Future<void> saveKey(ApiKey apiKey) async {
-    state = const AsyncLoading();
     final repo = ref.read(keysRepositoryProvider(arg));
     final result = await repo.update(apiKey);
     switch (result) {
@@ -47,7 +48,7 @@ class KeysNotifier extends FamilyAsyncNotifier<List<ApiKey>, String> {
         final updated = await repo.getByAccountId(arg);
         state = AsyncData(updated.dataOrNull ?? []);
       case Failure(:final exception):
-        state = AsyncError(exception, StackTrace.current);
+        throw exception;
     }
   }
 

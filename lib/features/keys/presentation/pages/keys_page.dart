@@ -138,10 +138,10 @@ class _KeysPageState extends ConsumerState<KeysPage>
           ),
         ),
       ),
-      // FAB group (stacked, right-aligned to match the extended primary FAB).
+      // FAB group (stacked, center-aligned for standard FABs).
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Secondary FAB: refresh (spins while loading).
           SizedBox(
@@ -182,51 +182,23 @@ class _KeysPageState extends ConsumerState<KeysPage>
     );
   }
 
-  /// Primary extended FAB with icon + label.
-  /// Solid brand color + ink splash, matches Stitch design.
+  /// Primary FAB for adding a key.
+  /// Uses standard FloatingActionButton to match accounts page style.
   Widget _buildAddKeyFab(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final enabled = _selectedAccountId != null;
-    return Hero(
-      tag: 'keys_add',
-      child: Opacity(
-        opacity: enabled ? 1.0 : 0.5,
-        child: Material(
-          color: colorScheme.primary,
-          borderRadius: BorderRadius.circular(16),
-          elevation: 4,
-          shadowColor: colorScheme.primary.withValues(alpha: 0.4),
-          child: InkWell(
-            onTap: enabled
-                ? () =>
-                      KeyFormSheet.show(context, accountId: _selectedAccountId!)
-                : null,
-            borderRadius: BorderRadius.circular(16),
-            splashColor: colorScheme.onPrimary.withValues(alpha: 0.24),
-            highlightColor: colorScheme.onPrimary.withValues(alpha: 0.12),
-            child: Container(
-              height: 56,
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.add, color: colorScheme.onPrimary),
-                  const SizedBox(width: AppSpacing.sm + 4),
-                  Text(
-                    '添加密钥',
-                    style: TextStyle(
-                      color: colorScheme.onPrimary,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+    return FloatingActionButton(
+      heroTag: 'keys_add',
+      onPressed: enabled
+          ? () => KeyFormSheet.show(context, accountId: _selectedAccountId!)
+          : null,
+      backgroundColor: enabled
+          ? colorScheme.primary
+          : colorScheme.surfaceContainerHighest,
+      foregroundColor: colorScheme.onPrimary,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 4,
+      child: const Icon(Icons.add, size: 32),
     );
   }
 

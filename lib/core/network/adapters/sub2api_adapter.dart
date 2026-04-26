@@ -80,30 +80,31 @@ class Sub2ApiAdapter implements SiteAdapter {
     try {
       final response = await _dioClient.dio.request(
         '/api/v1/keys',
-        options: Options(
-          method: 'GET',
-          extra: _buildExtra(request),
-        ),
+        options: Options(method: 'GET', extra: _buildExtra(request)),
         queryParameters: {'page': page, 'page_size': size},
       );
 
       final json = response.data as Map<String, dynamic>;
       final data = _unwrapEnvelope(json);
       if (data == null) {
-        return Failure(NetworkException(
-          message: json['message']?.toString() ?? 'Sub2API list keys failed',
-        ));
+        return Failure(
+          NetworkException(
+            message: json['message']?.toString() ?? 'Sub2API list keys failed',
+          ),
+        );
       }
 
       return Success(TokenListDto.fromJson(data));
     } on DioException catch (e, st) {
       return Failure(mapToAppException(e, st));
     } catch (e, st) {
-      return Failure(UnknownException(
-        message: e.toString(),
-        originalError: e,
-        stackTrace: st,
-      ));
+      return Failure(
+        UnknownException(
+          message: e.toString(),
+          originalError: e,
+          stackTrace: st,
+        ),
+      );
     }
   }
 
@@ -122,20 +123,24 @@ class Sub2ApiAdapter implements SiteAdapter {
       final json = response.data as Map<String, dynamic>;
       final data = _unwrapEnvelope(json);
       if (data == null) {
-        return Failure(NetworkException(
-          message: json['message']?.toString() ?? 'Sub2API create key failed',
-        ));
+        return Failure(
+          NetworkException(
+            message: json['message']?.toString() ?? 'Sub2API create key failed',
+          ),
+        );
       }
 
       return Success(TokenDto.fromJson(data));
     } on DioException catch (e, st) {
       return Failure(mapToAppException(e, st));
     } catch (e, st) {
-      return Failure(UnknownException(
-        message: e.toString(),
-        originalError: e,
-        stackTrace: st,
-      ));
+      return Failure(
+        UnknownException(
+          message: e.toString(),
+          originalError: e,
+          stackTrace: st,
+        ),
+      );
     }
   }
 
@@ -163,20 +168,24 @@ class Sub2ApiAdapter implements SiteAdapter {
       final json = response.data as Map<String, dynamic>;
       final unwrapped = _unwrapEnvelope(json);
       if (unwrapped == null) {
-        return Failure(NetworkException(
-          message: json['message']?.toString() ?? 'Sub2API update key failed',
-        ));
+        return Failure(
+          NetworkException(
+            message: json['message']?.toString() ?? 'Sub2API update key failed',
+          ),
+        );
       }
 
       return Success(TokenDto.fromJson(unwrapped));
     } on DioException catch (e, st) {
       return Failure(mapToAppException(e, st));
     } catch (e, st) {
-      return Failure(UnknownException(
-        message: e.toString(),
-        originalError: e,
-        stackTrace: st,
-      ));
+      return Failure(
+        UnknownException(
+          message: e.toString(),
+          originalError: e,
+          stackTrace: st,
+        ),
+      );
     }
   }
 
@@ -194,11 +203,13 @@ class Sub2ApiAdapter implements SiteAdapter {
     } on DioException catch (e, st) {
       return Failure(mapToAppException(e, st));
     } catch (e, st) {
-      return Failure(UnknownException(
-        message: e.toString(),
-        originalError: e,
-        stackTrace: st,
-      ));
+      return Failure(
+        UnknownException(
+          message: e.toString(),
+          originalError: e,
+          stackTrace: st,
+        ),
+      );
     }
   }
 
@@ -208,9 +219,9 @@ class Sub2ApiAdapter implements SiteAdapter {
     required String tokenId,
   }) async {
     // Sub2API returns full key in list/detail responses, no separate resolve.
-    return Failure(NetworkException(
-      message: 'Sub2API does not require key resolution',
-    ));
+    return Failure(
+      NetworkException(message: 'Sub2API does not require key resolution'),
+    );
   }
 
   // ── Auth helpers (unsupported) ──────────────────────────────────

@@ -22,11 +22,15 @@ class CheckInResultCard extends StatelessWidget {
   /// Callback when the card is tapped to view request logs.
   final VoidCallback? onTap;
 
+  /// Callback when the card is long-pressed (e.g. open browser for failed).
+  final VoidCallback? onLongPress;
+
   const CheckInResultCard({
     super.key,
     required this.display,
     this.isSelected = false,
     this.onTap,
+    this.onLongPress,
   });
 
   @override
@@ -53,6 +57,7 @@ class CheckInResultCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(AppRadius.lg),
         onTap: onTap,
+        onLongPress: onLongPress,
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppRadius.lg),

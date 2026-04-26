@@ -15,10 +15,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/design_tokens.dart';
+import '../../../../core/browser/browser_service.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_error_state.dart';
 import '../../../../core/widgets/app_loading_state.dart';
 import '../../../accounts/presentation/providers/accounts_providers.dart';
+import '../../../settings/presentation/providers/browser_providers.dart';
 import '../../domain/entities/check_in_result.dart';
 import '../pages/check_in_request_logs_page.dart';
 import '../providers/check_in_providers.dart';
@@ -249,10 +251,64 @@ class _CheckInDetailViewState extends ConsumerState<CheckInDetailView> {
                 builder: (_) => CheckInRequestLogsPage(resultId: result.id),
               ),
             ),
+            onLongPress: result.status == CheckInStatus.failed
+                ? () => _openBrowserForFailed(result)
+                : null,
           ),
         );
       },
     );
+  }
+
+  Future<void> _openBrowserForFailed(CheckInResult result) async {
+    final accounts = ref.read(accountsProvider).valueOrNull ?? [];
+    final account = accounts.where((a) => a.id == widget.accountId).firstOrNull;
+    final url = account?.baseUrl;
+    if (url == null || url.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('该账号没有配置站点地址')));
+      }
+      return;
+    }
+
+    final useInApp = ref.read(useInAppBrowserProvider);
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        final colorScheme = Theme.of(ctx).colorScheme;
+        return AlertDialog(
+          title: const Text('手动签到'),
+          content: Text.rich(
+            TextSpan(
+              text: useInApp ? '即将打开内置浏览器访问：\n' : '即将使用系统浏览器打开：\n',
+              children: [
+                TextSpan(
+                  text: url,
+                  style: TextStyle(color: colorScheme.primary),
+                ),
+                const TextSpan(text: '\n\n请在页面中手动完成签到。'),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('取消'),
+            ),
+            FilledButton.tonal(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('打开'),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true || !mounted) return;
+
+    await openUrlInBrowser(context, url, useInAppBrowser: useInApp);
   }
 
   Widget _buildFooter(BuildContext context, AccountCheckInHistoryState state) {

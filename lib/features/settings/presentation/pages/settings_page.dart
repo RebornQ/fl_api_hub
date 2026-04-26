@@ -12,6 +12,7 @@ import '../../../backup/presentation/pages/backup_page.dart';
 import '../../../dev_tools/request_logger/presentation/pages/developer_options_page.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../widgets/appearance_settings.dart';
+import '../widgets/browser_settings.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -29,6 +30,12 @@ class SettingsPage extends StatelessWidget {
             icon: Icons.palette_outlined,
             title: '外观',
             child: const AppearanceSettings(),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          SectionCard(
+            icon: Icons.travel_explore,
+            title: '浏览器',
+            child: const BrowserSettings(),
           ),
           const SizedBox(height: AppSpacing.sm),
           SectionCard(

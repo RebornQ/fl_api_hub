@@ -1717,3 +1717,36 @@ Audited key management code against API documentation and fixed 12 bugs across D
 ### Next Steps
 
 - None - task complete
+
+
+## Session 57: 密钥列表首次加载优化
+
+**Date**: 2026-04-27
+**Task**: 密钥列表首次加载优化
+**Branch**: `main`
+
+### Summary
+
+移除密钥页自动选中账号逻辑，下拉框默认未选中显示请选择账号，未选时隐藏FAB，区分空状态引导文案
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `273a68b` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

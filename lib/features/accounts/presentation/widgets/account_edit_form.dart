@@ -75,6 +75,11 @@ class AccountEditFormState extends ConsumerState<AccountEditForm> {
   bool _tokenModified = false;
   bool _isSubmitting = false;
 
+  final _urlFocusNode = FocusNode();
+  Timer? _urlDebounce;
+  bool _isDuplicateUrl = false;
+  List<String> _duplicateUrlNames = const [];
+
   late _FormSnapshot _initialSnapshot;
 
   bool get _isEditing => widget.account != null;
@@ -102,7 +107,7 @@ class AccountEditFormState extends ConsumerState<AccountEditForm> {
       text: a?.manualBalanceUsd != null ? a!.manualBalanceUsd.toString() : '',
     );
 
-    _siteType = a?.siteType ?? SiteType.unknown;
+    _siteType = a?.siteType ?? SiteType.newApi;
     _authType = a?.authType ?? _siteType.defaultAuthType;
     _excludeFromTotalBalance = a?.excludeFromTotalBalance ?? false;
     _enabled = a?.enabled ?? true;
@@ -127,10 +132,14 @@ class AccountEditFormState extends ConsumerState<AccountEditForm> {
       checkIn: _checkIn,
       redemptionUrl: _redemptionUrl,
     );
+
+    _urlFocusNode.addListener(_onUrlFocusChanged);
   }
 
   @override
   void dispose() {
+    _urlDebounce?.cancel();
+    _urlFocusNode.dispose();
     _nameController.dispose();
     _urlController.dispose();
     _tokenController.dispose();
@@ -306,14 +315,19 @@ class AccountEditFormState extends ConsumerState<AccountEditForm> {
         TextFormField(
           key: const ValueKey('urlField'),
           controller: _urlController,
-          decoration: const InputDecoration(
-            labelText: '站点 URL *',
-            hintText: 'https://api.example.com',
-          ),
+          focusNode: _urlFocusNode,
+          decoration: _buildUrlDecoration(),
           keyboardType: TextInputType.url,
           textInputAction: TextInputAction.next,
           validator: _validateUrl,
-          onChanged: (_) => setState(() {}),
+          onChanged: (_) {
+            setState(() {});
+            _urlDebounce?.cancel();
+            _urlDebounce = Timer(const Duration(milliseconds: 100), () {
+              if (!mounted) return;
+              _checkDuplicateUrl(_urlController.text);
+            });
+          },
         ),
         const SizedBox(height: AppSpacing.md),
         Row(
@@ -336,6 +350,7 @@ class AccountEditFormState extends ConsumerState<AccountEditForm> {
                 initialValue: _siteType,
                 decoration: const InputDecoration(labelText: '站点类型'),
                 items: SiteType.values
+                    .where((t) => t != SiteType.anyrouter || _siteType == t)
                     .map(
                       (t) => DropdownMenuItem(
                         value: t,
@@ -508,6 +523,52 @@ class AccountEditFormState extends ConsumerState<AccountEditForm> {
     );
   }
 
+  // ─── URL decoration ───────────────────────────────────────────────
+
+  /// Builds the InputDecoration for the URL field.
+  ///
+  /// When a duplicate URL is detected, shows an orange border, warning icon,
+  /// and helper text naming the conflicting account(s).
+  InputDecoration _buildUrlDecoration() {
+    if (!_isDuplicateUrl) {
+      return const InputDecoration(
+        labelText: '站点 URL *',
+        hintText: 'https://api.example.com',
+      );
+    }
+
+    final names = _duplicateUrlNames;
+    final message = names.length == 1
+        ? '该 URL 已被账号「${names.first}」使用'
+        : '该 URL 已被 ${names.length} 个账号使用：${names.take(3).join('、')}'
+              '${names.length > 3 ? ' 等' : ''}';
+
+    final warningColor = Theme.of(
+      context,
+    ).colorScheme.error.withValues(alpha: 0.7);
+
+    return InputDecoration(
+      labelText: '站点 URL *',
+      labelStyle: TextStyle(color: warningColor),
+      floatingLabelStyle: TextStyle(color: warningColor),
+      hintText: 'https://api.example.com',
+      suffixIcon: Tooltip(
+        message: message,
+        child: Icon(Icons.warning_amber_rounded, color: warningColor),
+      ),
+      helperText: message,
+      helperStyle: TextStyle(color: warningColor),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        borderSide: BorderSide(color: warningColor),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        borderSide: BorderSide(color: warningColor, width: 2),
+      ),
+    );
+  }
+
   // ─── Validators ────────────────────────────────────────────────────
 
   String? _validateName(String? value) {
@@ -529,6 +590,62 @@ class AccountEditFormState extends ConsumerState<AccountEditForm> {
       return '请输入有效的 URL（以 http:// 或 https:// 开头）';
     }
     return null;
+  }
+
+  /// Normalizes a URL for duplicate comparison.
+  static String _normalizeUrl(String url) {
+    var normalized = url.trim();
+    while (normalized.endsWith('/')) {
+      normalized = normalized.substring(0, normalized.length - 1);
+    }
+    return normalized.toLowerCase();
+  }
+
+  /// Checks if [rawUrl] matches any existing account's base URL.
+  void _checkDuplicateUrl(String rawUrl) {
+    final normalized = _normalizeUrl(rawUrl);
+    if (normalized.isEmpty ||
+        (!normalized.startsWith('http://') &&
+            !normalized.startsWith('https://'))) {
+      if (_isDuplicateUrl || _duplicateUrlNames.isNotEmpty) {
+        setState(() {
+          _isDuplicateUrl = false;
+          _duplicateUrlNames = const [];
+        });
+      }
+      return;
+    }
+
+    final accounts = ref.read(accountsProvider).valueOrNull ?? <Account>[];
+    final currentId = widget.account?.id;
+    final matches = accounts.where((a) {
+      if (a.id == currentId) return false;
+      return _normalizeUrl(a.baseUrl) == normalized;
+    }).toList();
+
+    final hasDuplicate = matches.isNotEmpty;
+    final names = matches.map((a) => a.name).toList();
+
+    if (hasDuplicate != _isDuplicateUrl ||
+        names.length != _duplicateUrlNames.length ||
+        !names.asMap().keys.every(
+          (i) =>
+              i < _duplicateUrlNames.length &&
+              names[i] == _duplicateUrlNames[i],
+        )) {
+      setState(() {
+        _isDuplicateUrl = hasDuplicate;
+        _duplicateUrlNames = names;
+      });
+    }
+  }
+
+  /// Triggered when URL field gains or loses focus.
+  void _onUrlFocusChanged() {
+    if (!_urlFocusNode.hasFocus) {
+      _urlDebounce?.cancel();
+      _checkDuplicateUrl(_urlController.text);
+    }
   }
 
   String? _validateNotes(String? value) {

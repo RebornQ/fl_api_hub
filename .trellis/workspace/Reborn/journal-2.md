@@ -1651,3 +1651,36 @@ Audited key management code against API documentation and fixed 12 bugs across D
 ### Status
 
 [OK] **Completed**
+
+
+## Session 55: Session 54: Fix Key Management API Bugs
+
+**Date**: 2026-04-27
+**Task**: Session 54: Fix Key Management API Bugs
+**Branch**: `main`
+
+### Summary
+
+对照 API 文档修复密钥管理 10 个 bug: DTO 字段映射、Sub2API 成功响应处理、quota 转换、页码偏移、WONG GET 方法等
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `7faadcb` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

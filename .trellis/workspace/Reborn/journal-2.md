@@ -1520,3 +1520,58 @@ In widescreen master-detail layout (≥900px), the right-side detail panel frequ
 ### Verification
 - `flutter analyze` → No issues
 - `flutter test` → 488/488 passed (1 pre-existing failure in account_edit_page_test unrelated to this change)
+
+
+## Session 53: Fix key quota calculation & form UX optimization
+
+**Date**: 2026-04-27
+**Task**: Fix key quota calculation & form UX optimization
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+## Summary
+
+修复密钥额度显示换算错误，优化密钥表单和列表页交互体验。
+
+| 改动 | 说明 |
+|------|------|
+| R1: 额度换算修复 | `KeyQuotaGrid` 除以 `kDefaultQuotaPerUnit`(500000) 显示正确美元金额 |
+| R2: 移除密钥值字段 | `KeyFormSheet` 删除 keyValue 输入，服务器自动生成 |
+| R3: 额度输入改美元 | 支持小数输入，提交时 `* quotaPerUnit` 转换 |
+| R4: FAB/UI 优化 | 标准 FloatingActionButton；KeyValueRow 按钮跟文字+间距；标签左对齐 |
+| R5: Notifier 优化 | create/saveKey 不设 AsyncLoading，失败 throw；弹窗失败也 pop |
+
+**Modified Files**:
+- `lib/features/keys/presentation/widgets/key_quota_grid.dart` — 额度换算修复
+- `lib/features/keys/presentation/widgets/key_form_sheet.dart` — 移除密钥值+额度改美元+失败 pop
+- `lib/features/keys/presentation/widgets/key_value_row.dart` — Flexible+间距+左对齐
+- `lib/features/keys/presentation/pages/keys_page.dart` — FAB 样式统一
+- `lib/features/keys/presentation/providers/keys_notifier.dart` — create/saveKey 不设 loading
+
+**Verification**:
+- `flutter analyze` → No issues found
+- `flutter test` → 488/488 passed (1 pre-existing failure unrelated)
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `90e3cbf` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

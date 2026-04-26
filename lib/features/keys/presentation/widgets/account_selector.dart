@@ -66,7 +66,7 @@ class AccountSelector extends StatelessWidget {
             suffixIcon: Icon(Icons.unfold_more, color: colorScheme.outline),
           ),
           hint: Text(
-            isDisabled ? '请先添加账号' : '选择一个账号',
+            isDisabled ? '请先添加账号' : '请选择账号',
             style: TextStyle(
               color: isDisabled
                   ? colorScheme.outline

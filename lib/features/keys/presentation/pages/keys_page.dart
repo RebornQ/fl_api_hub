@@ -70,22 +70,13 @@ class _KeysPageState extends ConsumerState<KeysPage>
   Widget build(BuildContext context) {
     final accounts = ref.watch(accountsProvider);
 
-    // Auto-select the first account when accounts load or when the
-    // previously selected account has been deleted.
+    // If the selected account was deleted, clear the selection.
     accounts.whenData((list) {
-      if (_selectedAccountId == null && list.isNotEmpty) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && _selectedAccountId == null) {
-            setState(() => _selectedAccountId = list.first.id);
-          }
-        });
-      } else if (_selectedAccountId != null &&
+      if (_selectedAccountId != null &&
           !list.any((a) => a.id == _selectedAccountId)) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
-            setState(() {
-              _selectedAccountId = list.isNotEmpty ? list.first.id : null;
-            });
+            setState(() => _selectedAccountId = null);
           }
         });
       }
@@ -138,38 +129,39 @@ class _KeysPageState extends ConsumerState<KeysPage>
           ),
         ),
       ),
-      // FAB group (stacked, center-aligned for standard FABs).
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Secondary FAB: refresh (spins while loading).
-          SizedBox(
-            width: 48,
-            height: 48,
-            child: FloatingActionButton(
-              heroTag: 'keys_refresh',
-              onPressed: _selectedAccountId != null
-                  ? () => ref.invalidate(keysProvider(_selectedAccountId!))
-                  : null,
-              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-              foregroundColor: Theme.of(
-                context,
-              ).colorScheme.onSecondaryContainer,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: RotationTransition(
-                turns: _refreshSpinController,
-                child: const Icon(Icons.refresh),
-              ),
+      // FAB group (hidden when no account is selected).
+      floatingActionButton: _selectedAccountId == null
+          ? null
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Secondary FAB: refresh (spins while loading).
+                SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: FloatingActionButton(
+                    heroTag: 'keys_refresh',
+                    onPressed: () =>
+                        ref.invalidate(keysProvider(_selectedAccountId!)),
+                    backgroundColor:
+                        Theme.of(context).colorScheme.secondaryContainer,
+                    foregroundColor:
+                        Theme.of(context).colorScheme.onSecondaryContainer,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: RotationTransition(
+                      turns: _refreshSpinController,
+                      child: const Icon(Icons.refresh),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                // Main FAB: add key (solid brand color, rounded-2xl).
+                _buildAddKeyFab(context),
+              ],
             ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          // Main FAB: add key (extended, solid brand color, rounded-2xl).
-          _buildAddKeyFab(context),
-        ],
-      ),
       // Export bar at the bottom.
       bottomNavigationBar:
           _selectedAccountId != null && keys.valueOrNull?.isNotEmpty == true
@@ -184,17 +176,14 @@ class _KeysPageState extends ConsumerState<KeysPage>
 
   /// Primary FAB for adding a key.
   /// Uses standard FloatingActionButton to match accounts page style.
+  /// Only called when [_selectedAccountId] is non-null.
   Widget _buildAddKeyFab(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final enabled = _selectedAccountId != null;
     return FloatingActionButton(
       heroTag: 'keys_add',
-      onPressed: enabled
-          ? () => KeyFormSheet.show(context, accountId: _selectedAccountId!)
-          : null,
-      backgroundColor: enabled
-          ? colorScheme.primary
-          : colorScheme.surfaceContainerHighest,
+      onPressed: () =>
+          KeyFormSheet.show(context, accountId: _selectedAccountId!),
+      backgroundColor: colorScheme.primary,
       foregroundColor: colorScheme.onPrimary,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 4,
@@ -356,15 +345,20 @@ class _KeysPageState extends ConsumerState<KeysPage>
     );
   }
 
-  /// Empty state when no accounts exist.
+  /// Empty state when no account is selected or no accounts exist.
   Widget _buildNoAccountsState(BuildContext context) {
+    final hasAccounts =
+        ref.watch(accountsProvider).valueOrNull?.isNotEmpty ?? false;
+
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       child: SizedBox(
         height: MediaQuery.of(context).size.height * 0.3,
-        child: const AppEmptyState(
-          icon: Icons.manage_accounts_outlined,
-          message: '请先添加账号以管理密钥',
+        child: AppEmptyState(
+          icon: hasAccounts
+              ? Icons.arrow_drop_up
+              : Icons.manage_accounts_outlined,
+          message: hasAccounts ? '请在上方选择一个账号以查看密钥' : '请先添加账号以管理密钥',
         ),
       ),
     );

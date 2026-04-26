@@ -15,8 +15,9 @@ void main() {
         id: 'token-42',
         name: 'My API Key',
         key: 'sk-abc123',
-        quota: 5000,
+        remainQuota: 5000,
         usedQuota: 1200,
+        unlimitedQuota: false,
         status: 1,
         createdAt: createdAt,
         expiresAt: expiresAt,
@@ -32,6 +33,20 @@ void main() {
       expect(result.usedQuota, 1200);
       expect(result.expiresAt, expiresAt);
       expect(result.createdAt, createdAt);
+    });
+
+    test('toEntity maps unlimited quota (remainQuota=null) to quota=null', () {
+      final dto = TokenDto(
+        id: 'token-99',
+        name: 'Unlimited Key',
+        remainQuota: 100,
+        unlimitedQuota: true,
+      );
+
+      final result = ApiKeyApiMapper.toEntity(dto, accountId: testAccountId);
+
+      // unlimitedQuota=true → quota=null regardless of remainQuota value.
+      expect(result.quota, isNull);
     });
 
     test('toEntity uses defaults for null fields', () {
@@ -53,14 +68,14 @@ void main() {
       final dto1 = TokenDto(
         id: 'id-1',
         name: 'Key One',
-        quota: 100,
+        remainQuota: 100,
         usedQuota: 10,
         createdAt: DateTime(2026, 1, 1),
       );
       final dto2 = TokenDto(
         id: 'id-2',
         name: 'Key Two',
-        quota: 200,
+        remainQuota: 200,
         usedQuota: 20,
         createdAt: DateTime(2026, 2, 1),
       );
@@ -73,8 +88,10 @@ void main() {
       expect(results, hasLength(2));
       expect(results[0].id, 'id-1');
       expect(results[0].name, 'Key One');
+      expect(results[0].quota, 100);
       expect(results[1].id, 'id-2');
       expect(results[1].name, 'Key Two');
+      expect(results[1].quota, 200);
     });
 
     test('toEntityList with empty list returns empty list', () {

@@ -3,13 +3,14 @@ import 'package:fl_api_hub/core/network/dto/token_dto.dart';
 
 void main() {
   group('TokenDto', () {
-    test('all fields parsed correctly', () {
+    test('Common API fields parsed correctly', () {
       final json = {
         'id': 42,
         'name': 'my-token',
         'key': 'sk-abc123',
-        'quota': 5000,
+        'remain_quota': 5000,
         'used_quota': 1000,
+        'unlimited_quota': false,
         'status': 1,
         'created_time': 1700000000,
         'accessed_time': 1700100000,
@@ -19,8 +20,9 @@ void main() {
       expect(dto.id, '42');
       expect(dto.name, 'my-token');
       expect(dto.key, 'sk-abc123');
-      expect(dto.quota, 5000);
+      expect(dto.remainQuota, 5000);
       expect(dto.usedQuota, 1000);
+      expect(dto.unlimitedQuota, isFalse);
       expect(dto.status, 1);
       expect(
         dto.createdAt,
@@ -34,6 +36,39 @@ void main() {
         dto.expiresAt,
         DateTime.fromMillisecondsSinceEpoch(1800000000 * 1000),
       );
+    });
+
+    test('Sub2API fields parsed with USD → internal unit conversion', () {
+      final json = {
+        'id': 1,
+        'name': 'sub2api-key',
+        'key': 'sk-xyz789',
+        'quota': 10.0, // USD
+        'quota_used': 2.5, // USD
+        'status': 'active',
+        'created_at': '2024-01-01T00:00:00.000',
+        'expires_at': '2025-12-31T23:59:59.000',
+      };
+      final dto = TokenDto.fromJson(json);
+      expect(dto.id, '1');
+      expect(dto.remainQuota, 5000000); // 10 USD × 500000
+      expect(dto.usedQuota, 1250000); // 2.5 USD × 500000
+      expect(dto.status, 1); // "active" → 1
+    });
+
+    test('Sub2API inactive status mapped to 0', () {
+      final dto = TokenDto.fromJson({'status': 'inactive'});
+      expect(dto.status, 0);
+    });
+
+    test('Sub2API quota_exhausted status mapped to 0', () {
+      final dto = TokenDto.fromJson({'status': 'quota_exhausted'});
+      expect(dto.status, 0);
+    });
+
+    test('unlimited_quota flag parsed', () {
+      final dto = TokenDto.fromJson({'unlimited_quota': true});
+      expect(dto.unlimitedQuota, isTrue);
     });
 
     test('integer timestamps are converted to DateTime', () {
@@ -69,8 +104,24 @@ void main() {
       expect(dto.expiresAt, DateTime.parse('2025-12-31T23:59:59.000'));
     });
 
+    test('expired_time -1 treated as never expires', () {
+      final dto = TokenDto.fromJson({'expired_time': -1});
+      expect(dto.expiresAt, isNull);
+    });
+
+    test('zero and negative timestamps produce null DateTime', () {
+      final dto = TokenDto.fromJson({'created_time': 0, 'accessed_time': -1});
+      expect(dto.createdAt, isNull);
+      expect(dto.accessedAt, isNull);
+    });
+
     test('isKeyMasked returns true for masked key with asterisks', () {
       final dto = TokenDto.fromJson({'key': 'sk-***abc'});
+      expect(dto.isKeyMasked, isTrue);
+    });
+
+    test('isKeyMasked returns true for ellipsis mask', () {
+      final dto = TokenDto.fromJson({'key': 'sk-abc…xyz'});
       expect(dto.isKeyMasked, isTrue);
     });
 
@@ -87,6 +138,18 @@ void main() {
     test('id is coerced via toString', () {
       final dto = TokenDto.fromJson({'id': 123});
       expect(dto.id, '123');
+    });
+
+    test('Common remain_quota takes priority over Sub2API quota', () {
+      final json = {'remain_quota': 5000, 'quota': 10.0};
+      final dto = TokenDto.fromJson(json);
+      expect(dto.remainQuota, 5000);
+    });
+
+    test('Common used_quota takes priority over Sub2API quota_used', () {
+      final json = {'used_quota': 1000, 'quota_used': 2.5};
+      final dto = TokenDto.fromJson(json);
+      expect(dto.usedQuota, 1000);
     });
   });
 
@@ -117,6 +180,17 @@ void main() {
       expect(dto.tokens, hasLength(1));
       expect(dto.tokens[0].name, 'token-x');
       expect(dto.total, 1);
+    });
+
+    test('parses OneHub total_count field', () {
+      final json = {
+        'data': [
+          {'id': 1, 'name': 'token-a'},
+        ],
+        'total_count': 42,
+      };
+      final dto = TokenListDto.fromJson(json);
+      expect(dto.total, 42);
     });
 
     test('returns empty list when neither items nor data is present', () {

@@ -31,7 +31,16 @@ class KeysRemoteDataSource {
   Future<Result<TokenDto>> createToken(
     ApiRequest request, {
     required String name,
-  }) => _adapter.createToken(request, name: name);
+    int? quota,
+    DateTime? expiresAt,
+    bool unlimitedQuota = false,
+  }) => _adapter.createToken(
+    request,
+    name: name,
+    quota: quota,
+    expiresAt: expiresAt,
+    unlimitedQuota: unlimitedQuota,
+  );
 
   /// Deletes an API token by its server ID.
   Future<Result<void>> deleteToken(

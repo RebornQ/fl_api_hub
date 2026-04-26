@@ -133,12 +133,28 @@ class CommonApiAdapter implements SiteAdapter {
   Future<Result<TokenDto>> createToken(
     ApiRequest request, {
     required String name,
+    int? quota,
+    DateTime? expiresAt,
+    bool unlimitedQuota = false,
   }) async {
+    final data = <String, dynamic>{
+      'name': name,
+      'remain_quota': quota ?? 0,
+      'expired_time': expiresAt != null
+          ? expiresAt.millisecondsSinceEpoch ~/ 1000
+          : -1,
+      'unlimited_quota': unlimitedQuota,
+      'model_limits_enabled': false,
+      'model_limits': '',
+      'allow_ips': '',
+      'group': '',
+    };
+
     return performRequest<TokenDto>(
       method: 'POST',
       path: '/api/token/',
       request: request,
-      data: {'name': name},
+      data: data,
       fromJson: TokenDto.fromJson,
     );
   }
@@ -175,11 +191,19 @@ class CommonApiAdapter implements SiteAdapter {
     int? quota,
     DateTime? expiresAt,
   }) async {
-    final data = <String, dynamic>{'id': int.tryParse(tokenId), 'name': name};
-    if (quota != null) data['remain_quota'] = quota;
-    if (expiresAt != null) {
-      data['expired_time'] = expiresAt.millisecondsSinceEpoch ~/ 1000;
-    }
+    final data = <String, dynamic>{
+      'id': int.tryParse(tokenId),
+      'name': name,
+      'remain_quota': quota ?? 0,
+      'expired_time': expiresAt != null
+          ? expiresAt.millisecondsSinceEpoch ~/ 1000
+          : -1,
+      'unlimited_quota': quota == null,
+      'model_limits_enabled': false,
+      'model_limits': '',
+      'allow_ips': '',
+      'group': '',
+    };
 
     return performRequest<TokenDto>(
       method: 'PUT',

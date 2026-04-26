@@ -69,10 +69,13 @@ abstract class SiteAdapter {
 
   /// Creates a new API token.
   ///
-  /// Endpoint: `POST /api/token/`
+  /// Endpoint: `POST /api/token/` (Common) or `POST /api/v1/keys` (Sub2API)
   Future<Result<TokenDto>> createToken(
     ApiRequest request, {
     required String name,
+    int? quota,
+    DateTime? expiresAt,
+    bool unlimitedQuota = false,
   });
 
   /// Deletes an API token by its server ID.

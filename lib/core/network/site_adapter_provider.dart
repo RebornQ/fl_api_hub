@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'adapters/common_api_adapter.dart';
 import 'adapters/sub2api_adapter.dart';
 import 'adapters/veloera_api_adapter.dart';
+import 'adapters/wong_api_adapter.dart';
 import 'dio_client.dart';
 import 'site_adapter.dart';
 import 'site_type.dart';
@@ -25,6 +26,7 @@ final siteAdapterProvider = Provider<Map<SiteType, SiteAdapter>>((ref) {
   final commonAdapter = CommonApiAdapter(dioClient);
   final veloeraAdapter = VeloeraApiAdapter(dioClient);
   final sub2apiAdapter = Sub2ApiAdapter(dioClient);
+  final wongAdapter = WongApiAdapter(dioClient);
   return {
     SiteType.newApi: commonAdapter,
     SiteType.oneApi: commonAdapter,
@@ -33,7 +35,8 @@ final siteAdapterProvider = Provider<Map<SiteType, SiteAdapter>>((ref) {
     SiteType.veloera: veloeraAdapter,
     SiteType.octopus: commonAdapter,
     SiteType.sub2api: sub2apiAdapter,
-    // Cookie-based sites (anyrouter, wongGongyi) will use their
+    SiteType.wongGongyi: wongAdapter,
+    // Cookie-based sites (anyrouter) will use their
     // own adapters in a future batch.
   };
 });

@@ -85,7 +85,13 @@ class KeysRepositoryImpl implements KeysRepository {
   @override
   Future<Result<ApiKey>> create(ApiKey apiKey) async {
     if (_canRemote) {
-      final result = await _remote!.createToken(_request!, name: apiKey.name);
+      final result = await _remote!.createToken(
+        _request!,
+        name: apiKey.name,
+        quota: apiKey.quota,
+        expiresAt: apiKey.expiresAt,
+        unlimitedQuota: apiKey.quota == null,
+      );
       switch (result) {
         case Success(:final data):
           final created = ApiKeyApiMapper.toEntity(

@@ -6,6 +6,7 @@
 library;
 
 import 'package:dio/dio.dart';
+import 'package:meta/meta.dart';
 
 import '../../../core/error/app_exception.dart';
 import '../../../core/error/failure_mapper.dart';
@@ -20,6 +21,9 @@ import '../../../core/network/dto/token_dto.dart';
 import '../../../core/network/dto/user_info_dto.dart';
 import '../../../core/network/site_adapter.dart';
 import '../../../core/network/site_type.dart';
+
+/// 1 USD = 500000 internal quota units.
+const _kQuotaPerUnit = 500000;
 
 /// Site adapter for Sub2API backends.
 ///
@@ -81,12 +85,12 @@ class Sub2ApiAdapter implements SiteAdapter {
       final response = await _dioClient.dio.request(
         '/api/v1/keys',
         options: Options(method: 'GET', extra: _buildExtra(request)),
-        queryParameters: {'page': page, 'page_size': size},
+        // Sub2API pages start from 1, Common from 0.
+        queryParameters: {'page': page + 1, 'page_size': size},
       );
 
       final json = response.data as Map<String, dynamic>;
-      final data = _unwrapEnvelope(json);
-      if (data == null) {
+      if (!_isSuccess(json)) {
         return Failure(
           NetworkException(
             message: json['message']?.toString() ?? 'Sub2API list keys failed',
@@ -94,7 +98,15 @@ class Sub2ApiAdapter implements SiteAdapter {
         );
       }
 
-      return Success(TokenListDto.fromJson(data));
+      final data = json['data'];
+      if (data is List) {
+        return Success(TokenListDto.fromJson({'items': data}));
+      }
+      if (data is Map<String, dynamic>) {
+        return Success(TokenListDto.fromJson(data));
+      }
+
+      return const Success(TokenListDto(tokens: []));
     } on DioException catch (e, st) {
       return Failure(mapToAppException(e, st));
     } catch (e, st) {
@@ -112,17 +124,32 @@ class Sub2ApiAdapter implements SiteAdapter {
   Future<Result<TokenDto>> createToken(
     ApiRequest request, {
     required String name,
+    int? quota,
+    DateTime? expiresAt,
+    bool unlimitedQuota = false,
   }) async {
     try {
+      final data = <String, dynamic>{'name': name};
+
+      // Quota: convert internal units → USD. 0 means unlimited.
+      data['quota'] = unlimitedQuota ? 0 : (quota ?? 0) ~/ _kQuotaPerUnit;
+
+      // Expiration: Sub2API create uses expires_in_days, not expires_at.
+      if (expiresAt != null) {
+        final days = expiresAt.difference(DateTime.now()).inDays;
+        data['expires_in_days'] = days > 0 ? days : 0;
+      } else {
+        data['expires_in_days'] = 0; // never expires
+      }
+
       final response = await _dioClient.dio.request(
         '/api/v1/keys',
         options: Options(method: 'POST', extra: _buildExtra(request)),
-        data: {'name': name},
+        data: data,
       );
 
       final json = response.data as Map<String, dynamic>;
-      final data = _unwrapEnvelope(json);
-      if (data == null) {
+      if (!_isSuccess(json)) {
         return Failure(
           NetworkException(
             message: json['message']?.toString() ?? 'Sub2API create key failed',
@@ -130,7 +157,13 @@ class Sub2ApiAdapter implements SiteAdapter {
         );
       }
 
-      return Success(TokenDto.fromJson(data));
+      // Sub2API create returns data: null on success.
+      final responseData = json['data'];
+      if (responseData is Map<String, dynamic>) {
+        return Success(TokenDto.fromJson(responseData));
+      }
+      // Success with null data — return an empty DTO.
+      return const Success(TokenDto());
     } on DioException catch (e, st) {
       return Failure(mapToAppException(e, st));
     } catch (e, st) {
@@ -154,10 +187,24 @@ class Sub2ApiAdapter implements SiteAdapter {
   }) async {
     try {
       final data = <String, dynamic>{'name': name};
-      if (quota != null) data['quota'] = quota;
+
+      // Quota: convert internal units → USD.
+      // For update, the API expects the total quota (remaining + used) in USD.
+      // The caller should ensure quota includes used amount.
+      if (quota != null) {
+        data['quota'] = quota ~/ _kQuotaPerUnit;
+      } else {
+        data['quota'] = 0; // unlimited
+      }
+
+      // Expiration: Sub2API update uses expires_at (ISO 8601).
       if (expiresAt != null) {
         data['expires_at'] = expiresAt.toIso8601String();
+      } else {
+        data['expires_at'] = ''; // never expires
       }
+
+      data['status'] = 'active';
 
       final response = await _dioClient.dio.request(
         '/api/v1/keys/$tokenId',
@@ -166,8 +213,7 @@ class Sub2ApiAdapter implements SiteAdapter {
       );
 
       final json = response.data as Map<String, dynamic>;
-      final unwrapped = _unwrapEnvelope(json);
-      if (unwrapped == null) {
+      if (!_isSuccess(json)) {
         return Failure(
           NetworkException(
             message: json['message']?.toString() ?? 'Sub2API update key failed',
@@ -175,7 +221,12 @@ class Sub2ApiAdapter implements SiteAdapter {
         );
       }
 
-      return Success(TokenDto.fromJson(unwrapped));
+      // Sub2API update returns data: null on success.
+      final responseData = json['data'];
+      if (responseData is Map<String, dynamic>) {
+        return Success(TokenDto.fromJson(responseData));
+      }
+      return const Success(TokenDto());
     } on DioException catch (e, st) {
       return Failure(mapToAppException(e, st));
     } catch (e, st) {
@@ -235,16 +286,11 @@ class Sub2ApiAdapter implements SiteAdapter {
 
   // ── Internal helpers ────────────────────────────────────────────
 
-  /// Unwraps the Sub2API envelope `{code, message, data}`.
-  ///
-  /// Returns the `data` field when `code` is 200, `null` otherwise.
-  Map<String, dynamic>? _unwrapEnvelope(Map<String, dynamic> json) {
+  /// Checks if the Sub2API envelope indicates success (`code` is 0).
+  @protected
+  bool _isSuccess(Map<String, dynamic> json) {
     final code = json['code'];
-    if (code == 200 || code == 0) {
-      final data = json['data'];
-      if (data is Map<String, dynamic>) return data;
-    }
-    return null;
+    return code == 0;
   }
 
   /// Builds the per-request extra map carried through Dio [Options].

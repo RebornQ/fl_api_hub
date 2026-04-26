@@ -1608,3 +1608,46 @@ Migrate Trellis config from v0.4.0 to v0.5.0-beta.14. Removed retired commands/s
 ### Next Steps
 
 - None - task complete
+
+---
+
+## Session 54: Fix Key Management API Request/Response Bugs
+
+**Date**: 2026-04-27
+**Task**: fix-key-api-bugs
+**Branch**: `main`
+
+### Summary
+
+Audited key management code against API documentation and fixed 12 bugs across DTO, Adapter, and Repository layers.
+
+### Main Changes
+
+| File | Operation | Description |
+|------|-----------|-------------|
+| `lib/core/network/dto/token_dto.dart` | Rewritten | `quota`→`remainQuota`, dual Common/Sub2API fields, USD conversion, status string/int, OneHub `total_count` |
+| `lib/core/network/site_adapter.dart` | Modified | `createToken` added `quota`, `expiresAt`, `unlimitedQuota` |
+| `lib/core/network/adapters/common_api_adapter.dart` | Modified | create/update send complete request body |
+| `lib/core/network/adapters/sub2api_adapter.dart` | Rewritten | Page +1, quota USD conv, `expires_in_days`, null-data success |
+| `lib/core/network/adapters/wong_api_adapter.dart` | Created | GET for fetchTokenKey |
+| `lib/core/network/site_adapter_provider.dart` | Modified | Register WONG adapter |
+| `lib/features/keys/data/datasources/keys_remote_datasource.dart` | Modified | Pass full create params |
+| `lib/features/keys/data/repositories/keys_repository_impl.dart` | Modified | create() passes quota/expiresAt |
+| `lib/features/keys/data/models/api_key_api_mapper.dart` | Modified | Use remainQuota + unlimitedQuota |
+| `test/core/network/dto/token_dto_test.dart` | Rewritten | Common + Sub2API field tests |
+| `test/features/keys/data/models/api_key_api_mapper_test.dart` | Updated | Use new constructors |
+
+### Bugs Fixed
+
+**P0:** TokenDto field mismatch (quota vs remain_quota), Sub2API quota_used not read, Sub2API success=null treated as failure, Repository create() lost quota/expiresAt
+
+**P1:** Sub2API page 0→1, Common create/update missing fields, Sub2API expires_in_days, quota USD conversion, status string parsing, WONG GET method
+
+### Testing
+
+- [OK] 499/500 pass (1 pre-existing failure)
+- [OK] `flutter analyze` zero errors
+
+### Status
+
+[OK] **Completed**

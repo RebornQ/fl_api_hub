@@ -22,7 +22,7 @@ class ApiKeyApiMapper {
       accountId: accountId,
       name: dto.name ?? 'Unnamed',
       keyValue: dto.key,
-      quota: dto.quota,
+      quota: dto.unlimitedQuota ? null : dto.remainQuota,
       usedQuota: dto.usedQuota ?? 0,
       expiresAt: dto.expiresAt,
       createdAt: dto.createdAt ?? DateTime.now(),

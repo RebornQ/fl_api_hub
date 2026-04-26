@@ -222,8 +222,8 @@ class CLIAdapter:
 
         Note:
             Cursor: .cursor/commands/trellis-<name>.md
-            Codex: .agents/skills/<name>/SKILL.md
-            Kiro: .kiro/skills/<name>/SKILL.md
+            Codex: .agents/skills/trellis-<name>/SKILL.md
+            Kiro: .kiro/skills/trellis-<name>/SKILL.md
             Gemini: .gemini/commands/trellis/<name>.toml
             Antigravity: .agent/workflows/<name>.md
             Windsurf: .windsurf/workflows/trellis-<name>.md
@@ -232,9 +232,11 @@ class CLIAdapter:
         if self.platform == "cursor":
             return f".cursor/commands/trellis-{name}.md"
         elif self.platform == "codex":
-            return f".agents/skills/{name}/SKILL.md"
+            # 0.5.0-beta.0 renamed all skill dirs to add the `trellis-` prefix
+            # (see that release's manifest for the 60+ rename entries).
+            return f".agents/skills/trellis-{name}/SKILL.md"
         elif self.platform == "kiro":
-            return f".kiro/skills/{name}/SKILL.md"
+            return f".kiro/skills/trellis-{name}/SKILL.md"
         elif self.platform == "gemini":
             return f".gemini/commands/trellis/{name}.toml"
         elif self.platform == "antigravity":
@@ -363,7 +365,7 @@ class CLIAdapter:
             )
         elif self.platform == "droid":
             raise ValueError(
-                "Factory Droid CLI agent run is not yet integrated with Trellis multi-agent."
+                "Factory Droid CLI agent run is not yet supported."
             )
 
         else:  # claude
@@ -427,7 +429,7 @@ class CLIAdapter:
             )
         elif self.platform == "droid":
             raise ValueError(
-                "Factory Droid CLI resume is not yet integrated with Trellis multi-agent."
+                "Factory Droid CLI resume is not yet supported."
             )
         else:
             return ["claude", "--resume", session_id]
@@ -601,7 +603,6 @@ _ALL_PLATFORM_CONFIG_DIRS = (
     ".cursor",
     ".iflow",
     ".opencode",
-    ".agents",
     ".codex",
     ".kilocode",
     ".kiro",
@@ -613,7 +614,11 @@ _ALL_PLATFORM_CONFIG_DIRS = (
     ".github/copilot",
     ".factory",
 )
-"""All platform config directory names (used by detect_platform exclusion checks)."""
+"""Platform-specific config directory names used by detect_platform exclusion
+checks. `.agents/skills/` is NOT listed here: it is a shared cross-platform
+layer (written by Codex, also consumed by Amp/Cline/Warp/etc. via the
+agentskills.io standard), not a single-platform signal. Its presence must not
+block detection of Kiro, Antigravity, Windsurf, or other platforms."""
 
 
 def _has_other_platform_dir(project_root: Path, exclude: set[str]) -> bool:
@@ -736,6 +741,24 @@ def detect_platform(project_root: Path) -> Platform:
     # Check for .factory directory (Factory Droid-specific)
     if (project_root / ".factory").is_dir():
         return "droid"
+
+    # Fallback: checkout only has the Codex shared-skills layer
+    # (.agents/skills/trellis-* dirs) and no explicit platform config dir.
+    # Happens on fresh clones where .codex/ is gitignored/absent but the
+    # shared skills were committed to git. Must guard against the case
+    # where .claude/ or any other platform dir also exists — .agents/skills/
+    # can legitimately coexist with any platform as a shared consumption
+    # layer for Amp/Cline/Warp/etc.
+    agents_skills = project_root / ".agents" / "skills"
+    if agents_skills.is_dir() and not _has_other_platform_dir(
+        project_root, set()
+    ):
+        try:
+            for entry in agents_skills.iterdir():
+                if entry.is_dir() and entry.name.startswith("trellis-"):
+                    return "codex"
+        except OSError:
+            pass
 
     return "claude"
 

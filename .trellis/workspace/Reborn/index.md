@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 49
+- **Total Sessions**: 50
 - **Last Active**: 2026-04-26
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~1335 | Active |
+| `journal-2.md` | ~1376 | Active |
 | `journal-1.md` | ~1977 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 50 | 2026-04-26 | Account edit form improvements | `c5edd65` | `main` |
 | 49 | 2026-04-26 | Hive storage subdirectory per platform | `791885e` | `main` |
 | 48 | 2026-04-26 | Account reorder, swipe actions, check-in UX improvements | `8a21369` | `main` |
 | 47 | 2026-04-25 | fix: widescreen check-in detail panel not refreshing | `abe9c32` | `main` |

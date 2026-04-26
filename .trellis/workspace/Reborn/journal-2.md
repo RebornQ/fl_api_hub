@@ -1333,3 +1333,44 @@ In widescreen master-detail layout (≥900px), the right-side detail panel frequ
 ### Next Steps
 
 - None - task complete
+
+
+## Session 50: Account edit form improvements
+
+**Date**: 2026-04-26
+**Task**: Account edit form improvements
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+| Feature | Description |
+|---------|-------------|
+| Duplicate URL Detection | 100ms debounce + focus-lost trigger, orange border/icon/label warning, non-blocking |
+| Hide AnyRouter | Temporarily filter from site type dropdown (preserved for existing accounts) |
+| Default Site Type | New accounts default to New-API instead of Unknown |
+
+**Modified Files**:
+- `lib/features/accounts/presentation/widgets/account_edit_form.dart`
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `c5edd65` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

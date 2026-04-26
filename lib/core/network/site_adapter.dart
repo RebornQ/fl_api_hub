@@ -83,6 +83,17 @@ abstract class SiteAdapter {
     required String tokenId,
   });
 
+  /// Updates an existing API token's metadata.
+  ///
+  /// Endpoint: `PUT /api/token/`
+  Future<Result<TokenDto>> updateToken(
+    ApiRequest request, {
+    required String tokenId,
+    required String name,
+    int? quota,
+    DateTime? expiresAt,
+  });
+
   /// Resolves a masked token key to the full key value.
   ///
   /// This calls the hidden endpoint that returns the unmasked secret.

@@ -39,6 +39,21 @@ class KeysRemoteDataSource {
     required String tokenId,
   }) => _adapter.deleteToken(request, tokenId: tokenId);
 
+  /// Updates an existing API token's metadata.
+  Future<Result<TokenDto>> updateToken(
+    ApiRequest request, {
+    required String tokenId,
+    required String name,
+    int? quota,
+    DateTime? expiresAt,
+  }) => _adapter.updateToken(
+    request,
+    tokenId: tokenId,
+    name: name,
+    quota: quota,
+    expiresAt: expiresAt,
+  );
+
   /// Resolves a masked token key to the full key value.
   ///
   /// Calls the hidden `POST /api/token/{id}/key` endpoint to retrieve

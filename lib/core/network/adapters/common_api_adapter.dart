@@ -168,6 +168,32 @@ class CommonApiAdapter implements SiteAdapter {
   }
 
   @override
+  Future<Result<TokenDto>> updateToken(
+    ApiRequest request, {
+    required String tokenId,
+    required String name,
+    int? quota,
+    DateTime? expiresAt,
+  }) async {
+    final data = <String, dynamic>{
+      'id': int.tryParse(tokenId),
+      'name': name,
+    };
+    if (quota != null) data['remain_quota'] = quota;
+    if (expiresAt != null) {
+      data['expired_time'] = expiresAt.millisecondsSinceEpoch ~/ 1000;
+    }
+
+    return performRequest<TokenDto>(
+      method: 'PUT',
+      path: '/api/token/',
+      request: request,
+      data: data,
+      fromJson: TokenDto.fromJson,
+    );
+  }
+
+  @override
   Future<Result<TokenDto>> fetchTokenKey(
     ApiRequest request, {
     required String tokenId,

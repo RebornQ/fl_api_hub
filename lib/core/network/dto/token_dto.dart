@@ -57,7 +57,7 @@ class TokenDto {
       status: json['status'] as int?,
       createdAt: _parseDateTime(json['created_time']),
       accessedAt: _parseDateTime(json['accessed_time']),
-      expiresAt: _parseDateTime(json['expired_time']),
+      expiresAt: _parseDateTime(json['expired_time'], neverExpiresSentinel: true),
     );
   }
 
@@ -65,8 +65,13 @@ class TokenDto {
   bool get isKeyMasked =>
       key != null && (key!.contains('***') || key!.contains('***'));
 
-  static DateTime? _parseDateTime(dynamic value) {
+  static DateTime? _parseDateTime(
+    dynamic value, {
+    bool neverExpiresSentinel = false,
+  }) {
     if (value is int) {
+      // -1 is the sentinel for "never expires".
+      if (neverExpiresSentinel && value == -1) return null;
       return DateTime.fromMillisecondsSinceEpoch(value * 1000);
     }
     if (value is String) {

@@ -22,25 +22,21 @@ class KeysLocalDataSource {
   /// Returns all API keys for a specific [accountId].
   List<ApiKey> getByAccountId(String accountId) {
     return _box.values
-        .cast<Map<String, dynamic>>()
-        .where((map) => map['accountId'] == accountId)
-        .map(ApiKeyMapper.fromMap)
+        .map((raw) => _parseKey(raw))
+        .where((key) => key.accountId == accountId)
         .toList();
   }
 
   /// Returns all stored API keys.
   List<ApiKey> getAll() {
-    return _box.values
-        .cast<Map<String, dynamic>>()
-        .map(ApiKeyMapper.fromMap)
-        .toList();
+    return _box.values.map((raw) => _parseKey(raw)).toList();
   }
 
   /// Returns a single API key by [id], or `null` if not found.
   ApiKey? getById(String id) {
-    final map = _box.get(id) as Map<String, dynamic>?;
-    if (map == null) return null;
-    return ApiKeyMapper.fromMap(map);
+    final raw = _box.get(id);
+    if (raw == null) return null;
+    return _parseKey(raw);
   }
 
   /// Persists an [apiKey] to the local box.
@@ -59,6 +55,16 @@ class KeysLocalDataSource {
     for (final key in keys) {
       await delete(key.id);
     }
+  }
+
+  /// Safely converts a raw Hive value into an [ApiKey].
+  ///
+  /// Hive stores maps as `_Map<dynamic, dynamic>`, which cannot be cast
+  /// directly to `Map<String, dynamic>`. We convert via
+  /// `Map<String, dynamic>.from()` before passing to the mapper.
+  static ApiKey _parseKey(dynamic raw) {
+    final map = Map<String, dynamic>.from(raw as Map);
+    return ApiKeyMapper.fromMap(map);
   }
 }
 

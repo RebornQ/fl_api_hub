@@ -5,6 +5,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../app/theme/design_tokens.dart';
 import '../../../accounts/domain/entities/account.dart';
@@ -117,8 +118,12 @@ class KeyCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.md),
 
-            // Key value row (masked/revealed).
-            KeyValueRow(keyValue: apiKey.keyValue),
+            // Key value row (masked/revealed + remote resolve).
+            KeyValueRow(
+              keyValue: apiKey.keyValue,
+              keyId: apiKey.id,
+              accountId: apiKey.accountId,
+            ),
             const SizedBox(height: AppSpacing.md),
 
             // Quota and date grid.
@@ -129,13 +134,25 @@ class KeyCard extends StatelessWidget {
     );
   }
 
-  /// Copies the masked representation to clipboard.
-  /// Full value copying is handled within [KeyValueRow].
+  /// Copies the key value to clipboard if available and not masked.
   void _copyKey(BuildContext context) {
-    // For now, show a hint that they should use the visibility toggle.
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('请先显示密钥后再复制')));
+    final value = apiKey.keyValue;
+    if (value == null || value.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('密钥值为空')),
+      );
+      return;
+    }
+    if (value.contains('***') || value.contains('…')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('密钥已脱敏，请先点击解析按钮获取完整密钥')),
+      );
+      return;
+    }
+    Clipboard.setData(ClipboardData(text: value));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('已复制到剪贴板')),
+    );
   }
 }
 

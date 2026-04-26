@@ -29,7 +29,7 @@ void main() {
 
   setUp(() {
     mockLocal = MockKeysLocalDataSource();
-    repository = KeysRepositoryImpl(mockLocal);
+    repository = KeysRepositoryImpl.localOnly(mockLocal);
   });
 
   group('KeysRepositoryImpl', () {

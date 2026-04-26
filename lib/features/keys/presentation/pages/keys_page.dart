@@ -17,6 +17,7 @@ import '../../domain/entities/api_key.dart';
 import '../providers/keys_providers.dart';
 import '../widgets/account_selector.dart';
 import '../widgets/key_card.dart';
+import '../widgets/key_export_bar.dart';
 import '../widgets/key_form_sheet.dart';
 
 /// Keys management page.
@@ -27,16 +28,23 @@ class KeysPage extends ConsumerStatefulWidget {
   ConsumerState<KeysPage> createState() => _KeysPageState();
 }
 
-class _KeysPageState extends ConsumerState<KeysPage> {
+class _KeysPageState extends ConsumerState<KeysPage>
+    with SingleTickerProviderStateMixin {
   String? _selectedAccountId;
   String _searchQuery = '';
   final _searchController = TextEditingController();
   bool _hasSearchText = false;
 
+  late final AnimationController _refreshSpinController;
+
   @override
   void initState() {
     super.initState();
     _searchController.addListener(_onControllerChanged);
+    _refreshSpinController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    );
   }
 
   void _onControllerChanged() {
@@ -54,6 +62,7 @@ class _KeysPageState extends ConsumerState<KeysPage> {
   @override
   void dispose() {
     _searchController.dispose();
+    _refreshSpinController.dispose();
     super.dispose();
   }
 
@@ -87,6 +96,16 @@ class _KeysPageState extends ConsumerState<KeysPage> {
         ? ref.watch(keysProvider(_selectedAccountId!))
         : const AsyncValue<List<ApiKey>>.data([]);
 
+    final isLoading = keys.isLoading;
+
+    // Spin the refresh button while loading.
+    if (isLoading) {
+      _refreshSpinController.repeat();
+    } else {
+      _refreshSpinController.stop();
+      _refreshSpinController.value = 0;
+    }
+
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () async {
@@ -94,42 +113,29 @@ class _KeysPageState extends ConsumerState<KeysPage> {
             ref.invalidate(keysProvider(_selectedAccountId!));
           }
         },
-        child: Stack(
-          children: [
-            SafeArea(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildHeader(context),
-                  _buildAccountSelector(context, accounts),
-                  if (_selectedAccountId != null) _buildStatsRow(context, keys),
-                  _buildSearchBar(context),
-                  Expanded(
-                    child: _selectedAccountId == null
-                        ? _buildNoAccountsState(context)
-                        : keys.when(
-                            data: (list) => _buildList(context, ref, list),
-                            loading: () =>
-                                const AppLoadingState(message: '加载中...'),
-                            error: (err, _) => AppErrorState(
-                              message: err.toString(),
-                              onRetry: () => ref.invalidate(
-                                keysProvider(_selectedAccountId!),
-                              ),
-                            ),
-                          ),
-                  ),
-                ],
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildHeader(context),
+              _buildAccountSelector(context, accounts),
+              if (_selectedAccountId != null) _buildStatsRow(context, keys),
+              _buildSearchBar(context),
+              Expanded(
+                child: _selectedAccountId == null
+                    ? _buildNoAccountsState(context)
+                    : keys.when(
+                        data: (list) => _buildList(context, ref, list),
+                        loading: () => const AppLoadingState(message: '加载中...'),
+                        error: (err, _) => AppErrorState(
+                          message: err.toString(),
+                          onRetry: () =>
+                              ref.invalidate(keysProvider(_selectedAccountId!)),
+                        ),
+                      ),
               ),
-            ),
-            if (keys.isLoading)
-              const Positioned.fill(
-                child: ColoredBox(
-                  color: Color(0x66FFFFFF),
-                  child: AppLoadingState(),
-                ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
       // FAB group (stacked, right-aligned to match the extended primary FAB).
@@ -137,7 +143,7 @@ class _KeysPageState extends ConsumerState<KeysPage> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          // Secondary FAB: refresh channels.
+          // Secondary FAB: refresh (spins while loading).
           SizedBox(
             width: 48,
             height: 48,
@@ -153,7 +159,10 @@ class _KeysPageState extends ConsumerState<KeysPage> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: const Icon(Icons.refresh),
+              child: RotationTransition(
+                turns: _refreshSpinController,
+                child: const Icon(Icons.refresh),
+              ),
             ),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -161,6 +170,15 @@ class _KeysPageState extends ConsumerState<KeysPage> {
           _buildAddKeyFab(context),
         ],
       ),
+      // Export bar at the bottom.
+      bottomNavigationBar:
+          _selectedAccountId != null && keys.valueOrNull?.isNotEmpty == true
+          ? KeyExportBar(
+              keys: keys.valueOrNull!,
+              baseUrl: _getAccountBaseUrl(_selectedAccountId!, accounts),
+              providerName: _getAccountName(_selectedAccountId!, accounts),
+            )
+          : null,
     );
   }
 
@@ -448,6 +466,21 @@ class _KeysPageState extends ConsumerState<KeysPage> {
     return keys
         .where((k) => k.name.toLowerCase().contains(_searchQuery.toLowerCase()))
         .toList();
+  }
+
+  /// Gets the base URL for the selected account.
+  String _getAccountBaseUrl(String id, AsyncValue<List<Account>> accounts) {
+    return accounts.valueOrNull
+            ?.where((a) => a.id == id)
+            .firstOrNull
+            ?.baseUrl ??
+        '';
+  }
+
+  /// Gets the display name for the selected account.
+  String _getAccountName(String id, AsyncValue<List<Account>> accounts) {
+    return accounts.valueOrNull?.where((a) => a.id == id).firstOrNull?.name ??
+        '';
   }
 
   /// Shows a confirmation dialog before deleting a key.

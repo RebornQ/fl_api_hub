@@ -21,6 +21,7 @@ class ApiKeyApiMapper {
       id: dto.id ?? '',
       accountId: accountId,
       name: dto.name ?? 'Unnamed',
+      keyValue: dto.key,
       quota: dto.quota,
       usedQuota: dto.usedQuota ?? 0,
       expiresAt: dto.expiresAt,

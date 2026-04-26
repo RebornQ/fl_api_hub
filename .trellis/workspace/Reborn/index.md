@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 53
+- **Total Sessions**: 54
 - **Last Active**: 2026-04-27
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~1577 | Active |
+| `journal-2.md` | ~1610 | Active |
 | `journal-1.md` | ~1977 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 54 | 2026-04-27 | Session 54: Migrate Trellis v0.4.0 → v0.5.0-beta.14 | `51084e3` | `main` |
 | 53 | 2026-04-27 | Fix key quota calculation & form UX optimization | `90e3cbf` | `main` |
 | 52 | 2026-04-26 | feat(keys): 完善密钥管理页面 — 远程联动 + 导出 + Sub2API | `656d8bb` | `main` |
 | 51 | 2026-04-26 | 签到失败项长按跳转内置浏览器 | `3280c0d` | `main` |

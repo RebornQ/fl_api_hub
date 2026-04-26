@@ -1374,3 +1374,65 @@ In widescreen master-detail layout (≥900px), the right-side detail panel frequ
 ### Next Steps
 
 - None - task complete
+
+
+## Session 51: 签到失败项长按跳转内置浏览器
+
+**Date**: 2026-04-26
+**Task**: 签到失败项长按跳转内置浏览器
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+| Area | Description |
+|------|-------------|
+| Browser Service | 通用浏览器服务层：flutter_inappwebview + url_launcher 回退，设置开关 |
+| Browser Page | 内置浏览器页面（InAppWebView + 进度条） |
+| Browser Settings | Clean Architecture 全套：entity → repo → datasource → notifier → providers |
+| CheckInResultCard | 添加 onLongPress 回调，仅 failed 状态触发 |
+| CheckInPage / DetailView | 长按 → 确认弹窗（文案根据浏览器类型切换，URL 着色）→ 打开浏览器 |
+| Settings | 新增"浏览器"设置区，travel_explore 图标 |
+
+**New Files (9)**:
+- `lib/core/browser/browser_service.dart`
+- `lib/core/browser/browser_page.dart`
+- `lib/features/settings/domain/entities/browser_preference.dart`
+- `lib/features/settings/domain/repositories/browser_repository.dart`
+- `lib/features/settings/data/datasources/browser_local_datasource.dart`
+- `lib/features/settings/data/repositories/browser_repository_impl.dart`
+- `lib/features/settings/presentation/providers/browser_notifier.dart`
+- `lib/features/settings/presentation/providers/browser_providers.dart`
+- `lib/features/settings/presentation/widgets/browser_settings.dart`
+
+**Modified Files (4 meaningful)**:
+- `lib/features/check_in/presentation/widgets/check_in_result_card.dart`
+- `lib/features/check_in/presentation/pages/check_in_page.dart`
+- `lib/features/check_in/presentation/widgets/check_in_detail_view.dart`
+- `lib/features/settings/presentation/pages/settings_page.dart`
+
+**Dependencies Added**:
+- `flutter_inappwebview: ^6.1.5`
+- `url_launcher: ^6.3.1`
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3280c0d` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

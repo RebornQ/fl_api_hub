@@ -102,7 +102,7 @@ class _CheckInFilterBarState extends State<CheckInFilterBar> {
             ],
           ),
         ),
-        const SizedBox(height: AppSpacing.sm + 4),
+        const SizedBox(height: AppSpacing.sm + AppSpacing.xs),
         // Search bar.
         TextField(
           controller: _searchController,

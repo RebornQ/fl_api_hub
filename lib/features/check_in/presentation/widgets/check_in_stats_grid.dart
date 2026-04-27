@@ -25,13 +25,13 @@ class CheckInStatsGrid extends StatelessWidget {
             Expanded(
               child: _StatCell(label: '可参与', value: '${stats.eligible}'),
             ),
-            const SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.xs),
             Expanded(
               child: _StatCell(label: '已执行', value: '${stats.executed}'),
             ),
           ],
         ),
-        const SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: AppSpacing.xs),
         // Row 2: success + failed (with colored borders).
         Row(
           children: [
@@ -43,7 +43,7 @@ class CheckInStatsGrid extends StatelessWidget {
                 labelColor: const Color(0xFF059669),
               ),
             ),
-            const SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.xs),
             Expanded(
               child: _StatCell(
                 label: '失败',
@@ -54,7 +54,7 @@ class CheckInStatsGrid extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: AppSpacing.xs),
         // Row 3: skipped (full width).
         Row(
           children: [

@@ -35,7 +35,7 @@ class RequestLogListTile extends StatelessWidget {
     return Material(
       color: isSelected
           ? colorScheme.primaryContainer.withAlpha(120)
-          : colorScheme.surfaceContainerLowest,
+          : colorScheme.surfaceContainerLow,
       borderRadius: BorderRadius.circular(AppRadius.md),
       child: InkWell(
         borderRadius: BorderRadius.circular(AppRadius.md),

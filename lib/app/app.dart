@@ -1,4 +1,3 @@
-import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -16,32 +15,22 @@ class App extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
-    final dynamicEnabled = ref.watch(dynamicColorEnabledProvider);
+    final dynamicLight = ref.watch(dynamicLightColorSchemeProvider);
+    final dynamicDark = ref.watch(dynamicDarkColorSchemeProvider);
 
-    return DynamicColorBuilder(
-      builder: (lightDynamic, darkDynamic) {
-        final available = lightDynamic != null;
-        // Sync platform support flag once per build.
-        if (ref.read(dynamicColorAvailableProvider) != available) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            ref.read(dynamicColorAvailableProvider.notifier).state = available;
-          });
-        }
-        final lightTheme = dynamicEnabled && lightDynamic != null
-            ? AppTheme.buildFromScheme(lightDynamic.harmonized())
-            : AppTheme.light;
-        final darkTheme = dynamicEnabled && darkDynamic != null
-            ? AppTheme.buildFromScheme(darkDynamic.harmonized())
-            : AppTheme.dark;
+    final lightTheme = dynamicLight != null
+        ? AppTheme.buildFromScheme(dynamicLight)
+        : AppTheme.light;
+    final darkTheme = dynamicDark != null
+        ? AppTheme.buildFromScheme(dynamicDark)
+        : AppTheme.dark;
 
-        return MaterialApp(
-          title: 'Fl API Hub',
-          theme: lightTheme,
-          darkTheme: darkTheme,
-          themeMode: themeMode,
-          home: const AppShell(),
-        );
-      },
+    return MaterialApp(
+      title: 'Fl API Hub',
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      themeMode: themeMode,
+      home: const AppShell(),
     );
   }
 }

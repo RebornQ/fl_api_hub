@@ -340,32 +340,31 @@ void main() {
   // ── createToken ──────────────────────────────────────────────────
 
   group('CommonApiAdapter.createToken', () {
-    test('returns Success when data is null (standard create response)', () async {
-      when(
-        () => mockDio.request(
-          any(),
-          options: any(named: 'options'),
-          queryParameters: any(named: 'queryParameters'),
-          data: any(named: 'data'),
-        ),
-      ).thenAnswer(
-        (_) async => Response<Map<String, dynamic>>(
-          requestOptions: RequestOptions(path: '/api/token/'),
-          statusCode: 200,
-          data: const {
-            'success': true,
-            'message': '',
-            'data': null,
-          },
-        ),
-      );
+    test(
+      'returns Success when data is null (standard create response)',
+      () async {
+        when(
+          () => mockDio.request(
+            any(),
+            options: any(named: 'options'),
+            queryParameters: any(named: 'queryParameters'),
+            data: any(named: 'data'),
+          ),
+        ).thenAnswer(
+          (_) async => Response<Map<String, dynamic>>(
+            requestOptions: RequestOptions(path: '/api/token/'),
+            statusCode: 200,
+            data: const {'success': true, 'message': '', 'data': null},
+          ),
+        );
 
-      final result = await adapter.createToken(
-        _testRequest,
-        name: 'test-token',
-      );
-      expect(result, isA<Success<TokenDto>>());
-    });
+        final result = await adapter.createToken(
+          _testRequest,
+          name: 'test-token',
+        );
+        expect(result, isA<Success<TokenDto>>());
+      },
+    );
 
     test('returns Failure when success=false', () async {
       when(
@@ -379,18 +378,11 @@ void main() {
         (_) async => Response<Map<String, dynamic>>(
           requestOptions: RequestOptions(path: '/api/token/'),
           statusCode: 200,
-          data: const {
-            'success': false,
-            'message': '令牌名称已存在',
-            'data': null,
-          },
+          data: const {'success': false, 'message': '令牌名称已存在', 'data': null},
         ),
       );
 
-      final result = await adapter.createToken(
-        _testRequest,
-        name: 'duplicate',
-      );
+      final result = await adapter.createToken(_testRequest, name: 'duplicate');
       expect(result, isA<Failure<TokenDto>>());
     });
   });
@@ -398,33 +390,32 @@ void main() {
   // ── updateToken ──────────────────────────────────────────────────
 
   group('CommonApiAdapter.updateToken', () {
-    test('returns Success when data is null (standard update response)', () async {
-      when(
-        () => mockDio.request(
-          any(),
-          options: any(named: 'options'),
-          queryParameters: any(named: 'queryParameters'),
-          data: any(named: 'data'),
-        ),
-      ).thenAnswer(
-        (_) async => Response<Map<String, dynamic>>(
-          requestOptions: RequestOptions(path: '/api/token/'),
-          statusCode: 200,
-          data: const {
-            'success': true,
-            'message': '',
-            'data': null,
-          },
-        ),
-      );
+    test(
+      'returns Success when data is null (standard update response)',
+      () async {
+        when(
+          () => mockDio.request(
+            any(),
+            options: any(named: 'options'),
+            queryParameters: any(named: 'queryParameters'),
+            data: any(named: 'data'),
+          ),
+        ).thenAnswer(
+          (_) async => Response<Map<String, dynamic>>(
+            requestOptions: RequestOptions(path: '/api/token/'),
+            statusCode: 200,
+            data: const {'success': true, 'message': '', 'data': null},
+          ),
+        );
 
-      final result = await adapter.updateToken(
-        _testRequest,
-        tokenId: '1',
-        name: 'updated',
-      );
-      expect(result, isA<Success<TokenDto>>());
-    });
+        final result = await adapter.updateToken(
+          _testRequest,
+          tokenId: '1',
+          name: 'updated',
+        );
+        expect(result, isA<Success<TokenDto>>());
+      },
+    );
   });
 
   // ── deleteToken ──────────────────────────────────────────────────
@@ -441,10 +432,7 @@ void main() {
         ),
       );
 
-      final result = await adapter.deleteToken(
-        _testRequest,
-        tokenId: '1',
-      );
+      final result = await adapter.deleteToken(_testRequest, tokenId: '1');
       expect(result, isA<Success<void>>());
     });
 
@@ -455,18 +443,11 @@ void main() {
         (_) async => Response<Map<String, dynamic>>(
           requestOptions: RequestOptions(path: '/api/token/1'),
           statusCode: 200,
-          data: const {
-            'success': false,
-            'message': '删除令牌失败',
-            'data': null,
-          },
+          data: const {'success': false, 'message': '删除令牌失败', 'data': null},
         ),
       );
 
-      final result = await adapter.deleteToken(
-        _testRequest,
-        tokenId: '1',
-      );
+      final result = await adapter.deleteToken(_testRequest, tokenId: '1');
       expect(result, isA<Failure<void>>());
     });
   });

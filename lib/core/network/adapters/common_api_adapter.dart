@@ -140,9 +140,7 @@ class CommonApiAdapter implements SiteAdapter {
       final data = json['data'];
       // Format A: direct array — {"success":true, "data":[...]}
       if (data is List) {
-        return Success<TokenListDto>(
-          TokenListDto.fromJson({'items': data}),
-        );
+        return Success<TokenListDto>(TokenListDto.fromJson({'items': data}));
       }
       // Format B: paginated object — {"success":true, "data":{"items":[...],...}}
       if (data is Map<String, dynamic>) {

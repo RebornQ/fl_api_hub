@@ -75,10 +75,7 @@ void main() {
         ),
       );
 
-      final result = await adapter.deleteToken(
-        _testRequest,
-        tokenId: '1',
-      );
+      final result = await adapter.deleteToken(_testRequest, tokenId: '1');
       expect(result, isA<Success<void>>());
     });
 
@@ -93,10 +90,7 @@ void main() {
         ),
       );
 
-      final result = await adapter.deleteToken(
-        _testRequest,
-        tokenId: '1',
-      );
+      final result = await adapter.deleteToken(_testRequest, tokenId: '1');
       expect(result, isA<Failure<void>>());
     });
   });

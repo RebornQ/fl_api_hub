@@ -42,6 +42,7 @@ class ExportConfig {
 /// Abstract export tool with platform awareness.
 abstract class ExportTool {
   const ExportTool();
+
   /// Display name of the tool.
   String get name;
 

@@ -272,7 +272,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
           CheckInSummaryCard(stats: stats),
           const SizedBox(height: AppSpacing.sm),
           CheckInStatsGrid(stats: stats),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.sm + AppSpacing.xs),
           CheckInFilterBar(
             selectedFilter: _selectedFilter,
             searchQuery: _searchQuery,

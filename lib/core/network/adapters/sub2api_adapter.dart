@@ -255,8 +255,7 @@ class Sub2ApiAdapter implements SiteAdapter {
       if (!_isSuccess(json)) {
         return Failure<void>(
           NetworkException(
-            message:
-                json['message']?.toString() ?? 'Sub2API delete key failed',
+            message: json['message']?.toString() ?? 'Sub2API delete key failed',
           ),
         );
       }

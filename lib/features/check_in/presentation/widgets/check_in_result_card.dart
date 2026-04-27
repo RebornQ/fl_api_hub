@@ -41,13 +41,13 @@ class CheckInResultCard extends StatelessWidget {
     final Color cardColor;
     final BoxBorder? border;
     if (isSelected) {
-      cardColor = colorScheme.primaryContainer;
+      cardColor = colorScheme.surfaceContainerLow;
       border = Border.all(
         color: colorScheme.primary.withValues(alpha: 0.5),
         width: 1.5,
       );
     } else {
-      cardColor = colorScheme.surfaceContainerLowest;
+      cardColor = colorScheme.surfaceContainerLow;
       border = null;
     }
 

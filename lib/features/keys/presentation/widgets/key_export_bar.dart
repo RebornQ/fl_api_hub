@@ -137,7 +137,7 @@ class _ExportChip extends StatelessWidget {
 
     return Material(
       color: enabled
-          ? colorScheme.secondaryContainer
+          ? colorScheme.primaryContainer
           : colorScheme.surfaceContainerHighest,
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
@@ -148,7 +148,13 @@ class _ExportChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 14, color: colorScheme.onSurfaceVariant),
+              Icon(
+                icon,
+                size: 14,
+                color: enabled
+                    ? colorScheme.onPrimaryContainer
+                    : colorScheme.outline,
+              ),
               const SizedBox(width: 4),
               Text(
                 label,
@@ -156,7 +162,7 @@ class _ExportChip extends StatelessWidget {
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                   color: enabled
-                      ? colorScheme.onSurfaceVariant
+                      ? colorScheme.onPrimaryContainer
                       : colorScheme.outline,
                 ),
               ),

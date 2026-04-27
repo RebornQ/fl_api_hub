@@ -1750,3 +1750,36 @@ Audited key management code against API documentation and fixed 12 bugs across D
 ### Next Steps
 
 - None - task complete
+
+
+## Session 58: 修改桌面端最小窗口限制为 800x600
+
+**Date**: 2026-04-27
+**Task**: 修改桌面端最小窗口限制为 800x600
+**Branch**: `main`
+
+### Summary
+
+macOS/Windows/Linux 三平台最小窗口限制从 1024x768 统一调整为 800x600
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `30c8aab` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

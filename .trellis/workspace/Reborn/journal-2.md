@@ -1783,3 +1783,36 @@ macOS/Windows/Linux 三平台最小窗口限制从 1024x768 统一调整为 800x
 ### Next Steps
 
 - None - task complete
+
+
+## Session 59: 密钥列表导出工具栏增强
+
+**Date**: 2026-04-27
+**Task**: 密钥列表导出工具栏增强
+**Branch**: `main`
+
+### Summary
+
+实现密钥单选 + 导出工具栏显隐、CC-Switch deeplink/Kelivo base64 两个导出工具、平台过滤 + 空状态、导出弹窗（渠道选择 + 供应商名称）。替换旧 Claude Code/Cherry Studio 导出器。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `9e98a24` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 58
+- **Total Sessions**: 59
 - **Last Active**: 2026-04-27
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~1785 | Active |
+| `journal-2.md` | ~1818 | Active |
 | `journal-1.md` | ~1977 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 59 | 2026-04-27 | 密钥列表导出工具栏增强 | `9e98a24` | `main` |
 | 58 | 2026-04-27 | 修改桌面端最小窗口限制为 800x600 | `30c8aab` | `main` |
 | 57 | 2026-04-27 | 密钥列表首次加载优化 | `273a68b` | `main` |
 | 56 | 2026-04-27 | fix: 修复密钥管理 API 响应解析 bug | `0c04deb` | `main` |

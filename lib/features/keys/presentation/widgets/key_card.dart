@@ -21,6 +21,12 @@ class KeyCard extends StatelessWidget {
   /// The account this key belongs to (may be null during loading).
   final Account? account;
 
+  /// Whether this card is currently selected.
+  final bool isSelected;
+
+  /// Callback when the user taps the card body to select/deselect.
+  final ValueChanged<String>? onSelect;
+
   /// Callback when the user taps edit.
   final VoidCallback? onEdit;
 
@@ -31,6 +37,8 @@ class KeyCard extends StatelessWidget {
     super.key,
     required this.apiKey,
     this.account,
+    this.isSelected = false,
+    this.onSelect,
     this.onEdit,
     this.onDelete,
   });
@@ -38,97 +46,102 @@ class KeyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final borderColor = isSelected
+        ? colorScheme.primary
+        : colorScheme.outlineVariant.withValues(alpha: 0.15);
 
     return Card(
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        side: BorderSide(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.15),
-        ),
+        side: BorderSide(color: borderColor, width: isSelected ? 2 : 1),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header row: name + badges + action buttons.
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Name + badges.
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              apiKey.name,
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w700),
-                              overflow: TextOverflow.ellipsis,
+      child: InkWell(
+        onTap: onSelect != null ? () => onSelect!(apiKey.id) : null,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header row: name + badges + action buttons.
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Name + badges.
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                apiKey.name,
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w700),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          KeyStatusBadge(apiKey: apiKey),
-                          if (account != null) ...[
                             const SizedBox(width: AppSpacing.sm),
-                            _AccountBadge(accountName: account!.name),
+                            KeyStatusBadge(apiKey: apiKey),
+                            if (account != null) ...[
+                              const SizedBox(width: AppSpacing.sm),
+                              _AccountBadge(accountName: account!.name),
+                            ],
                           ],
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      // Admin site info.
-                      Text(
-                        '管理站点：${account?.baseUrl ?? '未知'}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: colorScheme.outline,
                         ),
-                        overflow: TextOverflow.ellipsis,
+                        const SizedBox(height: AppSpacing.sm),
+                        // Admin site info.
+                        Text(
+                          '管理站点：${account?.baseUrl ?? '未知'}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: colorScheme.outline,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Action buttons.
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _ActionButton(
+                        icon: Icons.copy_outlined,
+                        tooltip: '复制密钥',
+                        onTap: () => _copyKey(context),
+                      ),
+                      _ActionButton(
+                        icon: Icons.edit_outlined,
+                        tooltip: '编辑',
+                        onTap: onEdit,
+                      ),
+                      _ActionButton(
+                        icon: Icons.delete_outlined,
+                        tooltip: '删除',
+                        color: colorScheme.error,
+                        onTap: onDelete,
                       ),
                     ],
                   ),
-                ),
-                // Action buttons.
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _ActionButton(
-                      icon: Icons.copy_outlined,
-                      tooltip: '复制密钥',
-                      onTap: () => _copyKey(context),
-                    ),
-                    _ActionButton(
-                      icon: Icons.edit_outlined,
-                      tooltip: '编辑',
-                      onTap: onEdit,
-                    ),
-                    _ActionButton(
-                      icon: Icons.delete_outlined,
-                      tooltip: '删除',
-                      color: colorScheme.error,
-                      onTap: onDelete,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
 
-            // Key value row (masked/revealed + remote resolve).
-            KeyValueRow(
-              keyValue: apiKey.keyValue,
-              keyId: apiKey.id,
-              accountId: apiKey.accountId,
-            ),
-            const SizedBox(height: AppSpacing.md),
+              // Key value row (masked/revealed + remote resolve).
+              KeyValueRow(
+                keyValue: apiKey.keyValue,
+                keyId: apiKey.id,
+                accountId: apiKey.accountId,
+              ),
+              const SizedBox(height: AppSpacing.md),
 
-            // Quota and date grid.
-            KeyQuotaGrid(apiKey: apiKey),
-          ],
+              // Quota and date grid.
+              KeyQuotaGrid(apiKey: apiKey),
+            ],
+          ),
         ),
       ),
     );

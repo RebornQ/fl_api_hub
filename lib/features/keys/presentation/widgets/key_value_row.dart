@@ -52,9 +52,9 @@ class _KeyValueRowState extends ConsumerState<KeyValueRow> {
     final value = widget.keyValue;
 
     return Container(
-      padding: const EdgeInsets.only(left: 0, right: 12, top: 8, bottom: 8),
+      padding: const EdgeInsets.only(left: 8, right: 8, top: 8, bottom: 8),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
+        color: colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(AppRadius.sm),
       ),
       child: Row(

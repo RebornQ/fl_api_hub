@@ -1,22 +1,20 @@
 /// Export action bar for key management page.
 ///
-/// Displays export buttons for Claude Code and Cherry Studio at the bottom
-/// of the keys page. Each button generates the appropriate config format
-/// and copies it to clipboard.
+/// Displays export tool chips filtered by current platform.
+/// Only visible when a key is selected.
 library;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../../../app/theme/design_tokens.dart';
-import '../../data/export/claude_code_exporter.dart';
-import '../../data/export/cherry_studio_exporter.dart';
+import '../../data/export/export_tool.dart';
 import '../../domain/entities/api_key.dart';
+import 'export_dialog.dart';
 
-/// A bottom bar with export buttons for external tools.
+/// A bottom bar with platform-filtered export tool chips.
 class KeyExportBar extends StatelessWidget {
-  /// Keys to export.
-  final List<ApiKey> keys;
+  /// The selected key to export.
+  final ApiKey? apiKey;
 
   /// Base URL of the selected account.
   final String baseUrl;
@@ -26,7 +24,7 @@ class KeyExportBar extends StatelessWidget {
 
   const KeyExportBar({
     super.key,
-    required this.keys,
+    required this.apiKey,
     required this.baseUrl,
     required this.providerName,
   });
@@ -34,9 +32,11 @@ class KeyExportBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final hasExportableKeys = keys.any(
-      (k) => k.keyValue != null && k.keyValue!.isNotEmpty,
-    );
+    final tools = platformExportTools;
+    final hasApiKey =
+        apiKey != null &&
+        apiKey!.keyValue != null &&
+        apiKey!.keyValue!.isNotEmpty;
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -53,70 +53,66 @@ class KeyExportBar extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: Row(
-          children: [
-            Text(
-              '导出:',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _ExportChip(
-                      label: 'Claude Code',
-                      icon: Icons.terminal,
-                      enabled: hasExportableKeys,
-                      onTap: () => _exportClaudeCode(context),
+        child: tools.isEmpty
+            ? _buildEmptyState(context)
+            : Row(
+                children: [
+                  Text(
+                    '导出:',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurfaceVariant,
                     ),
-                    const SizedBox(width: AppSpacing.sm),
-                    _ExportChip(
-                      label: 'Cherry Studio',
-                      icon: Icons.auto_awesome,
-                      enabled: hasExportableKeys,
-                      onTap: () => _exportCherryStudio(context),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: tools
+                            .map(
+                              (tool) => Padding(
+                                padding: const EdgeInsets.only(
+                                  right: AppSpacing.sm,
+                                ),
+                                child: _ExportChip(
+                                  label: tool.name,
+                                  icon: tool.icon,
+                                  enabled: hasApiKey,
+                                  onTap: hasApiKey
+                                      ? () => showExportDialog(
+                                          context: context,
+                                          tool: tool,
+                                          defaultName: providerName,
+                                          apiKey: apiKey!.keyValue!,
+                                          baseUrl: baseUrl,
+                                          homepage: baseUrl,
+                                        )
+                                      : null,
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
 
-  void _exportClaudeCode(BuildContext context) {
-    final json = keys.length == 1
-        ? ClaudeCodeExporter.exportKey(keys.first, baseUrl)
-        : ClaudeCodeExporter.exportKeys(keys, baseUrl);
-    Clipboard.setData(ClipboardData(text: json));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Claude Code 配置已复制到剪贴板（${keys.length} 个密钥）')),
-    );
-  }
-
-  void _exportCherryStudio(BuildContext context) {
-    final json = keys.length == 1
-        ? CherryStudioExporter.exportKey(
-            keys.first,
-            baseUrl,
-            providerName: providerName,
-          )
-        : CherryStudioExporter.exportKeys(
-            keys,
-            baseUrl,
-            providerName: providerName,
-          );
-    Clipboard.setData(ClipboardData(text: json));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Cherry Studio 配置已复制到剪贴板（${keys.length} 个密钥）')),
+  Widget _buildEmptyState(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      child: Center(
+        child: Text(
+          '当前平台暂无支持的导出工具',
+          style: TextStyle(fontSize: 12, color: colorScheme.outline),
+        ),
+      ),
     );
   }
 }
@@ -126,13 +122,13 @@ class _ExportChip extends StatelessWidget {
   final String label;
   final IconData icon;
   final bool enabled;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const _ExportChip({
     required this.label,
     required this.icon,
     required this.enabled,
-    required this.onTap,
+    this.onTap,
   });
 
   @override

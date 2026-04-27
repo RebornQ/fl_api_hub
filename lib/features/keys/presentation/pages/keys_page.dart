@@ -31,6 +31,7 @@ class KeysPage extends ConsumerStatefulWidget {
 class _KeysPageState extends ConsumerState<KeysPage>
     with SingleTickerProviderStateMixin {
   String? _selectedAccountId;
+  String? _selectedKeyId;
   String _searchQuery = '';
   final _searchController = TextEditingController();
   bool _hasSearchText = false;
@@ -76,7 +77,10 @@ class _KeysPageState extends ConsumerState<KeysPage>
           !list.any((a) => a.id == _selectedAccountId)) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
-            setState(() => _selectedAccountId = null);
+            setState(() {
+              _selectedAccountId = null;
+              _selectedKeyId = null;
+            });
           }
         });
       }
@@ -144,10 +148,12 @@ class _KeysPageState extends ConsumerState<KeysPage>
                     heroTag: 'keys_refresh',
                     onPressed: () =>
                         ref.invalidate(keysProvider(_selectedAccountId!)),
-                    backgroundColor:
-                        Theme.of(context).colorScheme.secondaryContainer,
-                    foregroundColor:
-                        Theme.of(context).colorScheme.onSecondaryContainer,
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.secondaryContainer,
+                    foregroundColor: Theme.of(
+                      context,
+                    ).colorScheme.onSecondaryContainer,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -162,11 +168,19 @@ class _KeysPageState extends ConsumerState<KeysPage>
                 _buildAddKeyFab(context),
               ],
             ),
-      // Export bar at the bottom.
-      bottomNavigationBar:
-          _selectedAccountId != null && keys.valueOrNull?.isNotEmpty == true
+      // Export bar: visible only when a key is selected.
+      bottomNavigationBar: _selectedKeyId != null
           ? KeyExportBar(
-              keys: keys.valueOrNull!,
+              apiKey: keys.valueOrNull?.firstWhere(
+                (k) => k.id == _selectedKeyId,
+                orElse: () => ApiKey(
+                  id: '',
+                  accountId: '',
+                  name: '',
+                  createdAt: DateTime.now(),
+                  updatedAt: DateTime.now(),
+                ),
+              ),
               baseUrl: _getAccountBaseUrl(_selectedAccountId!, accounts),
               providerName: _getAccountName(_selectedAccountId!, accounts),
             )
@@ -238,7 +252,10 @@ class _KeysPageState extends ConsumerState<KeysPage>
         data: (list) => AccountSelector(
           accounts: list,
           selectedId: _selectedAccountId,
-          onChanged: (id) => setState(() => _selectedAccountId = id),
+          onChanged: (id) => setState(() {
+            _selectedAccountId = id;
+            _selectedKeyId = null;
+          }),
         ),
         loading: () => const SizedBox(
           height: 56,
@@ -414,6 +431,10 @@ class _KeysPageState extends ConsumerState<KeysPage>
           child: KeyCard(
             apiKey: key,
             account: currentAccount,
+            isSelected: key.id == _selectedKeyId,
+            onSelect: (id) => setState(() {
+              _selectedKeyId = _selectedKeyId == id ? null : id;
+            }),
             onEdit: () => KeyFormSheet.show(
               context,
               apiKey: key,

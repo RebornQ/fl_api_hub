@@ -2,8 +2,8 @@ import Cocoa
 import FlutterMacOS
 
 class MainFlutterWindow: NSWindow {
-  private let kMinWidth: CGFloat = 1024
-  private let kMinHeight: CGFloat = 768
+  private let kMinWidth: CGFloat = 800
+  private let kMinHeight: CGFloat = 600
   private let kScreenRatio: CGFloat = 0.8
 
   private let kKeyWidth = "window_width"

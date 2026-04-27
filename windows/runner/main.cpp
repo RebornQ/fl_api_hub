@@ -11,8 +11,8 @@ namespace {
 constexpr const wchar_t kWindowRegKey[] =
     L"Software\\mallotec\\flapihub";
 
-constexpr int kMinWidth = 1024;
-constexpr int kMinHeight = 768;
+constexpr int kMinWidth = 800;
+constexpr int kMinHeight = 600;
 constexpr double kScreenRatio = 0.8;
 
 // Reads a DWORD from the registry. Returns false on failure.

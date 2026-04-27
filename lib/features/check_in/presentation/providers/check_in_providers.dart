@@ -139,6 +139,12 @@ final checkInAccountSummariesProvider =
       final sortOrderMap = {for (final a in accounts) a.id: a.sortOrder};
 
       return resultsAsync.whenData((results) {
+        // Build account list index as secondary sort key for stable ordering
+        // when multiple accounts share the same sortOrder (e.g., default 0).
+        final accountIndex = <String, int>{
+          for (var i = 0; i < accounts.length; i++) accounts[i].id: i,
+        };
+
         final summaries = results
             .where((r) => accountMap.containsKey(r.accountId))
             .map(
@@ -148,12 +154,15 @@ final checkInAccountSummariesProvider =
               ),
             )
             .toList();
-        // Sort by the same sortOrder used on the accounts management page.
-        summaries.sort(
-          (a, b) => (sortOrderMap[a.result.accountId] ?? 0).compareTo(
-            sortOrderMap[b.result.accountId] ?? 0,
-          ),
-        );
+        // Primary: sortOrder; secondary: account list position for stability.
+        summaries.sort((a, b) {
+          final orderA = sortOrderMap[a.result.accountId] ?? 0;
+          final orderB = sortOrderMap[b.result.accountId] ?? 0;
+          if (orderA != orderB) return orderA.compareTo(orderB);
+          final idxA = accountIndex[a.result.accountId] ?? 0;
+          final idxB = accountIndex[b.result.accountId] ?? 0;
+          return idxA.compareTo(idxB);
+        });
         return summaries;
       });
     });

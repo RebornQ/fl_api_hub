@@ -1,0 +1,5 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Riverpod patterns: provider invalidation, family providers, AsyncValue"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Widget animation and visual feedback patterns"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Cross-layer data flow for check-in → account → key interactions"}

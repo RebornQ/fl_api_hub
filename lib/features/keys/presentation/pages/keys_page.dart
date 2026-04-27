@@ -493,8 +493,14 @@ class _KeysPageState extends ConsumerState<KeysPage>
         ],
       ),
     );
-    if (confirmed == true && _selectedAccountId != null) {
+    if (confirmed == true && _selectedAccountId != null && mounted) {
       ref.read(keysProvider(_selectedAccountId!).notifier).delete(apiKey.id);
+      // Clear selection if the deleted key was selected.
+      if (_selectedKeyId == apiKey.id) {
+        setState(() {
+          _selectedKeyId = null;
+        });
+      }
     }
   }
 }

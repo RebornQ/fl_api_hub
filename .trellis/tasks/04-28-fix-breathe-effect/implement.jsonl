@@ -1,0 +1,5 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Widget animation and visual feedback patterns"}
+{"file": ".trellis/tasks/04-28-fix-checkin-breathe-key/prd.md", "reason": "Parent task PRD with full context"}
+{"file": ".trellis/tasks/04-28-fix-breathe-effect/prd.md", "reason": "Subtask PRD: breathing effect enhancement details"}

@@ -1,0 +1,30 @@
+{
+  "id": "fix-checkin-breathe-key",
+  "name": "fix-checkin-breathe-key",
+  "title": "fix: 签到排序/呼吸效果/密钥置空三合一修复",
+  "description": "",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "Reborn",
+  "assignee": "Reborn",
+  "createdAt": "2026-04-28",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "04-28-fix-checkin-sort",
+    "04-28-fix-breathe-effect",
+    "04-28-fix-key-selected-clear"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

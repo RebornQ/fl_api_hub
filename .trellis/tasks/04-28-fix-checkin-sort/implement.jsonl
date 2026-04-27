@@ -1,0 +1,5 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Riverpod provider patterns, invalidation, family providers"}
+{"file": ".trellis/tasks/04-28-fix-checkin-breathe-key/prd.md", "reason": "Parent task PRD with full context"}
+{"file": ".trellis/tasks/04-28-fix-checkin-sort/prd.md", "reason": "Subtask PRD: check-in sort fix details"}

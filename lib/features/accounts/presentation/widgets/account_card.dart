@@ -230,8 +230,8 @@ class _StatusDotState extends ConsumerState<_StatusDot>
       animation: _controller,
       builder: (context, _) {
         final t = _controller.value; // 0..1
-        final scale = 0.85 + 0.30 * t;
-        final opacity = 0.5 + 0.5 * (1 - t);
+        final scale = 0.70 + 0.70 * t;
+        final opacity = 0.25 + 0.75 * (1 - t);
         return Container(
           margin: const EdgeInsets.only(top: 6),
           width: 10,
@@ -246,9 +246,9 @@ class _StatusDotState extends ConsumerState<_StatusDot>
                   color: color,
                   boxShadow: [
                     BoxShadow(
-                      color: color.withValues(alpha: 0.4),
-                      blurRadius: 8,
-                      spreadRadius: 0,
+                      color: color.withValues(alpha: isChecking ? 0.6 : 0.4),
+                      blurRadius: isChecking ? 12 + 6 * t : 8,
+                      spreadRadius: isChecking ? 2 * t : 0,
                     ),
                   ],
                 ),

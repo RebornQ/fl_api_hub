@@ -140,7 +140,7 @@ class _AccountEditPageState extends State<AccountEditPage> {
               dirtyNotifier: _dirtyNotifier,
               siteTypeNotifier: _siteTypeNotifier,
             ),
-            bottomNavigationBar: _buildAuxBar(),
+            // bottomNavigationBar: _buildAuxBar(),
             floatingActionButton: _buildSaveFab(isDirty),
           ),
         );
@@ -173,6 +173,7 @@ class _AccountEditPageState extends State<AccountEditPage> {
     );
   }
 
+  // TODO 目前功能没用上，先隐藏，待实现
   /// Auxiliary action bar: re-detect + auto-config (placeholders).
   Widget _buildAuxBar() {
     return ValueListenableBuilder<SiteType>(

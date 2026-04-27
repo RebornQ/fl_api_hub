@@ -1,8 +1,18 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+// 读取签名配置
+// https://docs.flutter.dev/deployment/android
+val keystorePropertiesFile = rootProject.file("key.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(keystorePropertiesFile.inputStream())
 }
 
 android {
@@ -30,11 +40,55 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            keyAlias = keystoreProperties.getProperty("keyAlias")
+            keyPassword = keystoreProperties.getProperty("keyPassword")
+            storeFile = keystoreProperties.getProperty("storeFile")?.let { path -> file(path) }
+            storePassword = keystoreProperties.getProperty("storePassword")
+        }
+    }
+
     buildTypes {
+//        debug {
+//            signingConfig = signingConfigs.getByName("release")
+//        }
+
         release {
-            // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
+        }
+    }
+
+    // 参考：https://github.com/Lingyan000/fluxdo/blob/main/android/app/build.gradle.kts
+    // 显式根据构建目标过滤 ABI，防止 Cronet 等原生库引入不需要的架构
+    val targetPlatform = project.findProperty("target-platform") as? String
+    println("Target Platform: $targetPlatform")
+    if (targetPlatform != null) {
+        val targetAbi = when (targetPlatform) {
+            "android-arm" -> "armeabi-v7a"
+            "android-arm64" -> "arm64-v8a"
+            "android-x64" -> "x86_64"
+            else -> null
+        }
+
+        if (targetAbi != null) {
+            println("Configuring build for ABI: $targetAbi")
+            defaultConfig {
+                ndk {
+                    abiFilters.add(targetAbi)
+                }
+            }
+
+            // 强制排除非目标架构的 so 文件 (针对 Cronet 等不服从 abiFilters 的库)
+            packaging {
+                jniLibs {
+                    val allAbis = listOf("armeabi-v7a", "arm64-v8a", "x86_64", "x86")
+                    allAbis.filter { it != targetAbi }.forEach { abi ->
+                        excludes.add("lib/$abi/**")
+                    }
+                }
+            }
         }
     }
 }

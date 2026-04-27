@@ -1849,3 +1849,36 @@ macOS/Windows/Linux 三平台最小窗口限制从 1024x768 统一调整为 800x
 ### Next Steps
 
 - None - task complete
+
+
+## Session 61: Fix: 签到排序/呼吸效果/密钥置空三合一修复
+
+**Date**: 2026-04-28
+**Task**: Fix: 签到排序/呼吸效果/密钥置空三合一修复
+**Branch**: `main`
+
+### Summary
+
+修复三个独立 bug：1) checkInAccountSummariesProvider 新增 accountIndex 二级排序键解决手动签到后账号置顶问题；2) _StatusDot 呼吸动画增强（scale/opacity/blurRadius/spreadRadius 脉动）；3) 密钥删除后 _selectedKeyId 置空 + mounted 守卫
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `5b210dc` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

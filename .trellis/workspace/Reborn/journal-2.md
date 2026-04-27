@@ -1816,3 +1816,36 @@ macOS/Windows/Linux 三平台最小窗口限制从 1024x768 统一调整为 800x
 ### Next Steps
 
 - None - task complete
+
+
+## Session 60: 优化动态莫奈取色分层设计感
+
+**Date**: 2026-04-28
+**Task**: 优化动态莫奈取色分层设计感
+**Branch**: `main`
+
+### Summary
+
+绕过 dynamic_color 插件废弃 Scheme 类，改用 CorePalette + DynamicScheme(contrastLevel: 0.5) + MaterialDynamicColors 重建完整 ColorScheme。解决 Monet 模式下 surfaceContainer* 令牌缺失导致视觉扁平的问题。保留 macOS/Win/Linux accentColor 回退。新增 theme-guidelines spec。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `873b40f` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

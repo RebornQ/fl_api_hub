@@ -19,7 +19,6 @@
   "pr_url": null,
   "subtasks": [],
   "children": [
-    "04-28-fix-checkin-sort",
     "04-28-fix-breathe-effect",
     "04-28-fix-key-selected-clear"
   ],

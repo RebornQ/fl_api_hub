@@ -1,0 +1,5 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide and patterns"}
+{"file": "docs/API 文档/Group.request.md", "reason": "API reference for Group endpoints across all backend families"}
+{"file": "lib/core/network/dto/group_dto.dart", "reason": "GroupDto definition — target of ratio field addition"}
+{"file": "lib/core/network/site_adapter.dart", "reason": "SiteAdapter interface defining fetchGroups contract"}

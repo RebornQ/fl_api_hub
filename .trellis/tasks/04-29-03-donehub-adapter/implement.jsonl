@@ -1,0 +1,6 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": "docs/API 文档/Group.request.md", "reason": "API reference for DoneHub paginated group endpoint"}
+{"file": "lib/core/network/adapters/onehub_adapter.dart", "reason": "OneHubAdapter — parent class for DoneHubAdapter"}
+{"file": "lib/core/network/adapters/common_api_adapter.dart", "reason": "CommonApiAdapter — grandparent with fetchSiteGroupsFallback pattern"}
+{"file": "lib/core/network/site_adapter_provider.dart", "reason": "Adapter registration — needs DoneHub mapping update"}
+{"file": "lib/core/network/dto/group_dto.dart", "reason": "GroupDto with ratio field"}

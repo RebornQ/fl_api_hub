@@ -104,7 +104,7 @@ class KeyCard extends StatelessWidget {
                         // Group label (only shown when group is set).
                         if (apiKey.group != null &&
                             apiKey.group!.isNotEmpty) ...[
-                          const SizedBox(height: AppSpacing.xs),
+                          const SizedBox(height: AppSpacing.sm + AppSpacing.xs),
                           _GroupChip(groupName: apiKey.group!),
                         ],
                       ],
@@ -134,7 +134,7 @@ class KeyCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.md),
+              const SizedBox(height: AppSpacing.sm),
 
               // Key value row (masked/revealed + remote resolve).
               KeyValueRow(
@@ -142,7 +142,7 @@ class KeyCard extends StatelessWidget {
                 keyId: apiKey.id,
                 accountId: apiKey.accountId,
               ),
-              const SizedBox(height: AppSpacing.md),
+              const SizedBox(height: AppSpacing.sm + AppSpacing.xs),
 
               // Quota and date grid.
               KeyQuotaGrid(apiKey: apiKey),

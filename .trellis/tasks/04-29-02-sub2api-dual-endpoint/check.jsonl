@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Quality checks for frontend code"}
+{"file": ".trellis/tasks/04-29-fix-group-api-requests/prd.md", "reason": "Parent task PRD with acceptance criteria and DoD"}
+{"file": ".trellis/tasks/04-29-02-sub2api-dual-endpoint/prd.md", "reason": "Subtask PRD with specific acceptance criteria"}

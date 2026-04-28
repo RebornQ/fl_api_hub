@@ -62,6 +62,30 @@ Before considering frontend work complete, run:
 
 ---
 
+## Gotchas
+
+### Dart library-private members are inaccessible across files
+
+Dart methods prefixed with `_` are **library-private** (file-scoped), not class-private. A subclass in a **different file** cannot call `_privateMethod()` even on its own superclass.
+
+```
+// onehub_adapter.dart
+class OneHubAdapter extends CommonApiAdapter {
+  // This method is library-private to onehub_adapter.dart.
+  Future<Result<GroupListDto>> _fetchUserGroupMap(ApiRequest request) async { ... }
+}
+
+// donehub_adapter.dart (different file!)
+class DoneHubAdapter extends OneHubAdapter {
+  // ❌ Cannot call _fetchUserGroupMap() — it's invisible here.
+  // ✅ Must mirror the method in this file, or extract to a shared mixin/utility.
+}
+```
+
+**Prevention**: When designing an adapter hierarchy, mark overridable methods as `@protected` (no underscore) if subclasses in other files need to call them. Reserve `_` prefix for truly internal helpers.
+
+---
+
 ## Code Review Checklist
 
 - Does the change match the current repo state instead of imagined architecture?

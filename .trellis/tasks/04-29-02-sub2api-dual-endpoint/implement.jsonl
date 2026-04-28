@@ -1,0 +1,4 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": "docs/API 文档/Group.request.md", "reason": "API reference for Sub2API dual endpoint (available + rates) and merge logic"}
+{"file": "lib/core/network/adapters/sub2api_adapter.dart", "reason": "Sub2API adapter — target of dual endpoint implementation"}
+{"file": "lib/core/network/dto/group_dto.dart", "reason": "GroupDto with ratio field (from subtask 01)"}

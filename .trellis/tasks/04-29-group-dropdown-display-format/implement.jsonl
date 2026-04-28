@@ -1,0 +1,5 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide and widget patterns"}
+{"file": ".trellis/tasks/04-29-group-dropdown-display-format/prd.md", "reason": "Task PRD with acceptance criteria and proposed implementation"}
+{"file": "lib/features/keys/presentation/widgets/key_form_sheet.dart", "reason": "Target file — group dropdown UI"}
+{"file": "lib/core/network/dto/group_dto.dart", "reason": "GroupDto with ratio field (from previous task)"}

@@ -9,6 +9,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'adapters/common_api_adapter.dart';
+import 'adapters/donehub_adapter.dart';
 import 'adapters/onehub_adapter.dart';
 import 'adapters/sub2api_adapter.dart';
 import 'adapters/veloera_api_adapter.dart';
@@ -26,6 +27,7 @@ final siteAdapterProvider = Provider<Map<SiteType, SiteAdapter>>((ref) {
   final dioClient = ref.watch(dioClientProvider);
   final commonAdapter = CommonApiAdapter(dioClient);
   final oneHubAdapter = OneHubAdapter(dioClient);
+  final doneHubAdapter = DoneHubAdapter(dioClient);
   final veloeraAdapter = VeloeraApiAdapter(dioClient);
   final sub2apiAdapter = Sub2ApiAdapter(dioClient);
   final wongAdapter = WongApiAdapter(dioClient);
@@ -33,7 +35,7 @@ final siteAdapterProvider = Provider<Map<SiteType, SiteAdapter>>((ref) {
     SiteType.newApi: commonAdapter,
     SiteType.oneApi: commonAdapter,
     SiteType.oneHub: oneHubAdapter,
-    SiteType.doneHub: commonAdapter,
+    SiteType.doneHub: doneHubAdapter,
     SiteType.veloera: veloeraAdapter,
     SiteType.octopus: commonAdapter,
     SiteType.sub2api: sub2apiAdapter,

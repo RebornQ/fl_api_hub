@@ -309,31 +309,37 @@ class Sub2ApiAdapter implements SiteAdapter {
   @override
   Future<Result<GroupListDto>> fetchGroups(ApiRequest request) async {
     try {
-      final response = await _dioClient.dio.request(
-        '/api/v1/groups/available',
-        options: Options(method: 'GET', extra: _buildExtra(request)),
-      );
+      // Request both endpoints in parallel using Future.wait.
+      // On rates failure, still proceed with available groups (degraded mode).
+      final results = await Future.wait<dynamic>([
+        _fetchAvailableGroups(request),
+        _fetchGroupRates(request),
+      ]);
 
-      final json = response.data as Map<String, dynamic>;
-      if (!_isSuccess(json)) {
-        return Failure<GroupListDto>(
-          NetworkException(
-            message:
-                json['message']?.toString() ?? 'Sub2API fetch groups failed',
-          ),
+      final availableResult = results[0] as Map<String, dynamic>;
+      final ratesResult = results[1] as Map<String, num>?;
+
+      final data = availableResult['data'];
+      if (data is! List) {
+        return const Success<GroupListDto>(GroupListDto(groups: []));
+      }
+
+      // Merge ratio data with priority: rates > rate_multiplier > 1.
+      final groups = data.whereType<Map<String, dynamic>>().map((json) {
+        final groupId = json['id']?.toString();
+        final rateMultiplier = (json['rate_multiplier'] as num?)?.toDouble();
+
+        // Priority: rates table > rate_multiplier > 1 (default).
+        final mergedRatio = _resolveGroupRatio(
+          groupId: groupId,
+          rates: ratesResult,
+          rateMultiplier: rateMultiplier,
         );
-      }
 
-      final data = json['data'];
-      if (data is List) {
-        final groups = data
-            .whereType<Map<String, dynamic>>()
-            .map(GroupDto.fromSub2ApiGroup)
-            .toList();
-        return Success<GroupListDto>(GroupListDto(groups: groups));
-      }
+        return GroupDto.fromSub2ApiGroup(json, ratio: mergedRatio);
+      }).toList();
 
-      return const Success<GroupListDto>(GroupListDto(groups: []));
+      return Success<GroupListDto>(GroupListDto(groups: groups));
     } on DioException catch (e, st) {
       return Failure<GroupListDto>(mapToAppException(e, st));
     } catch (e, st) {
@@ -345,6 +351,77 @@ class Sub2ApiAdapter implements SiteAdapter {
         ),
       );
     }
+  }
+
+  /// Fetches available groups from `GET /api/v1/groups/available`.
+  ///
+  /// Returns the raw JSON response map.
+  /// Throws on network or parsing errors so that [fetchGroups] can handle
+  /// them in its outer catch block.
+  Future<Map<String, dynamic>> _fetchAvailableGroups(ApiRequest request) async {
+    final response = await _dioClient.dio.request(
+      '/api/v1/groups/available',
+      options: Options(method: 'GET', extra: _buildExtra(request)),
+    );
+
+    final json = response.data as Map<String, dynamic>;
+    if (!_isSuccess(json)) {
+      throw NetworkException(
+        message: json['message']?.toString() ?? 'Sub2API fetch groups failed',
+      );
+    }
+    return json;
+  }
+
+  /// Fetches group rates from `GET /api/v1/groups/rates`.
+  ///
+  /// Returns `Record<string, number>` mapping group ID to ratio,
+  /// or `null` on failure (degraded mode).
+  Future<Map<String, num>?> _fetchGroupRates(ApiRequest request) async {
+    try {
+      final response = await _dioClient.dio.request(
+        '/api/v1/groups/rates',
+        options: Options(method: 'GET', extra: _buildExtra(request)),
+      );
+
+      final json = response.data as Map<String, dynamic>;
+      if (!_isSuccess(json)) {
+        return null;
+      }
+
+      final data = json['data'];
+      if (data is Map<String, dynamic>) {
+        // Convert to Map<String, num> for type safety.
+        return data.map((key, value) => MapEntry(key, value as num));
+      }
+      return null;
+    } catch (_) {
+      // On failure, return null to indicate degraded mode.
+      return null;
+    }
+  }
+
+  /// Resolves the group ratio with priority: rates > rate_multiplier > 1.
+  double _resolveGroupRatio({
+    required String? groupId,
+    required Map<String, num>? rates,
+    required double? rateMultiplier,
+  }) {
+    // Priority 1: rates table match by group ID.
+    if (groupId != null && rates != null) {
+      final rateFromTable = rates[groupId];
+      if (rateFromTable != null) {
+        return rateFromTable.toDouble();
+      }
+    }
+
+    // Priority 2: group's own rate_multiplier.
+    if (rateMultiplier != null) {
+      return rateMultiplier;
+    }
+
+    // Priority 3: default to 1.
+    return 1.0;
   }
 
   // ── Auth helpers (unsupported) ──────────────────────────────────

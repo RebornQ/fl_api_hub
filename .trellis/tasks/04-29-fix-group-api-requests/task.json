@@ -1,0 +1,30 @@
+{
+  "id": "fix-group-api-requests",
+  "name": "fix-group-api-requests",
+  "title": "brainstorm: 修复分组相关 API 请求",
+  "description": "",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "Reborn",
+  "assignee": "Reborn",
+  "createdAt": "2026-04-29",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "04-29-01-group-dto-ratio",
+    "04-29-02-sub2api-dual-endpoint",
+    "04-29-03-donehub-adapter"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

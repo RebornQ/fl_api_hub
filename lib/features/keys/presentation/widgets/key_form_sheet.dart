@@ -190,13 +190,16 @@ class _KeyFormSheetState extends ConsumerState<KeyFormSheet> {
                     // No groups available (e.g. Octopus or network error).
                     return const SizedBox.shrink();
                   }
-                  // Deduplicate by name and sort alphabetically.
-                  final uniqueNames = <String>{for (final g in groups) g.name};
-                  final sortedNames = uniqueNames.toList()..sort();
+                  // Deduplicate by name (keep first occurrence) and sort by name.
+                  final uniqueGroups = <String, GroupDto>{
+                    for (final g in groups) g.name: g,
+                  };
+                  final sortedGroups = uniqueGroups.values.toList()
+                    ..sort((a, b) => a.name.compareTo(b.name));
                   // Sync _selectedGroup with API: reset to null if not in list.
                   final effectiveGroup =
                       _selectedGroup != null &&
-                          sortedNames.contains(_selectedGroup)
+                          sortedGroups.any((g) => g.name == _selectedGroup)
                       ? _selectedGroup
                       : null;
                   return Column(
@@ -212,10 +215,10 @@ class _KeyFormSheetState extends ConsumerState<KeyFormSheet> {
                             value: null,
                             child: Text('默认（不指定）'),
                           ),
-                          ...sortedNames.map(
-                            (name) => DropdownMenuItem<String?>(
-                              value: name,
-                              child: Text(name),
+                          ...sortedGroups.map(
+                            (group) => DropdownMenuItem<String?>(
+                              value: group.name,
+                              child: Text(_formatGroupDisplay(group)),
                             ),
                           ),
                         ],
@@ -366,4 +369,16 @@ class _KeyFormSheetState extends ConsumerState<KeyFormSheet> {
   /// Formats a [DateTime] as "yyyy/M/d".
   static String _formatDate(DateTime date) =>
       '${date.year}/${date.month}/${date.day}';
+
+  /// Formats a [GroupDto] for dropdown display as "名称 - 描述（倍率：ratio）".
+  static String _formatGroupDisplay(GroupDto group) {
+    final parts = <String>[group.name];
+    if (group.description != null && group.description!.isNotEmpty) {
+      parts.add(' - ${group.description}');
+    }
+    if (group.ratio != null) {
+      parts.add('（倍率：${group.ratio!.toStringAsFixed(2)}）');
+    }
+    return parts.join();
+  }
 }

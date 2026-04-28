@@ -1,0 +1,4 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/tasks/04-29-key-group-selection/prd.md", "reason": "Task PRD with full context, acceptance criteria, and technical notes"}
+{"file": "docs/API 文档/Key.request.md", "reason": "API documentation for group endpoints (§8-§10, OneHub, Sub2API groups)"}

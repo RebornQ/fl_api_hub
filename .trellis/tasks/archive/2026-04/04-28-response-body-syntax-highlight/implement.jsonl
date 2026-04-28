@@ -1,0 +1,6 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide and widget patterns"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Widget patterns for custom components"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Riverpod patterns if provider changes needed"}
+{"file": ".trellis/tasks/04-28-response-body-syntax-highlight/prd.md", "reason": "Task PRD with acceptance criteria, technical approach, and re_highlight decision"}
+{"file": ".trellis/tasks/04-28-response-body-syntax-highlight/research/syntax-highlighting.md", "reason": "Package comparison and re_highlight integration pattern"}

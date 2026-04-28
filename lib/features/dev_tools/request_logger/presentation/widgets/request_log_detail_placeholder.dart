@@ -26,6 +26,22 @@ import '../../../../../core/widgets/section_card.dart';
 import '../../data/utils/curl_exporter.dart';
 import '../../data/utils/header_redactor.dart';
 import '../../domain/entities/request_log_entry.dart';
+import '../utils/code_highlighter.dart';
+
+/// Case-insensitive header lookup.
+///
+/// Dio stores response headers in lowercase, but request headers retain
+/// their original casing (e.g. 'Content-Type'). This helper normalises the
+/// lookup so language detection works regardless of key casing.
+String? _headerValue(Map<String, dynamic> headers, String key) {
+  final lowerKey = key.toLowerCase();
+  for (final entry in headers.entries) {
+    if (entry.key.toLowerCase() == lowerKey) {
+      return entry.value?.toString();
+    }
+  }
+  return null;
+}
 
 class RequestLogDetailView extends StatefulWidget {
   final RequestLogEntry? entry;
@@ -235,7 +251,10 @@ class _RequestCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           _SectionLabel('请求体'),
           const SizedBox(height: AppSpacing.xs),
-          _CollapsibleBody(body: entry.requestBody),
+          _CollapsibleBody(
+            body: entry.requestBody,
+            contentType: _headerValue(entry.requestHeaders, 'content-type'),
+          ),
         ],
       ),
     );
@@ -266,6 +285,7 @@ class _ResponseCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           _CollapsibleBody(
             body: entry.responseBody,
+            contentType: _headerValue(entry.responseHeaders, 'content-type'),
             emptyPlaceholder: entry.isError ? '<请求失败，无响应>' : '<无响应体>',
           ),
           if (hasError) ...[
@@ -387,9 +407,14 @@ class _KeyValueTable extends StatelessWidget {
 
 class _CollapsibleBody extends StatefulWidget {
   final String? body;
+  final String? contentType;
   final String emptyPlaceholder;
 
-  const _CollapsibleBody({this.body, this.emptyPlaceholder = '<无请求体>'});
+  const _CollapsibleBody({
+    this.body,
+    this.contentType,
+    this.emptyPlaceholder = '<无请求体>',
+  });
 
   @override
   State<_CollapsibleBody> createState() => _CollapsibleBodyState();
@@ -423,16 +448,27 @@ class _CollapsibleBodyState extends State<_CollapsibleBody> {
 
     // When expanded, show full text with "收起" button at the end
     if (_isExpanded) {
+      final baseStyle = theme.textTheme.bodySmall?.copyWith(
+        fontFamily: 'monospace',
+        height: 1.4,
+      );
+      final isDark = theme.brightness == Brightness.dark;
+
+      // Determine language and format body.
+      final language = detectLanguage(widget.contentType, body);
+      final displayBody = language == 'json' ? prettyPrintJson(body) : body;
+      final span = buildHighlightedSpan(
+        body: displayBody,
+        language: language,
+        baseStyle:
+            baseStyle ?? const TextStyle(fontFamily: 'monospace', height: 1.4),
+        isDark: isDark,
+      );
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SelectableText(
-            body,
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontFamily: 'monospace',
-              height: 1.4,
-            ),
-          ),
+          SelectableText.rich(span),
           if (needsToggle) ...[
             const SizedBox(height: AppSpacing.xs),
             GestureDetector(
@@ -458,7 +494,17 @@ class _CollapsibleBodyState extends State<_CollapsibleBody> {
     );
 
     if (!needsToggle) {
-      return SelectableText(body, style: baseStyle);
+      final isDark = theme.brightness == Brightness.dark;
+      final language = detectLanguage(widget.contentType, body);
+      final displayBody = language == 'json' ? prettyPrintJson(body) : body;
+      final span = buildHighlightedSpan(
+        body: displayBody,
+        language: language,
+        baseStyle:
+            baseStyle ?? const TextStyle(fontFamily: 'monospace', height: 1.4),
+        isDark: isDark,
+      );
+      return SelectableText.rich(span);
     }
 
     return LayoutBuilder(

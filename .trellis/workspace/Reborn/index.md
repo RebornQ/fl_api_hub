@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 62
+- **Total Sessions**: 63
 - **Last Active**: 2026-04-28
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~1917 | Active |
+| `journal-2.md` | ~1950 | Active |
 | `journal-1.md` | ~1977 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 63 | 2026-04-28 | Session: 宽屏分割线拖拽+持久化 | `38338a9` | `main` |
 | 62 | 2026-04-28 | UI polish: nav color, check-in confirm, key visibility | `b904ed8` | `main` |
 | 61 | 2026-04-28 | Fix: 签到排序/呼吸效果/密钥置空三合一修复 | `5b210dc` | `main` |
 | 60 | 2026-04-28 | 优化动态莫奈取色分层设计感 | `873b40f` | `main` |

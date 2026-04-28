@@ -1915,3 +1915,36 @@ macOS/Windows/Linux 三平台最小窗口限制从 1024x768 统一调整为 800x
 ### Next Steps
 
 - None - task complete
+
+
+## Session 63: Session: 宽屏分割线拖拽+持久化
+
+**Date**: 2026-04-28
+**Task**: Session: 宽屏分割线拖拽+持久化
+**Branch**: `main`
+
+### Summary
+
+创建可复用 SplitPane widget，支持 30-50% 拖拽范围、三色状态反馈、Hive 持久化，迁移 3 个页面
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `38338a9` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

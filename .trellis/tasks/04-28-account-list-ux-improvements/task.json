@@ -1,0 +1,30 @@
+{
+  "id": "account-list-ux-improvements",
+  "name": "account-list-ux-improvements",
+  "title": "feat: 账号列表三项 UX 改进",
+  "description": "",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "Reborn",
+  "assignee": "Reborn",
+  "createdAt": "2026-04-28",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "04-28-s1-disable-swipe-checkin",
+    "04-28-s2-key-page-account-sort",
+    "04-28-s3-search-by-tag-name"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

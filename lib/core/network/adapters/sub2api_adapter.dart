@@ -16,6 +16,7 @@ import '../../../core/network/dio_client.dart';
 import '../../../core/network/dto/access_token_dto.dart';
 import '../../../core/network/dto/check_in_result_dto.dart';
 import '../../../core/network/dto/check_in_status_dto.dart';
+import '../../../core/network/dto/group_dto.dart';
 import '../../../core/network/dto/site_status_dto.dart';
 import '../../../core/network/dto/token_dto.dart';
 import '../../../core/network/dto/user_info_dto.dart';
@@ -127,11 +128,12 @@ class Sub2ApiAdapter implements SiteAdapter {
     int? quota,
     DateTime? expiresAt,
     bool unlimitedQuota = false,
+    String? group,
   }) async {
     try {
       final data = <String, dynamic>{'name': name};
 
-      // Quota: convert internal units → USD. 0 means unlimited.
+      // Quota: convert internal units -> USD. 0 means unlimited.
       data['quota'] = unlimitedQuota ? 0 : (quota ?? 0) ~/ _kQuotaPerUnit;
 
       // Expiration: Sub2API create uses expires_in_days, not expires_at.
@@ -140,6 +142,14 @@ class Sub2ApiAdapter implements SiteAdapter {
         data['expires_in_days'] = days > 0 ? days : 0;
       } else {
         data['expires_in_days'] = 0; // never expires
+      }
+
+      // Group: resolve group name to group_id via groups/available.
+      if (group != null && group.isNotEmpty) {
+        final groupId = await _resolveGroupId(request, group);
+        if (groupId != null) {
+          data['group_id'] = groupId;
+        }
       }
 
       final response = await _dioClient.dio.request(
@@ -184,11 +194,12 @@ class Sub2ApiAdapter implements SiteAdapter {
     required String name,
     int? quota,
     DateTime? expiresAt,
+    String? group,
   }) async {
     try {
       final data = <String, dynamic>{'name': name};
 
-      // Quota: convert internal units → USD.
+      // Quota: convert internal units -> USD.
       // For update, the API expects the total quota (remaining + used) in USD.
       // The caller should ensure quota includes used amount.
       if (quota != null) {
@@ -205,6 +216,14 @@ class Sub2ApiAdapter implements SiteAdapter {
       }
 
       data['status'] = 'active';
+
+      // Group: resolve group name to group_id via groups/available.
+      if (group != null && group.isNotEmpty) {
+        final groupId = await _resolveGroupId(request, group);
+        if (groupId != null) {
+          data['group_id'] = groupId;
+        }
+      }
 
       final response = await _dioClient.dio.request(
         '/api/v1/keys/$tokenId',
@@ -285,6 +304,49 @@ class Sub2ApiAdapter implements SiteAdapter {
     );
   }
 
+  // ── Group operations ──────────────────────────────────────────────
+
+  @override
+  Future<Result<GroupListDto>> fetchGroups(ApiRequest request) async {
+    try {
+      final response = await _dioClient.dio.request(
+        '/api/v1/groups/available',
+        options: Options(method: 'GET', extra: _buildExtra(request)),
+      );
+
+      final json = response.data as Map<String, dynamic>;
+      if (!_isSuccess(json)) {
+        return Failure<GroupListDto>(
+          NetworkException(
+            message:
+                json['message']?.toString() ?? 'Sub2API fetch groups failed',
+          ),
+        );
+      }
+
+      final data = json['data'];
+      if (data is List) {
+        final groups = data
+            .whereType<Map<String, dynamic>>()
+            .map(GroupDto.fromSub2ApiGroup)
+            .toList();
+        return Success<GroupListDto>(GroupListDto(groups: groups));
+      }
+
+      return const Success<GroupListDto>(GroupListDto(groups: []));
+    } on DioException catch (e, st) {
+      return Failure<GroupListDto>(mapToAppException(e, st));
+    } catch (e, st) {
+      return Failure<GroupListDto>(
+        UnknownException(
+          message: e.toString(),
+          originalError: e,
+          stackTrace: st,
+        ),
+      );
+    }
+  }
+
   // ── Auth helpers (unsupported) ──────────────────────────────────
 
   @override
@@ -311,5 +373,21 @@ class Sub2ApiAdapter implements SiteAdapter {
       'apiAuthType': request.authType.name,
       'apiUserId': request.userId,
     };
+  }
+
+  /// Resolves a group name to a Sub2API group ID.
+  ///
+  /// Queries the groups/available endpoint and finds the matching group by name.
+  /// Returns `null` if the group is not found.
+  Future<int?> _resolveGroupId(ApiRequest request, String groupName) async {
+    final groupsResult = await fetchGroups(request);
+    if (groupsResult is Success<GroupListDto>) {
+      for (final group in groupsResult.data.groups) {
+        if (group.name == groupName && group.id != null) {
+          return int.tryParse(group.id!);
+        }
+      }
+    }
+    return null;
   }
 }

@@ -20,6 +20,7 @@ import '../dto/access_token_dto.dart';
 import '../dto/api_response.dart';
 import '../dto/check_in_result_dto.dart';
 import '../dto/check_in_status_dto.dart';
+import '../dto/group_dto.dart';
 import '../dto/site_status_dto.dart';
 import '../dto/token_dto.dart';
 import '../dto/user_info_dto.dart';
@@ -72,7 +73,7 @@ class CommonApiAdapter implements SiteAdapter {
     try {
       final response = await dioClient.dio.request(
         '/api/user/checkin',
-        options: Options(method: 'POST', extra: _buildExtra(request)),
+        options: Options(method: 'POST', extra: buildExtra(request)),
       );
 
       // For check-in, we parse the DTO directly from the response without
@@ -123,7 +124,7 @@ class CommonApiAdapter implements SiteAdapter {
     try {
       final response = await dioClient.dio.request(
         '/api/token/',
-        options: Options(method: 'GET', extra: _buildExtra(request)),
+        options: Options(method: 'GET', extra: buildExtra(request)),
         queryParameters: {'p': page, 'size': size},
       );
 
@@ -168,6 +169,7 @@ class CommonApiAdapter implements SiteAdapter {
     int? quota,
     DateTime? expiresAt,
     bool unlimitedQuota = false,
+    String? group,
   }) async {
     try {
       final data = <String, dynamic>{
@@ -180,12 +182,12 @@ class CommonApiAdapter implements SiteAdapter {
         'model_limits_enabled': false,
         'model_limits': '',
         'allow_ips': '',
-        'group': '',
+        'group': group ?? '',
       };
 
       final response = await dioClient.dio.request(
         '/api/token/',
-        options: Options(method: 'POST', extra: _buildExtra(request)),
+        options: Options(method: 'POST', extra: buildExtra(request)),
         data: data,
       );
 
@@ -226,7 +228,7 @@ class CommonApiAdapter implements SiteAdapter {
     try {
       final response = await dioClient.dio.delete(
         '/api/token/$tokenId',
-        options: _buildOptions(request),
+        options: buildOptions(request),
       );
 
       final json = response.data as Map<String, dynamic>;
@@ -260,6 +262,7 @@ class CommonApiAdapter implements SiteAdapter {
     required String name,
     int? quota,
     DateTime? expiresAt,
+    String? group,
   }) async {
     try {
       final data = <String, dynamic>{
@@ -273,12 +276,12 @@ class CommonApiAdapter implements SiteAdapter {
         'model_limits_enabled': false,
         'model_limits': '',
         'allow_ips': '',
-        'group': '',
+        'group': group ?? '',
       };
 
       final response = await dioClient.dio.request(
         '/api/token/',
-        options: Options(method: 'PUT', extra: _buildExtra(request)),
+        options: Options(method: 'PUT', extra: buildExtra(request)),
         data: data,
       );
 
@@ -324,6 +327,116 @@ class CommonApiAdapter implements SiteAdapter {
     );
   }
 
+  // ── Group operations ─────────────────────────────────────────────
+
+  @override
+  Future<Result<GroupListDto>> fetchGroups(ApiRequest request) async {
+    // Strategy: prefer user groups, fallback to site groups.
+    final userGroups = await _fetchUserGroups(request);
+    if (userGroups is Success<GroupListDto>) {
+      return userGroups;
+    }
+    // Fallback to site groups.
+    return fetchSiteGroupsFallback(request);
+  }
+
+  /// Fetches user-specific groups from `GET /api/user/self/groups`.
+  ///
+  /// Response format: `Record<string, {desc, ratio}>` — keys are group names.
+  Future<Result<GroupListDto>> _fetchUserGroups(ApiRequest request) async {
+    try {
+      final response = await dioClient.dio.request(
+        '/api/user/self/groups',
+        options: Options(method: 'GET', extra: buildExtra(request)),
+      );
+
+      final json = response.data as Map<String, dynamic>;
+      final success = json['success'] as bool? ?? false;
+      if (!success) {
+        return Failure<GroupListDto>(
+          NetworkException(
+            message: json['message']?.toString() ?? 'Fetch user groups failed',
+          ),
+        );
+      }
+
+      final data = json['data'];
+      if (data is Map<String, dynamic>) {
+        final groups = <GroupDto>[];
+        for (final entry in data.entries) {
+          if (entry.value is Map<String, dynamic>) {
+            groups.add(
+              GroupDto.fromCommonUserGroup(
+                entry.key,
+                entry.value as Map<String, dynamic>,
+              ),
+            );
+          }
+        }
+        return Success<GroupListDto>(GroupListDto(groups: groups));
+      }
+
+      return const Success<GroupListDto>(GroupListDto(groups: []));
+    } on DioException catch (e, st) {
+      return Failure<GroupListDto>(mapToAppException(e, st));
+    } catch (e, st) {
+      return Failure<GroupListDto>(
+        UnknownException(
+          message: e.toString(),
+          originalError: e,
+          stackTrace: st,
+        ),
+      );
+    }
+  }
+
+  /// Fetches all site groups from `GET /api/group`.
+  ///
+  /// Response format: `string[]` — array of group names.
+  /// Visible to subclasses (e.g. [OneHubAdapter]) for fallback delegation.
+  @protected
+  Future<Result<GroupListDto>> fetchSiteGroupsFallback(
+    ApiRequest request,
+  ) async {
+    try {
+      final response = await dioClient.dio.request(
+        '/api/group',
+        options: Options(method: 'GET', extra: buildExtra(request)),
+      );
+
+      final json = response.data as Map<String, dynamic>;
+      final success = json['success'] as bool? ?? false;
+      if (!success) {
+        return Failure<GroupListDto>(
+          NetworkException(
+            message: json['message']?.toString() ?? 'Fetch site groups failed',
+          ),
+        );
+      }
+
+      final data = json['data'];
+      if (data is List) {
+        final groups = data
+            .whereType<String>()
+            .map(GroupDto.fromCommonSiteGroup)
+            .toList();
+        return Success<GroupListDto>(GroupListDto(groups: groups));
+      }
+
+      return const Success<GroupListDto>(GroupListDto(groups: []));
+    } on DioException catch (e, st) {
+      return Failure<GroupListDto>(mapToAppException(e, st));
+    } catch (e, st) {
+      return Failure<GroupListDto>(
+        UnknownException(
+          message: e.toString(),
+          originalError: e,
+          stackTrace: st,
+        ),
+      );
+    }
+  }
+
   // ── Auth helpers ────────────────────────────────────────────────
 
   @override
@@ -356,7 +469,7 @@ class CommonApiAdapter implements SiteAdapter {
     try {
       final response = await dioClient.dio.request(
         path,
-        options: Options(method: method, extra: _buildExtra(request)),
+        options: Options(method: method, extra: buildExtra(request)),
         queryParameters: queryParameters,
         data: data,
       );
@@ -390,7 +503,8 @@ class CommonApiAdapter implements SiteAdapter {
   }
 
   /// Builds the per-request extra map carried through Dio [Options].
-  Map<String, dynamic> _buildExtra(ApiRequest request) {
+  @protected
+  Map<String, dynamic> buildExtra(ApiRequest request) {
     final extra = <String, dynamic>{
       'apiBaseUrl': request.baseUrl,
       'apiAuthToken': request.authToken,
@@ -404,7 +518,8 @@ class CommonApiAdapter implements SiteAdapter {
   }
 
   /// Builds Dio [Options] with per-request baseUrl and auth context.
-  Options _buildOptions(ApiRequest request) {
-    return Options(extra: _buildExtra(request));
+  @protected
+  Options buildOptions(ApiRequest request) {
+    return Options(extra: buildExtra(request));
   }
 }

@@ -35,6 +35,9 @@ class ApiKey {
   /// Timestamp when this key was last modified.
   final DateTime updatedAt;
 
+  /// Group name this key belongs to (optional).
+  final String? group;
+
   const ApiKey({
     required this.id,
     required this.accountId,
@@ -45,6 +48,7 @@ class ApiKey {
     this.expiresAt,
     required this.createdAt,
     required this.updatedAt,
+    this.group,
   });
 
   /// Creates a copy of this key with the given fields replaced.
@@ -58,6 +62,7 @@ class ApiKey {
     DateTime? expiresAt,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? group,
   }) {
     return ApiKey(
       id: id ?? this.id,
@@ -69,6 +74,7 @@ class ApiKey {
       expiresAt: expiresAt ?? this.expiresAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      group: group ?? this.group,
     );
   }
 

@@ -101,6 +101,12 @@ class KeyCard extends StatelessWidget {
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
+                        // Group label (only shown when group is set).
+                        if (apiKey.group != null &&
+                            apiKey.group!.isNotEmpty) ...[
+                          const SizedBox(height: AppSpacing.xs),
+                          _GroupChip(groupName: apiKey.group!),
+                        ],
                       ],
                     ),
                   ),
@@ -227,6 +233,48 @@ class _ActionButton extends StatelessWidget {
         color: effectiveColor,
         tooltip: tooltip,
         onPressed: onTap,
+      ),
+    );
+  }
+}
+
+/// Small chip displaying group name, positioned below the admin site text.
+class _GroupChip extends StatelessWidget {
+  final String groupName;
+
+  const _GroupChip({required this.groupName});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: colorScheme.secondaryContainer,
+        borderRadius: BorderRadius.circular(9999),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.label_outline,
+            size: 10,
+            color: colorScheme.onSecondaryContainer,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            groupName,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              color: colorScheme.onSecondaryContainer,
+            ),
+          ),
+        ],
       ),
     );
   }

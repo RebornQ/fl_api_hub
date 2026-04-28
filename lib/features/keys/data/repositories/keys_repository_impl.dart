@@ -91,6 +91,7 @@ class KeysRepositoryImpl implements KeysRepository {
         quota: apiKey.quota,
         expiresAt: apiKey.expiresAt,
         unlimitedQuota: apiKey.quota == null,
+        group: apiKey.group,
       );
       switch (result) {
         case Success(:final data):
@@ -128,6 +129,7 @@ class KeysRepositoryImpl implements KeysRepository {
         name: apiKey.name,
         quota: apiKey.quota,
         expiresAt: apiKey.expiresAt,
+        group: apiKey.group,
       );
       switch (result) {
         case Success():

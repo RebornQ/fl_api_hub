@@ -97,8 +97,7 @@ class _SplitPaneState extends State<SplitPane> {
               onExit: (_) => setState(() => _isHovering = false),
               child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
-                onHorizontalDragDown: (_) =>
-                    setState(() => _isDragging = true),
+                onHorizontalDragDown: (_) => setState(() => _isDragging = true),
                 onHorizontalDragUpdate: (details) {
                   setState(() {
                     _ratio = (_ratio + details.delta.dx / totalWidth).clamp(

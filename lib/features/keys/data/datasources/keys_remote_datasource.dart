@@ -8,6 +8,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/api_request.dart';
+import '../../../../core/network/dto/group_dto.dart';
 import '../../../../core/network/dto/token_dto.dart';
 import '../../../../core/network/site_adapter.dart';
 import '../../../../core/network/site_adapter_provider.dart';
@@ -34,12 +35,14 @@ class KeysRemoteDataSource {
     int? quota,
     DateTime? expiresAt,
     bool unlimitedQuota = false,
+    String? group,
   }) => _adapter.createToken(
     request,
     name: name,
     quota: quota,
     expiresAt: expiresAt,
     unlimitedQuota: unlimitedQuota,
+    group: group,
   );
 
   /// Deletes an API token by its server ID.
@@ -55,12 +58,14 @@ class KeysRemoteDataSource {
     required String name,
     int? quota,
     DateTime? expiresAt,
+    String? group,
   }) => _adapter.updateToken(
     request,
     tokenId: tokenId,
     name: name,
     quota: quota,
     expiresAt: expiresAt,
+    group: group,
   );
 
   /// Resolves a masked token key to the full key value.
@@ -71,6 +76,10 @@ class KeysRemoteDataSource {
     ApiRequest request, {
     required String tokenId,
   }) => _adapter.fetchTokenKey(request, tokenId: tokenId);
+
+  /// Fetches available groups for the authenticated user.
+  Future<Result<GroupListDto>> fetchGroups(ApiRequest request) =>
+      _adapter.fetchGroups(request);
 }
 
 /// Provider for [KeysRemoteDataSource], parameterized by [SiteType].

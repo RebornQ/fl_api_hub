@@ -14,6 +14,7 @@ import 'api_request.dart';
 import 'dto/access_token_dto.dart';
 import 'dto/check_in_result_dto.dart';
 import 'dto/check_in_status_dto.dart';
+import 'dto/group_dto.dart';
 import 'dto/site_status_dto.dart';
 import 'dto/token_dto.dart';
 import 'dto/user_info_dto.dart';
@@ -76,6 +77,7 @@ abstract class SiteAdapter {
     int? quota,
     DateTime? expiresAt,
     bool unlimitedQuota = false,
+    String? group,
   });
 
   /// Deletes an API token by its server ID.
@@ -95,6 +97,7 @@ abstract class SiteAdapter {
     required String name,
     int? quota,
     DateTime? expiresAt,
+    String? group,
   });
 
   /// Resolves a masked token key to the full key value.
@@ -105,6 +108,17 @@ abstract class SiteAdapter {
     ApiRequest request, {
     required String tokenId,
   });
+
+  // ── Group operations ─────────────────────────────────────────────
+
+  /// Fetches available groups for the authenticated user.
+  ///
+  /// Strategy varies by backend:
+  /// - Common: prefer `GET /api/user/self/groups`, fallback `GET /api/group`
+  /// - OneHub: prefer `GET /api/user_group_map`, fallback `GET /api/group`
+  /// - Sub2API: `GET /api/v1/groups/available`
+  /// - Octopus: returns empty list (not supported)
+  Future<Result<GroupListDto>> fetchGroups(ApiRequest request);
 
   // ── Auth helpers ────────────────────────────────────────────────
 

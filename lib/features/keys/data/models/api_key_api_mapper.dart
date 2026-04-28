@@ -27,6 +27,7 @@ class ApiKeyApiMapper {
       expiresAt: dto.expiresAt,
       createdAt: dto.createdAt ?? DateTime.now(),
       updatedAt: DateTime.now(),
+      group: dto.group,
     );
   }
 

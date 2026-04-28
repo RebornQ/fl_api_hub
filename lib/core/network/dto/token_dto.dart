@@ -54,6 +54,12 @@ class TokenDto {
   /// When this token expires. `null` means never expires.
   final DateTime? expiresAt;
 
+  /// Group name this token belongs to (optional).
+  ///
+  /// Common API: parsed from `group` field (string).
+  /// Sub2API: extracted from nested `group.name` or `Group.name` object.
+  final String? group;
+
   const TokenDto({
     this.id,
     this.name,
@@ -65,6 +71,7 @@ class TokenDto {
     this.createdAt,
     this.accessedAt,
     this.expiresAt,
+    this.group,
   });
 
   /// Parses a raw JSON map into a [TokenDto].
@@ -103,6 +110,7 @@ class TokenDto {
         json['expired_time'] ?? json['expires_at'],
         neverExpiresSentinel: true,
       ),
+      group: _parseGroup(json),
     );
   }
 
@@ -161,6 +169,29 @@ class TokenDto {
     if (value is String) {
       return DateTime.tryParse(value);
     }
+    return null;
+  }
+
+  /// Parses group from various API response formats.
+  ///
+  /// Common API: `group` is a string (group name).
+  /// Sub2API: `group` or `Group` is an object with `name` field.
+  static String? _parseGroup(Map<String, dynamic> json) {
+    // Direct string field (Common API).
+    final directGroup = json['group'];
+    if (directGroup is String && directGroup.isNotEmpty) {
+      return directGroup;
+    }
+
+    // Nested object (Sub2API): `group.name` or `Group.name`.
+    final groupObj = json['group'] ?? json['Group'];
+    if (groupObj is Map<String, dynamic>) {
+      final name = groupObj['name'] as String?;
+      if (name != null && name.isNotEmpty) {
+        return name;
+      }
+    }
+
     return null;
   }
 }

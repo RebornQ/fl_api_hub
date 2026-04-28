@@ -282,3 +282,37 @@ SplitPane(
 - Don't hardcode ratio in multiple pages; centralize via provider.
 - Don't use `shared_preferences` when the project already has a
   Hive-based `KeyValueStore` — prefer existing infrastructure.
+
+---
+
+### Pattern — Async DropdownButtonFormField with Deduplication
+
+**When to use**: a `DropdownButtonFormField` whose items come from an async
+source (API call, Riverpod provider). The selected value may have been set
+before the item list loaded (e.g. editing an entity whose group name came
+from a previous API response).
+
+**Reference implementation**:
+
+- `lib/features/keys/presentation/widgets/key_form_sheet.dart`
+
+**Rules**:
+
+- Deduplicate items with `Set<String>` before building `DropdownMenuItem`s.
+  API responses may contain duplicates across different endpoints.
+- Sync the selected value with the item list: if `_selectedValue` is not in
+  the deduplicated set, compute an `effectiveValue` as `null` instead of
+  forcing it into the list. Forcing causes assertion errors.
+- Sort items alphabetically for a consistent UX.
+- For loading state, render a disabled `DropdownButtonFormField` with a
+  placeholder item ("加载中...") instead of `CircularProgressIndicator`
+  — this avoids layout jumps when data arrives.
+- Use `initialValue` (not `value`) for `DropdownButtonFormField` to avoid
+  build-during-frame issues in Flutter ≥3.33.
+
+**Don't**:
+
+- Don't add `_selectedValue` to the item list as a fallback — this
+  desyncs the dropdown from the API and confuses users.
+- Don't use `CircularProgressIndicator` for loading state in dropdowns —
+  the layout shift causes visual jank.

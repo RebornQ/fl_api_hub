@@ -10,8 +10,10 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../app/theme/design_tokens.dart';
 import '../../../../../core/config/app_defaults.dart';
+import '../../../../core/network/dto/group_dto.dart';
 import '../../../accounts/presentation/providers/accounts_providers.dart';
 import '../../domain/entities/api_key.dart';
+import '../providers/groups_providers.dart';
 import '../providers/keys_providers.dart';
 
 /// A bottom-sheet form for creating or editing an API key.
@@ -50,6 +52,7 @@ class _KeyFormSheetState extends ConsumerState<KeyFormSheet> {
 
   String? _selectedAccountId;
   DateTime? _selectedExpiry;
+  String? _selectedGroup;
   bool _isSubmitting = false;
 
   bool get _isEditing => widget.apiKey != null;
@@ -67,6 +70,7 @@ class _KeyFormSheetState extends ConsumerState<KeyFormSheet> {
     _expiresAtController = TextEditingController();
     _selectedAccountId = k?.accountId ?? widget.accountId;
     _selectedExpiry = k?.expiresAt;
+    _selectedGroup = k?.group;
 
     if (_selectedExpiry != null) {
       _expiresAtController.text = _formatDate(_selectedExpiry!);
@@ -85,6 +89,9 @@ class _KeyFormSheetState extends ConsumerState<KeyFormSheet> {
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final accounts = ref.watch(accountsProvider).valueOrNull ?? [];
+    final groupsAsync = _selectedAccountId != null
+        ? ref.watch(groupsProvider(_selectedAccountId!))
+        : const AsyncValue<List<GroupDto>>.data([]);
 
     return Padding(
       padding: EdgeInsets.only(
@@ -118,7 +125,10 @@ class _KeyFormSheetState extends ConsumerState<KeyFormSheet> {
                     .toList(),
                 onChanged: _isEditing
                     ? null
-                    : (id) => setState(() => _selectedAccountId = id),
+                    : (id) => setState(() {
+                        _selectedAccountId = id;
+                        _selectedGroup = null;
+                      }),
                 validator: (value) => value == null ? '请选择账号' : null,
               ),
               const SizedBox(height: AppSpacing.md),
@@ -171,6 +181,70 @@ class _KeyFormSheetState extends ConsumerState<KeyFormSheet> {
                 readOnly: true,
                 onTap: _pickDate,
               ),
+              const SizedBox(height: AppSpacing.md),
+
+              // Group selector (optional).
+              groupsAsync.when(
+                data: (groups) {
+                  if (groups.isEmpty) {
+                    // No groups available (e.g. Octopus or network error).
+                    return const SizedBox.shrink();
+                  }
+                  // Deduplicate by name and sort alphabetically.
+                  final uniqueNames = <String>{for (final g in groups) g.name};
+                  final sortedNames = uniqueNames.toList()..sort();
+                  // Sync _selectedGroup with API: reset to null if not in list.
+                  final effectiveGroup =
+                      _selectedGroup != null &&
+                          sortedNames.contains(_selectedGroup)
+                      ? _selectedGroup
+                      : null;
+                  return Column(
+                    children: [
+                      DropdownButtonFormField<String?>(
+                        initialValue: effectiveGroup,
+                        decoration: const InputDecoration(
+                          labelText: '分组',
+                          hintText: '默认（不指定）',
+                        ),
+                        items: [
+                          const DropdownMenuItem<String?>(
+                            value: null,
+                            child: Text('默认（不指定）'),
+                          ),
+                          ...sortedNames.map(
+                            (name) => DropdownMenuItem<String?>(
+                              value: name,
+                              child: Text(name),
+                            ),
+                          ),
+                        ],
+                        onChanged: (value) =>
+                            setState(() => _selectedGroup = value),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                    ],
+                  );
+                },
+                loading: () => Column(
+                  children: [
+                    DropdownButtonFormField<String?>(
+                      initialValue: null,
+                      decoration: const InputDecoration(labelText: '分组'),
+                      items: const [
+                        DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text('分组加载中，请稍候...'),
+                        ),
+                      ],
+                      onChanged: null,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                  ],
+                ),
+                error: (_, _) => const SizedBox.shrink(),
+              ),
+
               const SizedBox(height: AppSpacing.lg),
 
               // Submit button.
@@ -261,6 +335,7 @@ class _KeyFormSheetState extends ConsumerState<KeyFormSheet> {
       expiresAt: _selectedExpiry,
       createdAt: _isEditing ? widget.apiKey!.createdAt : now,
       updatedAt: now,
+      group: _selectedGroup,
     );
 
     try {

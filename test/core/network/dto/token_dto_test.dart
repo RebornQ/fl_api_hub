@@ -175,6 +175,54 @@ void main() {
       final dto = TokenDto.fromJson(json);
       expect(dto.remainQuota, isNull);
     });
+
+    test('Common API group string field is parsed', () {
+      final json = {'id': 1, 'name': 'token-a', 'group': 'premium'};
+      final dto = TokenDto.fromJson(json);
+      expect(dto.group, 'premium');
+    });
+
+    test('empty group string is treated as null', () {
+      final json = {'id': 1, 'name': 'token-a', 'group': ''};
+      final dto = TokenDto.fromJson(json);
+      expect(dto.group, isNull);
+    });
+
+    test('Sub2API nested group object with name is parsed', () {
+      final json = {
+        'id': 1,
+        'name': 'token-a',
+        'group': {'id': 5, 'name': 'basic'},
+      };
+      final dto = TokenDto.fromJson(json);
+      expect(dto.group, 'basic');
+    });
+
+    test('Sub2API nested Group object (capital G) is parsed', () {
+      final json = {
+        'id': 1,
+        'name': 'token-a',
+        'Group': {'id': 5, 'name': 'enterprise'},
+      };
+      final dto = TokenDto.fromJson(json);
+      expect(dto.group, 'enterprise');
+    });
+
+    test('Sub2API nested group with empty name returns null', () {
+      final json = {
+        'id': 1,
+        'name': 'token-a',
+        'group': {'id': 5, 'name': ''},
+      };
+      final dto = TokenDto.fromJson(json);
+      expect(dto.group, isNull);
+    });
+
+    test('missing group field returns null', () {
+      final json = {'id': 1, 'name': 'token-a'};
+      final dto = TokenDto.fromJson(json);
+      expect(dto.group, isNull);
+    });
   });
 
   group('TokenListDto', () {

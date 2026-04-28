@@ -72,3 +72,36 @@ Implemented three account list UX improvements: S1 (disable right-swipe check-in
 ### Next Steps
 
 - None - task complete
+
+
+## Session 67: feat(keys): add group selection for key CRUD
+
+**Date**: 2026-04-29
+**Task**: feat(keys): add group selection for key CRUD
+**Branch**: `main`
+
+### Summary
+
+密钥新建/编辑支持分组选择，分组列表从 API 获取（Common/OneHub/Sub2API），密钥卡片显示分组 Chip。新增 GroupDto、groupsProvider、OneHubAdapter，修复 DropdownButtonFormField 异步数据去重断言错误。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3e56f4b` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 66
-- **Last Active**: 2026-04-28
+- **Total Sessions**: 67
+- **Last Active**: 2026-04-29
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~74 | Active |
+| `journal-3.md` | ~107 | Active |
 | `journal-2.md` | ~1983 | Archived |
 | `journal-1.md` | ~1977 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 67 | 2026-04-29 | feat(keys): add group selection for key CRUD | `3e56f4b` | `main` |
 | 66 | 2026-04-28 | Account list UX improvements (S1/S2/S3) | `d407fb2`, `6bc2aa6` | `main` |
 | 65 | 2026-04-28 | 响应体语法高亮渲染 | `8c47a69` | `main` |
 | 64 | 2026-04-28 | 请求记录器敏感信息显示+移除截断 | `0e9b9b1` | `main` |

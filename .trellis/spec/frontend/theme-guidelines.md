@@ -120,3 +120,44 @@ MaterialDynamicColors.primary.getArgb(scheme);
 | 1.0 | Maximum contrast |
 
 The `kDefaultContrastLevel` constant in `dynamic_scheme_builder.dart` controls this globally.
+
+---
+
+## NavigationBar Theming
+
+The app uses MD3 `NavigationBar` (not the deprecated `BottomNavigationBar`). Default selected colors use `onSurface` / `onSurfaceVariant`, which may not match brand accent colors.
+
+### Pattern: Widget-level theme overlay
+
+Override selected/unselected colors via `NavigationBarTheme` wrapper without touching global `ThemeData`:
+
+```dart
+NavigationBarTheme(
+  data: NavigationBarThemeData(
+    indicatorColor: colorScheme.primary,          // pill behind selected icon
+    iconTheme: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
+        return IconThemeData(color: colorScheme.onPrimary);   // icon on primary bg
+      }
+      return IconThemeData(color: colorScheme.onSurfaceVariant);
+    }),
+    labelTextStyle: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
+        return TextStyle(color: colorScheme.primary, fontWeight: FontWeight.w600);
+      }
+      return TextStyle(color: colorScheme.onSurfaceVariant);
+    }),
+  ),
+  child: NavigationBar(...),
+)
+```
+
+### Why widget-level, not global theme?
+
+- Keeps the override scoped to the one `NavigationBar` instance
+- Other NavigationBars (if any) aren't affected
+- `WidgetStateProperty.resolveWith` is the idiomatic way to handle selected/unselected states
+
+### Reference
+
+- `lib/app/shell/app_shell.dart` — `NavigationBarTheme` wrapping the bottom navigation bar

@@ -649,8 +649,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage>
               : DismissDirection.endToStart,
           confirmDismiss: (direction) async {
             if (direction == DismissDirection.startToEnd) {
-              _performCheckIn(account);
-              return false;
+              return _confirmCheckIn(context, account);
             }
             return _confirmDelete(context, ref, account);
           },
@@ -692,6 +691,31 @@ class _AccountsPageState extends ConsumerState<AccountsPage>
         );
       },
     );
+  }
+
+  /// Shows a confirmation dialog before performing a swipe-to-check-in.
+  Future<bool?> _confirmCheckIn(BuildContext context, Account account) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('手动签到'),
+        content: Text('确定要为「${account.name}」执行签到吗？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('确认签到'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      _performCheckIn(account);
+    }
+    return false;
   }
 
   /// Fires a single check-in for [account] and shows a SnackBar with the

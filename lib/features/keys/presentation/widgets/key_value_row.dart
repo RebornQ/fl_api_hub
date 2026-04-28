@@ -95,19 +95,20 @@ class _KeyValueRowState extends ConsumerState<KeyValueRow> {
               isResolving: _isResolving,
               onTap: _isResolving ? null : _resolveKey,
             ),
-          // Visibility toggle.
-          GestureDetector(
-            onTap: _hasValue
-                ? () => setState(() => _isVisible = !_isVisible)
-                : null,
-            child: Icon(
-              _isVisible ? Icons.visibility_off : Icons.visibility,
-              size: 18,
-              color: _hasValue
-                  ? colorScheme.outline
-                  : colorScheme.outlineVariant,
+          // Visibility toggle (hidden when server-masked to avoid confusion).
+          if (!_isServerMasked)
+            GestureDetector(
+              onTap: _hasValue
+                  ? () => setState(() => _isVisible = !_isVisible)
+                  : null,
+              child: Icon(
+                _isVisible ? Icons.visibility_off : Icons.visibility,
+                size: 18,
+                color: _hasValue
+                    ? colorScheme.outline
+                    : colorScheme.outlineVariant,
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -126,10 +127,10 @@ class _KeyValueRowState extends ConsumerState<KeyValueRow> {
 
   /// Masks a key by showing the first 7 and last 4 characters.
   static String _maskValue(String value) {
-    if (value.length <= 11) return '${value.substring(0, 3)}...****';
+    if (value.length <= 11) return '${value.substring(0, 3)}***';
     final prefix = value.substring(0, 7);
     final suffix = value.substring(value.length - 4);
-    return '$prefix...$suffix';
+    return '$prefix***$suffix';
   }
 
   Future<void> _resolveKey() async {

@@ -90,33 +90,53 @@ class _AppShellState extends ConsumerState<AppShell> {
       child: Scaffold(
         appBar: _buildAppBar(context, colorScheme),
         body: IndexedStack(index: currentIndex, children: _pages),
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: currentIndex,
-          onDestinationSelected: (index) {
-            ref.read(tabIndexProvider.notifier).state = index;
-          },
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.event_available_outlined),
-              selectedIcon: Icon(Icons.event_available),
-              label: '签到',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.account_balance_wallet_outlined),
-              selectedIcon: Icon(Icons.account_balance_wallet),
-              label: '账号',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.vpn_key_outlined),
-              selectedIcon: Icon(Icons.vpn_key),
-              label: '密钥',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.settings_outlined),
-              selectedIcon: Icon(Icons.settings),
-              label: '设置',
-            ),
-          ],
+        bottomNavigationBar: NavigationBarTheme(
+          data: NavigationBarThemeData(
+            indicatorColor: colorScheme.primary,
+            iconTheme: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.selected)) {
+                return IconThemeData(color: colorScheme.onPrimary);
+              }
+              return IconThemeData(color: colorScheme.onSurfaceVariant);
+            }),
+            labelTextStyle: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.selected)) {
+                return TextStyle(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                );
+              }
+              return TextStyle(color: colorScheme.onSurfaceVariant);
+            }),
+          ),
+          child: NavigationBar(
+            selectedIndex: currentIndex,
+            onDestinationSelected: (index) {
+              ref.read(tabIndexProvider.notifier).state = index;
+            },
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.event_available_outlined),
+                selectedIcon: Icon(Icons.event_available),
+                label: '签到',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.account_balance_wallet_outlined),
+                selectedIcon: Icon(Icons.account_balance_wallet),
+                label: '账号',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.vpn_key_outlined),
+                selectedIcon: Icon(Icons.vpn_key),
+                label: '密钥',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.settings_outlined),
+                selectedIcon: Icon(Icons.settings),
+                label: '设置',
+              ),
+            ],
+          ),
         ),
       ),
     );

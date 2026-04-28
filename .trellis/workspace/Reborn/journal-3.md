@@ -105,3 +105,36 @@ Implemented three account list UX improvements: S1 (disable right-swipe check-in
 ### Next Steps
 
 - None - task complete
+
+
+## Session 68: Fix group API requests with ratio and DoneHub adapter
+
+**Date**: 2026-04-29
+**Task**: Fix group API requests with ratio and DoneHub adapter
+**Branch**: `main`
+
+### Summary
+
+GroupDto添加ratio字段，Sub2API双端点合并(available+rates)，新建DoneHubAdapter分页分组，分组下拉显示名称-描述(倍率)格式，更新spec记录Dart library-private陷阱
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `526b637` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

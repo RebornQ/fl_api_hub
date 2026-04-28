@@ -17,9 +17,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/design_tokens.dart';
 import '../../../../core/browser/browser_service.dart';
+import '../../../../core/storage/split_pane_provider.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_error_state.dart';
 import '../../../../core/widgets/app_loading_state.dart';
+import '../../../../core/widgets/split_pane.dart';
 import '../../../accounts/presentation/providers/accounts_providers.dart'
     show accountsProvider;
 import '../../../settings/presentation/providers/browser_providers.dart';
@@ -179,34 +181,26 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
     return Focus(
       focusNode: _wideFocusNode,
       onKeyEvent: _onKeyEvent,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            width: MediaQuery.of(context).size.width * 0.40,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildHeader(context),
-                Expanded(
-                  child: _buildMasterColumn(
-                    context,
-                    stats,
-                    summariesAsync,
-                    tasksAsync,
-                    isWide: true,
-                  ),
-                ),
-              ],
+      child: SplitPane(
+        ratio: ref.watch(splitPaneRatioProvider),
+        onRatioChanged: (r) =>
+            ref.read(splitPaneRatioProvider.notifier).setRatio(r),
+        leftChild: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildHeader(context),
+            Expanded(
+              child: _buildMasterColumn(
+                context,
+                stats,
+                summariesAsync,
+                tasksAsync,
+                isWide: true,
+              ),
             ),
-          ),
-          VerticalDivider(
-            width: 1,
-            thickness: 1,
-            color: Theme.of(context).colorScheme.outlineVariant.withAlpha(40),
-          ),
-          Expanded(child: _CheckInDetailPanel()),
-        ],
+          ],
+        ),
+        rightChild: _CheckInDetailPanel(),
       ),
     );
   }

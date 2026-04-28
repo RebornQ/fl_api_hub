@@ -18,9 +18,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/design_tokens.dart';
 import '../../../../core/result/result.dart';
+import '../../../../core/storage/split_pane_provider.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_error_state.dart';
 import '../../../../core/widgets/app_loading_state.dart';
+import '../../../../core/widgets/split_pane.dart';
 import '../../../check_in/domain/entities/check_in_result.dart';
 import '../../../check_in/presentation/providers/check_in_providers.dart'
     hide selectedAccountIdProvider;
@@ -295,51 +297,42 @@ class _AccountsPageState extends ConsumerState<AccountsPage>
     );
   }
 
-  /// Desktop layout: sidebar (40%) + detail pane (60%).
-  /// Wrapped in [KeyboardListener] for arrow-key navigation.
+  /// Desktop layout: sidebar + detail pane via [SplitPane].
+  /// Wrapped in [Focus] for arrow-key navigation.
   Widget _buildWideLayout(
     BuildContext context,
     AsyncValue<List<Account>> accounts,
     BoxConstraints constraints,
   ) {
+    final ratio = ref.watch(splitPaneRatioProvider);
     return Focus(
       focusNode: _wideFocusNode,
       onKeyEvent: _onKeyEvent,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            width: constraints.maxWidth * 0.40,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildHeader(context),
-                _buildSearchAndFilter(context),
-                Expanded(
-                  child: accounts.when(
-                    data: (list) => _buildBody(context, list, isWide: true),
-                    loading: () => const AppLoadingState(message: '加载中...'),
-                    error: (err, _) => AppErrorState(
-                      message: err.toString(),
-                      onRetry: () => ref.invalidate(accountsProvider),
-                    ),
-                  ),
+      child: SplitPane(
+        ratio: ratio,
+        onRatioChanged: (r) =>
+            ref.read(splitPaneRatioProvider.notifier).setRatio(r),
+        leftChild: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildHeader(context),
+            _buildSearchAndFilter(context),
+            Expanded(
+              child: accounts.when(
+                data: (list) => _buildBody(context, list, isWide: true),
+                loading: () => const AppLoadingState(message: '加载中...'),
+                error: (err, _) => AppErrorState(
+                  message: err.toString(),
+                  onRetry: () => ref.invalidate(accountsProvider),
                 ),
-              ],
+              ),
             ),
-          ),
-          VerticalDivider(
-            width: 1,
-            thickness: 1,
-            color: Theme.of(context).colorScheme.outlineVariant.withAlpha(40),
-          ),
-          Expanded(
-            child: _AccountsDetailPanel(
-              key: _detailPanelKey,
-              dirtyNotifier: _detailDirtyNotifier,
-            ),
-          ),
-        ],
+          ],
+        ),
+        rightChild: _AccountsDetailPanel(
+          key: _detailPanelKey,
+          dirtyNotifier: _detailDirtyNotifier,
+        ),
       ),
     );
   }

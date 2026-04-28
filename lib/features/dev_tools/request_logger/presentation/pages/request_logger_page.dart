@@ -18,7 +18,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../app/theme/design_tokens.dart';
+import '../../../../../core/storage/split_pane_provider.dart';
 import '../../../../../core/widgets/app_empty_state.dart';
+import '../../../../../core/widgets/split_pane.dart';
 import '../../domain/entities/request_log_entry.dart';
 import '../../domain/entities/request_log_filter.dart';
 import '../providers/request_logger_providers.dart';
@@ -96,27 +98,19 @@ class RequestLoggerPage extends ConsumerWidget {
 
     final enabled = ref.watch(requestLoggerEnabledProvider);
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        SizedBox(
-          width: MediaQuery.of(context).size.width * 0.40,
-          child: _buildMasterList(
-            context,
-            ref,
-            filtered,
-            enabled: enabled,
-            isWide: true,
-            selectedId: selectedId,
-          ),
-        ),
-        VerticalDivider(
-          width: 1,
-          thickness: 1,
-          color: Theme.of(context).colorScheme.outlineVariant.withAlpha(40),
-        ),
-        Expanded(child: RequestLogDetailView(entry: selectedEntry)),
-      ],
+    return SplitPane(
+      ratio: ref.watch(splitPaneRatioProvider),
+      onRatioChanged: (r) =>
+          ref.read(splitPaneRatioProvider.notifier).setRatio(r),
+      leftChild: _buildMasterList(
+        context,
+        ref,
+        filtered,
+        enabled: enabled,
+        isWide: true,
+        selectedId: selectedId,
+      ),
+      rightChild: RequestLogDetailView(entry: selectedEntry),
     );
   }
 

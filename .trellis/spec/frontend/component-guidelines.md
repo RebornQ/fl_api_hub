@@ -213,3 +213,72 @@ class _XEditPageState extends ConsumerState<XEditPage> {
   state.
 - Submit calls the expected notifier method (`create` vs `update`) with
   the right id semantics.
+
+---
+
+### Pattern — Resizable Split Pane with Persisted Ratio
+
+**When to use**: master-detail layouts on widescreen (≥900px) where the
+user may want to adjust the left/right panel balance.
+
+**Reference implementation**:
+
+- `lib/core/widgets/split_pane.dart`
+- `lib/core/storage/split_pane_provider.dart`
+
+**Signature contract**:
+
+```dart
+/// Provider for global split ratio (persisted to Hive).
+final splitPaneRatioProvider = NotifierProvider<SplitPaneRatioNotifier, double>(
+  SplitPaneRatioNotifier.new,
+);
+
+/// Reusable split-pane widget.
+class SplitPane extends StatefulWidget {
+  final double ratio;                      // 0.3–0.5, default 0.4
+  final ValueChanged<double>? onRatioChanged;
+  final Widget leftChild;
+  final Widget rightChild;
+
+  const SplitPane({
+    required this.leftChild,
+    required this.rightChild,
+    this.ratio = 0.4,
+    this.onRatioChanged,
+    super.key,
+  });
+}
+
+// Usage in page:
+SplitPane(
+  ratio: ref.watch(splitPaneRatioProvider),
+  onRatioChanged: (r) =>
+      ref.read(splitPaneRatioProvider.notifier).setRatio(r),
+  leftChild: const MasterList(),
+  rightChild: const DetailPanel(),
+)
+```
+
+**Rules**:
+- Ratio is clamped to a narrow range (30%–50%) to prevent either panel
+  from becoming unusably narrow or wide.
+- Visual feedback: three divider states with distinct colors:
+  - Default: `outlineVariant` 40% alpha (subtle)
+  - Hover: `outline` (visible)
+  - Dragging: `primary` (prominent)
+- Persist only on drag end (`onHorizontalDragEnd`), not during live
+  resize, to avoid excessive I/O.
+- Use `MouseRegion(cursor: SystemMouseCursors.resizeColumn)` to signal
+  draggable affordance on hover.
+- The widget owns local `_isHovering` / `_isDragging` state; the parent
+  connects it to a global provider for persistence.
+- Reuse the same provider across all pages so the user's preference is
+  consistent app-wide.
+
+**Don't**:
+- Don't persist on every `onHorizontalDragUpdate` — it triggers too
+  frequently during a single drag gesture.
+- Don't hardcode ratio in multiple pages; centralize via provider.
+- Don't use `shared_preferences` when the project already has a
+  Hive-based `KeyValueStore` — prefer existing infrastructure.

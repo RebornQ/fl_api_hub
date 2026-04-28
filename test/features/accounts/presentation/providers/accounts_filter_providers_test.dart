@@ -5,6 +5,8 @@ import 'package:fl_api_hub/core/network/site_type.dart';
 import 'package:fl_api_hub/features/accounts/domain/entities/account.dart';
 import 'package:fl_api_hub/features/accounts/presentation/providers/accounts_filter_providers.dart';
 import 'package:fl_api_hub/features/accounts/presentation/providers/accounts_providers.dart';
+import 'package:fl_api_hub/features/tags/domain/entities/tag.dart';
+import 'package:fl_api_hub/features/tags/presentation/providers/tags_providers.dart';
 
 /// Minimal notifier stand-in that hands the provided list back from
 /// [build] without touching repositories. We don't exercise mutation
@@ -24,12 +26,23 @@ class _FakeAccountsNotifier extends AccountsNotifier {
   Future<void> checkOne(String id) async {}
 }
 
+/// Minimal tags notifier stand-in that returns a fixed list from [build].
+class _FakeTagsNotifier extends TagsNotifier {
+  _FakeTagsNotifier(this._initial);
+
+  final List<Tag> _initial;
+
+  @override
+  Future<List<Tag>> build() async => _initial;
+}
+
 Account _account({
   required String id,
   required String name,
   String? baseUrl,
   String? notes,
   bool enabled = true,
+  List<String> tagIds = const [],
 }) {
   return Account(
     id: id,
@@ -39,20 +52,35 @@ Account _account({
     authType: AuthType.accessToken,
     enabled: enabled,
     notes: notes,
+    tagIds: tagIds,
     createdAt: DateTime(2026, 1, 1),
     updatedAt: DateTime(2026, 1, 1),
   );
 }
 
-Future<ProviderContainer> _makeContainer(List<Account> accounts) async {
+Tag _tag({required String id, required String name}) {
+  return Tag(
+    id: id,
+    name: name,
+    createdAt: DateTime(2026, 1, 1),
+    updatedAt: DateTime(2026, 1, 1),
+  );
+}
+
+Future<ProviderContainer> _makeContainer(
+  List<Account> accounts, {
+  List<Tag> tags = const [],
+}) async {
   final container = ProviderContainer(
     overrides: [
       accountsProvider.overrideWith(() => _FakeAccountsNotifier(accounts)),
+      tagsProvider.overrideWith(() => _FakeTagsNotifier(tags)),
     ],
   );
-  // Let the fake notifier's build() resolve so filteredAccountsProvider
+  // Let the fake notifiers' build() resolve so filteredAccountsProvider
   // has data to work with.
   await container.read(accountsProvider.future);
+  await container.read(tagsProvider.future);
   return container;
 }
 
@@ -255,6 +283,65 @@ void main() {
         expect(view.list.map((e) => e.id).toList(), ['b', 'd']);
       },
     );
+  });
+
+  group('tag name search', () {
+    test('search matches account by associated tag name', () async {
+      final tagProd = _tag(id: 't1', name: '生产');
+      final tagTest = _tag(id: 't2', name: '测试');
+      final a = _account(id: 'a', name: 'Alpha', tagIds: ['t1']);
+      final b = _account(id: 'b', name: 'Beta', tagIds: ['t2']);
+      final container = await _makeContainer([a, b], tags: [tagProd, tagTest]);
+      addTearDown(container.dispose);
+
+      container.read(accountSearchQueryProvider.notifier).state = '生产';
+
+      final view = container.read(filteredAccountsProvider).value!;
+      expect(view.list.map((e) => e.id).toList(), ['a']);
+    });
+
+    test('search matches tag name case-insensitively', () async {
+      final tag = _tag(id: 't1', name: 'Production');
+      final a = _account(id: 'a', name: 'Alpha', tagIds: ['t1']);
+      final b = _account(id: 'b', name: 'Beta', tagIds: []);
+      final container = await _makeContainer([a, b], tags: [tag]);
+      addTearDown(container.dispose);
+
+      container.read(accountSearchQueryProvider.notifier).state = 'production';
+
+      final view = container.read(filteredAccountsProvider).value!;
+      expect(view.list.map((e) => e.id).toList(), ['a']);
+    });
+
+    test(
+      'tag search does not affect existing name/baseUrl/notes matching',
+      () async {
+        final tag = _tag(id: 't1', name: 'Production');
+        final a = _account(id: 'a', name: 'Alpha', tagIds: ['t1']);
+        final b = _account(id: 'b', name: 'Beta Production', tagIds: []);
+        final container = await _makeContainer([a, b], tags: [tag]);
+        addTearDown(container.dispose);
+
+        container.read(accountSearchQueryProvider.notifier).state =
+            'production';
+
+        final view = container.read(filteredAccountsProvider).value!;
+        // Both matched: a via tag name, b via account name.
+        expect(view.list.map((e) => e.id).toList(), ['a', 'b']);
+      },
+    );
+
+    test('account with unknown tagIds is safely skipped', () async {
+      // No tags provided, but account references a tagId that doesn't exist.
+      final a = _account(id: 'a', name: 'Alpha', tagIds: ['nonexistent']);
+      final container = await _makeContainer([a], tags: []);
+      addTearDown(container.dispose);
+
+      container.read(accountSearchQueryProvider.notifier).state = '生产';
+
+      final view = container.read(filteredAccountsProvider).value!;
+      expect(view.list, isEmpty);
+    });
   });
 
   group('AccountListFilter.matches', () {

@@ -249,14 +249,17 @@ class _KeysPageState extends ConsumerState<KeysPage>
         0,
       ),
       child: accounts.when(
-        data: (list) => AccountSelector(
-          accounts: list,
-          selectedId: _selectedAccountId,
-          onChanged: (id) => setState(() {
-            _selectedAccountId = id;
-            _selectedKeyId = null;
-          }),
-        ),
+        data: (list) {
+          final sorted = _sortAccounts(list);
+          return AccountSelector(
+            accounts: sorted,
+            selectedId: _selectedAccountId,
+            onChanged: (id) => setState(() {
+              _selectedAccountId = id;
+              _selectedKeyId = null;
+            }),
+          );
+        },
         loading: () => const SizedBox(
           height: 56,
           child: Center(
@@ -445,6 +448,15 @@ class _KeysPageState extends ConsumerState<KeysPage>
         );
       },
     );
+  }
+
+  /// Sorts accounts: enabled first (sortOrder ASC), then disabled (sortOrder ASC).
+  List<Account> _sortAccounts(List<Account> accounts) {
+    final enabled = accounts.where((a) => a.enabled).toList()
+      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    final disabled = accounts.where((a) => !a.enabled).toList()
+      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    return [...enabled, ...disabled];
   }
 
   /// Filters keys by search query.

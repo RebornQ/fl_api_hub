@@ -21,6 +21,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/account.dart';
+import '../../../tags/presentation/providers/tags_providers.dart';
 import 'accounts_providers.dart';
 
 /// Filter chips shown on the accounts management page.
@@ -88,8 +89,8 @@ typedef FilteredAccountsView = ({
 /// Resolution order:
 ///   1. `accountsProvider` is unwrapped via `whenData` so errors and
 ///      loading states pass through untouched.
-///   2. Search filter — case-insensitive `contains` on `name`, `baseUrl`
-///      and `notes` (null-safe).
+///   2. Search filter — case-insensitive `contains` on `name`, `baseUrl`,
+///      `notes`, and associated tag names (via `tagIds` → `tagsProvider`).
 ///   3. Counts are captured at this stage — they follow the search.
 ///   4. Chip filter is applied on top.
 ///   5. Stable partition puts enabled accounts first.
@@ -99,6 +100,15 @@ final filteredAccountsProvider = Provider<AsyncValue<FilteredAccountsView>>((
   final accounts = ref.watch(accountsProvider);
   final filter = ref.watch(accountListFilterProvider);
   final query = ref.watch(accountSearchQueryProvider).trim().toLowerCase();
+  final tagsAsync = ref.watch(tagsProvider);
+
+  // Build a tag ID -> lowercase name lookup for tag-based search matching.
+  final tagIdToName = <String, String>{};
+  tagsAsync.whenData((tags) {
+    for (final tag in tags) {
+      tagIdToName[tag.id] = tag.name.toLowerCase();
+    }
+  });
 
   return accounts.whenData((list) {
     final searched = query.isEmpty
@@ -109,6 +119,12 @@ final filteredAccountsProvider = Provider<AsyncValue<FilteredAccountsView>>((
             final notes = a.notes;
             if (notes != null && notes.toLowerCase().contains(query)) {
               return true;
+            }
+            // Tag name matching — case-insensitive contains on tag names
+            // referenced by this account.
+            for (final tagId in a.tagIds) {
+              final tagName = tagIdToName[tagId];
+              if (tagName != null && tagName.contains(query)) return true;
             }
             return false;
           }).toList();

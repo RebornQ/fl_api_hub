@@ -637,7 +637,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage>
 
         return Dismissible(
           key: ValueKey(account.id),
-          direction: account.enabled
+          direction: account.checkIn.autoCheckInEnabled
               ? DismissDirection.horizontal
               : DismissDirection.endToStart,
           confirmDismiss: (direction) async {
@@ -651,7 +651,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage>
               horizontal: AppSpacing.md,
               vertical: AppSpacing.xs,
             ),
-            child: account.enabled ? checkInBg : deleteBg,
+            child: account.checkIn.autoCheckInEnabled ? checkInBg : deleteBg,
           ),
           secondaryBackground: Padding(
             padding: const EdgeInsets.symmetric(

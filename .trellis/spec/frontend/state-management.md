@@ -486,6 +486,97 @@ Future<Result<void>> delete(String tagId) async {
 }
 ```
 
+### Pattern 6 — Enabled-First Stable Partition Sort
+
+**When to use**: displaying a list of accounts (or any entity with
+`enabled` + `sortOrder` fields) where enabled items appear above
+disabled items, preserving user-defined order within each group.
+
+**Reference implementations**:
+
+- `lib/features/accounts/presentation/providers/accounts_filter_providers.dart`
+  — `filteredAccountsProvider` (L124-128)
+- `lib/features/keys/presentation/pages/keys_page.dart` —
+  `_sortAccounts` helper (L453-460)
+
+**Signature contract**:
+
+```dart
+List<Account> sortAccounts(List<Account> accounts) {
+  final enabled = accounts.where((a) => a.enabled).toList()
+    ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+  final disabled = accounts.where((a) => !a.enabled).toList()
+    ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+  return [...enabled, ...disabled];
+}
+```
+
+**Rules**:
+- Use stable O(n) partition (`where` + spread), not `List.sort` with a
+  comparator that checks `enabled`. This guarantees deterministic order
+  even when `sortOrder` values collide.
+- Within each partition, sort by `sortOrder` ASC (lower = earlier).
+- When this pattern appears in ≥2 places in the same feature area,
+  consider extracting to a shared utility. For now, the two usages are
+  in separate features (accounts filter vs keys page), so inline is fine.
+
+**Don't**:
+- Don't use a single `list.sort((a, b) { final cmp = a.enabled ? 0 : 1;
+  ... })` — `List.sort` is not guaranteed stable in Dart, so equal-rank
+  items may shuffle on each sort call.
+
+### Pattern 7 — Cross-Feature Lookup Map for Search
+
+**When to use**: a derived provider needs to match against names or
+labels from another feature's data (e.g. searching accounts by tag name),
+and the cross-feature data is small enough to fit in memory.
+
+**Reference implementation**:
+
+- `lib/features/accounts/presentation/providers/accounts_filter_providers.dart`
+  — `filteredAccountsProvider` watches `tagsProvider` to build a
+  `tagIdToName` lookup for tag-based search.
+
+**Signature contract**:
+
+```dart
+final derivedProvider = Provider<AsyncValue<View>>((ref) {
+  final mainAsync = ref.watch(mainProvider);
+  final crossAsync = ref.watch(crossFeatureProvider);
+
+  // Build lookup map from cross-feature data.
+  final lookupMap = <String, String>{};
+  crossAsync.whenData((items) {
+    for (final item in items) {
+      lookupMap[item.id] = item.name.toLowerCase();
+    }
+  });
+
+  return mainAsync.whenData((list) {
+    // Use lookupMap in search/filter logic.
+    // When crossAsync is loading/error, lookupMap is empty →
+    // cross-feature matching silently skips (safe degradation).
+  });
+});
+```
+
+**Rules**:
+- Use `whenData` (not `valueOrNull` or `!`) to build the lookup — this
+  gracefully handles loading and error states by leaving the map empty.
+- Lowercase both the query and the map values to ensure case-insensitive
+  matching.
+- The lookup map is built inside the provider body, not cached across
+  rebuilds — Riverpod already memoises the provider output, so redundant
+  map construction is avoided automatically.
+- Only suitable when the cross-feature dataset is bounded (tags, groups,
+  settings). Large datasets should use indexed data sources instead.
+
+**Don't**:
+- Don't `await` the cross-feature provider inside a synchronous
+  `Provider`. Use `whenData` for non-blocking access.
+- Don't duplicate the lookup logic in multiple providers — if a second
+  consumer needs the same map, extract it to a dedicated `Provider<Map>`.
+
 **Don't**:
 - Don't call the sibling cascade *after* deleting the primary record.
   An intermittent failure on step 2 leaves B with references to a

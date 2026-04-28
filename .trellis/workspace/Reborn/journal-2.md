@@ -1882,3 +1882,36 @@ macOS/Windows/Linux 三平台最小窗口限制从 1024x768 统一调整为 800x
 ### Next Steps
 
 - None - task complete
+
+
+## Session 62: UI polish: nav color, check-in confirm, key visibility
+
+**Date**: 2026-04-28
+**Task**: UI polish: nav color, check-in confirm, key visibility
+**Branch**: `main`
+
+### Summary
+
+三项独立 UI 优化：(1) NavigationBar 选中色改为 primary+onPrimary 与 FAB 统一；(2) 账号列表右滑签到增加二次确认对话框；(3) 服务端脱敏密钥隐藏 visibility toggle，解析后再显示，mask 分隔符改为 ***。新增 theme-guidelines NavigationBar Theming 章节。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b904ed8` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

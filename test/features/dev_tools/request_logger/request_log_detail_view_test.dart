@@ -39,7 +39,12 @@ RequestLogEntry _entry({
 
 Widget _wrap(RequestLogEntry? entry) {
   return MaterialApp(
-    home: Scaffold(body: RequestLogDetailView(entry: entry)),
+    home: Scaffold(
+      body: SizedBox(
+        width: 800, // Provide finite width for LayoutBuilder
+        child: RequestLogDetailView(entry: entry),
+      ),
+    ),
   );
 }
 
@@ -94,9 +99,10 @@ void main() {
       await tester.pumpWidget(_wrap(_entry(requestBody: longBody)));
       await tester.pumpAndSettle();
 
-      expect(find.text('展开'), findsOneWidget);
+      // The "展开" text is embedded in a Text.rich widget, so we use contains
+      expect(find.textContaining('展开'), findsOneWidget);
 
-      await tester.tap(find.text('展开'));
+      await tester.tap(find.textContaining('展开'));
       await tester.pumpAndSettle();
 
       expect(find.text('收起'), findsOneWidget);

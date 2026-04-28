@@ -1,0 +1,4 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Quality checks for frontend code"}
+{"file": ".trellis/tasks/04-28-request-logger-sensitive-toggle/prd.md", "reason": "Parent task PRD with acceptance criteria"}
+{"file": ".trellis/tasks/04-28-s1-remove-truncation/prd.md", "reason": "Subtask S1 PRD: truncation removal acceptance criteria"}

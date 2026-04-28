@@ -11,6 +11,9 @@
 /// and copies the result to the system clipboard, showing a confirmation
 /// [SnackBar].
 ///
+/// An AppBar toggle button allows showing/hiding sensitive header values
+/// (Authorization, Cookie, etc.). By default, sensitive values are masked.
+///
 /// When [entry] is `null`, displays a centered placeholder message for the
 /// wide-layout empty state ("选择左侧的请求以查看详情").
 library;
@@ -21,16 +24,24 @@ import 'package:flutter/services.dart';
 import '../../../../../app/theme/design_tokens.dart';
 import '../../../../../core/widgets/section_card.dart';
 import '../../data/utils/curl_exporter.dart';
+import '../../data/utils/header_redactor.dart';
 import '../../domain/entities/request_log_entry.dart';
 
-class RequestLogDetailView extends StatelessWidget {
+class RequestLogDetailView extends StatefulWidget {
   final RequestLogEntry? entry;
 
   const RequestLogDetailView({super.key, this.entry});
 
   @override
+  State<RequestLogDetailView> createState() => _RequestLogDetailViewState();
+}
+
+class _RequestLogDetailViewState extends State<RequestLogDetailView> {
+  bool _showSensitive = false;
+
+  @override
   Widget build(BuildContext context) {
-    final e = entry;
+    final e = widget.entry;
     if (e == null) {
       return Center(
         child: Text(
@@ -49,14 +60,14 @@ class RequestLogDetailView extends StatelessWidget {
             AppSpacing.md,
             AppSpacing.md,
             AppSpacing.md,
-            80, // Space for FAB.
+            120, // Space for two FABs (mini + extended).
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _OverviewCard(entry: e),
               const SizedBox(height: AppSpacing.md),
-              _RequestCard(entry: e),
+              _RequestCard(entry: e, showSensitive: _showSensitive),
               const SizedBox(height: AppSpacing.md),
               _ResponseCard(entry: e),
             ],
@@ -65,10 +76,28 @@ class RequestLogDetailView extends StatelessWidget {
         Positioned(
           right: AppSpacing.md,
           bottom: AppSpacing.md,
-          child: FloatingActionButton.extended(
-            onPressed: () => _copyCurl(context, e),
-            icon: const Icon(Icons.content_copy),
-            label: const Text('Copy as curl'),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              FloatingActionButton(
+                heroTag: 'toggle_sensitive',
+                mini: true,
+                onPressed: () =>
+                    setState(() => _showSensitive = !_showSensitive),
+                tooltip: _showSensitive ? '隐藏敏感信息' : '显示敏感信息',
+                child: Icon(
+                  _showSensitive ? Icons.visibility : Icons.visibility_off,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              FloatingActionButton.extended(
+                heroTag: 'copy_curl',
+                onPressed: () => _copyCurl(context, e),
+                icon: const Icon(Icons.content_copy),
+                label: const Text('Copy as curl'),
+              ),
+            ],
           ),
         ),
       ],
@@ -87,6 +116,7 @@ class RequestLogDetailView extends StatelessWidget {
 
 class _OverviewCard extends StatelessWidget {
   final RequestLogEntry entry;
+
   const _OverviewCard({required this.entry});
 
   @override
@@ -176,10 +206,17 @@ class _OverviewCard extends StatelessWidget {
 
 class _RequestCard extends StatelessWidget {
   final RequestLogEntry entry;
-  const _RequestCard({required this.entry});
+  final bool showSensitive;
+
+  const _RequestCard({required this.entry, required this.showSensitive});
 
   @override
   Widget build(BuildContext context) {
+    // Redact sensitive headers unless user explicitly enables showing them.
+    final displayHeaders = showSensitive
+        ? entry.requestHeaders
+        : redactHeaders(entry.requestHeaders);
+
     return SectionCard(
       icon: Icons.upload_outlined,
       title: 'Request',
@@ -194,7 +231,7 @@ class _RequestCard extends StatelessWidget {
           ],
           _SectionLabel('请求头'),
           const SizedBox(height: AppSpacing.xs),
-          _KeyValueTable(data: entry.requestHeaders),
+          _KeyValueTable(data: displayHeaders),
           const SizedBox(height: AppSpacing.md),
           _SectionLabel('请求体'),
           const SizedBox(height: AppSpacing.xs),
@@ -207,6 +244,7 @@ class _RequestCard extends StatelessWidget {
 
 class _ResponseCard extends StatelessWidget {
   final RequestLogEntry entry;
+
   const _ResponseCard({required this.entry});
 
   @override
@@ -278,6 +316,7 @@ class _InfoRow extends StatelessWidget {
 
 class _SectionLabel extends StatelessWidget {
   final String text;
+
   const _SectionLabel(this.text);
 
   @override
@@ -294,6 +333,7 @@ class _SectionLabel extends StatelessWidget {
 
 class _KeyValueTable extends StatelessWidget {
   final Map<String, dynamic> data;
+
   const _KeyValueTable({required this.data});
 
   @override
@@ -373,41 +413,219 @@ class _CollapsibleBodyState extends State<_CollapsibleBody> {
       );
     }
 
+    // Determine if toggle is needed:
+    // 1. More than 10 newline characters (obvious multi-line content)
+    // 2. OR very long single-line content that will be visually truncated by maxLines
+    //    (estimate: 10 lines * ~80 chars per line in monospace at typical width)
     final lineCount = '\n'.allMatches(body).length + 1;
-    final needsToggle = lineCount > 10;
+    final estimatedVisualLines = (body.length / 80).ceil();
+    final needsToggle = lineCount > 10 || estimatedVisualLines > 10;
 
+    // When expanded, show full text with "收起" button at the end
+    if (_isExpanded) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SelectableText(
+            body,
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontFamily: 'monospace',
+              height: 1.4,
+            ),
+          ),
+          if (needsToggle) ...[
+            const SizedBox(height: AppSpacing.xs),
+            GestureDetector(
+              onTap: () => setState(() => _isExpanded = false),
+              child: Text(
+                '收起',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ],
+      );
+    }
+
+    // When collapsed, use LayoutBuilder to measure available width and
+    // create a RichText with "...展开" embedded at the end
+    final baseStyle = theme.textTheme.bodySmall?.copyWith(
+      fontFamily: 'monospace',
+      height: 1.4,
+    );
+
+    if (!needsToggle) {
+      return SelectableText(body, style: baseStyle);
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxWidth = constraints.maxWidth;
+        if (maxWidth.isInfinite) {
+          // Fallback if no width constraint
+          return _buildCollapsedWithButton(body, baseStyle!, theme);
+        }
+
+        return _buildCollapsedRichText(body, baseStyle!, theme, maxWidth);
+      },
+    );
+  }
+
+  /// Fallback: show text with button below (original behavior)
+  Widget _buildCollapsedWithButton(
+    String body,
+    TextStyle baseStyle,
+    ThemeData theme,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           body,
-          style: theme.textTheme.bodySmall?.copyWith(
-            fontFamily: 'monospace',
-            height: 1.4,
-          ),
-          maxLines: _isExpanded ? null : 10,
-          overflow: _isExpanded ? null : TextOverflow.ellipsis,
+          style: baseStyle,
+          maxLines: 10,
+          overflow: TextOverflow.ellipsis,
         ),
-        if (needsToggle) ...[
-          const SizedBox(height: AppSpacing.xs),
-          TextButton.icon(
-            onPressed: () => setState(() => _isExpanded = !_isExpanded),
-            icon: Icon(_isExpanded ? Icons.expand_less : Icons.expand_more),
-            label: Text(_isExpanded ? '收起' : '展开'),
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-              minimumSize: const Size(0, 32),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        const SizedBox(height: AppSpacing.xs),
+        GestureDetector(
+          onTap: () => setState(() => _isExpanded = true),
+          child: Text(
+            '展开',
+            style: baseStyle.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.w500,
             ),
           ),
-        ],
+        ),
       ],
     );
+  }
+
+  /// Build RichText with "...展开" embedded at the truncation point
+  Widget _buildCollapsedRichText(
+    String body,
+    TextStyle baseStyle,
+    ThemeData theme,
+    double maxWidth,
+  ) {
+    const int maxLines = 10;
+    const String ellipsis = '...';
+    const String expandText = '展开';
+
+    // Use TextPainter to find where to truncate
+    final painter = TextPainter(
+      text: TextSpan(text: body, style: baseStyle),
+      maxLines: maxLines,
+      textDirection: TextDirection.ltr,
+    );
+
+    painter.layout(maxWidth: maxWidth);
+
+    // Check if text visually exceeds maxLines
+    // Use TextPainter's didExceedMaxLines for accurate visual measurement
+    if (!painter.didExceedMaxLines) {
+      // Text fits within maxLines, no truncation needed
+      return SelectableText(body, style: baseStyle);
+    }
+
+    // Calculate space needed for "...展开"
+    final expandStyle = baseStyle.copyWith(
+      color: theme.colorScheme.primary,
+      fontWeight: FontWeight.w500,
+    );
+
+    final suffixPainter = TextPainter(
+      text: TextSpan(text: '$ellipsis$expandText', style: baseStyle),
+      textDirection: TextDirection.ltr,
+    );
+    suffixPainter.layout();
+    final suffixWidth = suffixPainter.width;
+
+    // Get the last line's metrics for truncation calculation
+    final lastLineMetrics = painter.computeLineMetrics();
+    final availableWidthForText = lastLineMetrics.isNotEmpty
+        ? lastLineMetrics.last.width - suffixWidth
+        : maxWidth - suffixWidth;
+
+    // Binary search to find the character position that fits
+    int truncatePos = _findTruncatePosition(
+      body,
+      baseStyle,
+      maxWidth,
+      maxLines,
+      availableWidthForText,
+    );
+
+    // Build the RichText with truncated text + "...展开"
+    final truncatedText = body.substring(0, truncatePos);
+
+    return GestureDetector(
+      onTap: () => setState(() => _isExpanded = true),
+      child: Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(text: truncatedText, style: baseStyle),
+            TextSpan(text: ellipsis, style: baseStyle),
+            TextSpan(text: expandText, style: expandStyle),
+          ],
+        ),
+        maxLines: maxLines,
+      ),
+    );
+  }
+
+  /// Binary search to find the optimal truncation position
+  int _findTruncatePosition(
+    String text,
+    TextStyle style,
+    double maxWidth,
+    int maxLines,
+    double availableWidthForLastLine,
+  ) {
+    int left = 0;
+    int right = text.length;
+    int bestPos = text.length;
+
+    while (left <= right) {
+      final mid = (left + right) ~/ 2;
+      final testText = text.substring(0, mid);
+
+      final painter = TextPainter(
+        text: TextSpan(text: testText, style: style),
+        maxLines: maxLines,
+        textDirection: TextDirection.ltr,
+      );
+      painter.layout(maxWidth: maxWidth);
+
+      final lineMetrics = painter.computeLineMetrics();
+      if (lineMetrics.isEmpty) {
+        left = mid + 1;
+        continue;
+      }
+
+      final lastLineWidth = lineMetrics.last.width;
+      final exceeded =
+          painter.didExceedMaxLines ||
+          lastLineWidth > availableWidthForLastLine + 5;
+
+      if (exceeded) {
+        right = mid - 1;
+      } else {
+        bestPos = mid;
+        left = mid + 1;
+      }
+    }
+
+    return bestPos;
   }
 }
 
 class _ErrorSection extends StatelessWidget {
   final RequestLogEntry entry;
+
   const _ErrorSection({required this.entry});
 
   @override

@@ -41,7 +41,7 @@ void main() {
     return options;
   }
 
-  test('onResponse emits a single entry with redacted headers and elapsed', () {
+  test('onResponse emits entry with raw (unredacted) headers and elapsed', () {
     final options = prepare(
       RequestOptions(
         method: 'POST',
@@ -73,7 +73,8 @@ void main() {
     expect(entry.method, 'POST');
     expect(entry.statusCode, 200);
     expect(entry.url, contains('https://api.example.com/login'));
-    expect(entry.requestHeaders['Authorization']!.contains('****'), isTrue);
+    // Headers are stored raw (unredacted) - UI layer handles redaction.
+    expect(entry.requestHeaders['Authorization'], 'Bearer sk-1234567890abcdef');
     expect(entry.requestHeaders['Content-Type'], 'application/json');
     expect(entry.requestBody, '{"u":"alice","p":"secret"}');
     expect(entry.responseBody, '{"ok":true}');

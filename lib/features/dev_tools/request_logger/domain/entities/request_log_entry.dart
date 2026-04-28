@@ -1,12 +1,12 @@
 /// Immutable snapshot of a single HTTP request/response captured by the
 /// request logger.
 ///
-/// Fields marked "pre-processed" are filled in by the logger pipeline and
-/// must be safe for direct display:
-/// - [requestHeaders] / [responseHeaders] have sensitive values redacted.
+/// Fields marked "pre-processed" are filled in by the logger pipeline:
+/// - [requestHeaders] stores **raw** header values; UI layer is responsible
+///   for redacting sensitive values (Authorization, Cookie, etc.) during display.
+/// - [responseHeaders] are stored raw (not typically sensitive).
 /// - [requestBody] / [responseBody] are serialized strings (JSON encoded,
-///   FormData summary, or binary placeholder) and already truncated to the
-///   configured 64 KB limit.
+///   FormData summary, or binary placeholder) and preserved in full.
 library;
 
 import 'package:meta/meta.dart';
@@ -39,7 +39,9 @@ class RequestLogEntry {
   /// the detail page can render them as a table.
   final Map<String, dynamic> query;
 
-  /// Request headers **with sensitive values already redacted**.
+  /// Request headers **stored as raw values** (not redacted).
+  /// UI layer should redact sensitive headers (Authorization, Cookie, etc.)
+  /// during display via [redactHeaders].
   final Map<String, String> requestHeaders;
 
   /// Serialized request body (JSON encoded string, FormData summary, etc.);

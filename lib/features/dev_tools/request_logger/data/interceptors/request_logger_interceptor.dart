@@ -9,8 +9,8 @@
 ///    terminal event and invoke [onComplete]. The headers recorded are
 ///    the **outgoing** headers after any earlier interceptor (e.g.
 ///    `AuthInterceptor`) has already run, which is the debugging value
-///    we want. Headers are redacted via [redactHeaders] before the entry
-///    is published.
+///    we want. Headers are stored **unredacted**; UI layer is responsible
+///    for masking sensitive values during display.
 ///
 /// The interceptor does **not** depend on Riverpod directly; wiring to a
 /// `Notifier` lives in the entry-point batch (B2).
@@ -20,7 +20,6 @@ import 'package:dio/dio.dart';
 
 import '../../domain/entities/request_log_entry.dart';
 import '../utils/body_serializer.dart';
-import '../utils/header_redactor.dart';
 
 /// Callback invoked once per completed request (success or failure).
 typedef RequestLogSink = void Function(RequestLogEntry entry);
@@ -79,7 +78,7 @@ class RequestLoggerInterceptor extends Interceptor {
       method: options.method.toUpperCase(),
       url: options.uri.toString(),
       query: Map<String, dynamic>.of(options.queryParameters),
-      requestHeaders: redactHeaders(options.headers),
+      requestHeaders: _flattenDynamicHeaders(options.headers),
       requestBody: serializeRequestBody(options.data),
       statusCode: responseObj?.statusCode,
       responseHeaders: responseObj == null
@@ -96,5 +95,11 @@ class RequestLoggerInterceptor extends Interceptor {
 
   Map<String, String> _flattenHeaders(Map<String, List<String>> map) {
     return {for (final e in map.entries) e.key: e.value.join(', ')};
+  }
+
+  /// Converts `Map<String, dynamic>` headers (Dio's outgoing request format)
+  /// to `Map<String, String>` without redaction.
+  Map<String, String> _flattenDynamicHeaders(Map<String, dynamic> headers) {
+    return {for (final e in headers.entries) e.key: e.value?.toString() ?? ''};
   }
 }

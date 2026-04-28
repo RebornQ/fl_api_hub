@@ -1,29 +1,22 @@
-/// Body serialization & truncation utilities for the request logger.
+/// Body serialization utilities for the request logger.
 ///
 /// The logger must convert Dio's request/response bodies (which can be any
-/// `Object?`) into a safe, bounded string suitable for storage in the
-/// in-memory ring buffer.
+/// `Object?`) into a safe string suitable for storage in the in-memory ring
+/// buffer.
 ///
 /// Rules:
 /// - `null` → `null` (nothing to record).
 /// - `FormData` → a summary string `<FormData: fields=N, files=M>` (the
 ///   attached file streams are never read so large uploads stay cheap).
-/// - `String` → passed through, then UTF-8-length-checked for truncation.
+/// - `String` → passed through unchanged.
 /// - `Map` / `List` → `jsonEncode` snapshot.
 /// - Non-text responses (Content-Type outside JSON/text) → binary
 ///   placeholder `<二进制数据, X bytes>`.
-///
-/// Truncation threshold is 64 KB of UTF-8-encoded bytes (see
-/// [kMaxBodyBytes]); oversized bodies are sliced and suffixed with the
-/// original size so the user can tell by how much the snapshot was cut.
 library;
 
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-
-/// Maximum UTF-8 byte length retained for a single request / response body.
-const int kMaxBodyBytes = 64 * 1024;
 
 /// Serializes a Dio request body (`options.data`) to a storable string.
 ///
@@ -44,7 +37,7 @@ String? serializeRequestBody(Object? data) {
     text = data.toString();
   }
 
-  return _truncateUtf8(text);
+  return text;
 }
 
 /// Serializes a Dio response body (`response.data`) to a storable string.
@@ -83,7 +76,7 @@ String? serializeResponseBody(Object? data, {String? contentType}) {
     text = data.toString();
   }
 
-  return _truncateUtf8(text);
+  return text;
 }
 
 String _safeJsonEncode(Object? data) {
@@ -98,19 +91,4 @@ int _estimateSize(Object data) {
   if (data is List<int>) return data.length;
   if (data is String) return utf8.encode(data).length;
   return data.toString().length;
-}
-
-/// Returns [text] unchanged when its UTF-8 byte length is within the
-/// allowed budget; otherwise slices at the byte boundary and appends a
-/// suffix declaring the original size in whole kilobytes.
-String _truncateUtf8(String text) {
-  final bytes = utf8.encode(text);
-  if (bytes.length <= kMaxBodyBytes) return text;
-
-  final kb = (bytes.length / 1024).round();
-  final sliced = utf8.decode(
-    bytes.sublist(0, kMaxBodyBytes),
-    allowMalformed: true,
-  );
-  return '$sliced\n...（已截断，原始 $kb KB）';
 }

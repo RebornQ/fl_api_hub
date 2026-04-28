@@ -1,0 +1,5 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Riverpod patterns for toggle state management"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Widget patterns for toggle buttons"}
+{"file": ".trellis/tasks/04-28-request-logger-sensitive-toggle/prd.md", "reason": "Parent task PRD with decisions"}
+{"file": ".trellis/tasks/04-28-s2-sensitive-toggle-ui/prd.md", "reason": "Subtask S2 PRD: sensitive toggle UI acceptance criteria"}

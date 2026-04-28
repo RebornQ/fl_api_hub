@@ -1,0 +1,29 @@
+{
+  "id": "request-logger-sensitive-toggle",
+  "name": "request-logger-sensitive-toggle",
+  "title": "feat: 请求记录器 - 敏感信息显示 + 移除响应截断",
+  "description": "",
+  "status": "completed",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "Reborn",
+  "assignee": "Reborn",
+  "createdAt": "2026-04-28",
+  "completedAt": "2026-04-28",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "04-28-s1-remove-truncation",
+    "04-28-s2-sensitive-toggle-ui"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

@@ -41,18 +41,35 @@ void main() {
       expect(curl.contains("--data-raw '{\"foo\":\"bar\"}'"), isTrue);
     });
 
-    test('writes each header as a -H argument with redacted value', () {
+    test('redacts sensitive headers during export', () {
+      // Entry contains raw (unredacted) headers - curl export should redact them.
       final curl = exportAsCurl(
         _makeEntry(
           requestHeaders: {
-            'Authorization': 'Bear****xxxx',
+            'Authorization': 'Bearer sk-1234567890abcdef',
             'Content-Type': 'application/json',
           },
         ),
       );
 
-      expect(curl.contains("-H 'Authorization: Bear****xxxx'"), isTrue);
+      // Authorization should be redacted (contain ****), not the raw value.
+      expect(curl.contains('****'), isTrue);
+      expect(curl.contains('sk-1234567890abcdef'), isFalse);
       expect(curl.contains("-H 'Content-Type: application/json'"), isTrue);
+    });
+
+    test('writes non-sensitive headers as-is', () {
+      final curl = exportAsCurl(
+        _makeEntry(
+          requestHeaders: {
+            'Content-Type': 'application/json',
+            'X-Custom-Header': 'custom-value',
+          },
+        ),
+      );
+
+      expect(curl.contains("-H 'Content-Type: application/json'"), isTrue);
+      expect(curl.contains("-H 'X-Custom-Header: custom-value'"), isTrue);
     });
 
     test('escapes single quotes inside values', () {

@@ -32,15 +32,6 @@ void main() {
       expect(out.contains('files=0'), isTrue);
     });
 
-    test('truncates oversized String at 64 KB UTF-8 boundary', () {
-      final big = 'a' * (kMaxBodyBytes + 1000);
-      final out = serializeRequestBody(big)!;
-      expect(out.length, lessThan(big.length));
-      expect(out.contains('已截断'), isTrue);
-      // Declared original size ≈ 65 KB (raw was kMaxBodyBytes + 1000 = 66536).
-      expect(out.contains('65 KB'), isTrue);
-    });
-
     test('small body below threshold is not truncated', () {
       final payload = 'x' * 1000;
       expect(serializeRequestBody(payload), payload);
@@ -87,12 +78,6 @@ void main() {
         serializeResponseBody('plain text', contentType: 'text/plain'),
         'plain text',
       );
-    });
-
-    test('truncation applies to response bodies too', () {
-      final big = 'b' * (kMaxBodyBytes + 100);
-      final out = serializeResponseBody(big, contentType: 'text/plain')!;
-      expect(out.contains('已截断'), isTrue);
     });
   });
 }

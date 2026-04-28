@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 65
+- **Total Sessions**: 66
 - **Last Active**: 2026-04-28
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~40 | Active |
+| `journal-3.md` | ~74 | Active |
 | `journal-2.md` | ~1983 | Archived |
 | `journal-1.md` | ~1977 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 66 | 2026-04-28 | Account list UX improvements (S1/S2/S3) | `d407fb2`, `6bc2aa6` | `main` |
 | 65 | 2026-04-28 | 响应体语法高亮渲染 | `8c47a69` | `main` |
 | 64 | 2026-04-28 | 请求记录器敏感信息显示+移除截断 | `0e9b9b1` | `main` |
 | 63 | 2026-04-28 | Session: 宽屏分割线拖拽+持久化 | `38338a9` | `main` |

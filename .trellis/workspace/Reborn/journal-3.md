@@ -38,3 +38,37 @@
 ### Next Steps
 
 - None - task complete
+
+
+## Session 66: Account list UX improvements (S1/S2/S3)
+
+**Date**: 2026-04-28
+**Task**: Account list UX improvements (S1/S2/S3)
+**Branch**: `main`
+
+### Summary
+
+Implemented three account list UX improvements: S1 (disable right-swipe check-in for accounts without autoCheckInEnabled), S2 (key page account selector sorting matches account list order), S3 (account search matches tag names). Added 4 tag search tests. Updated state-management spec with Pattern 6 (enabled-first partition) and Pattern 7 (cross-feature lookup map).
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d407fb2` | (see git log) |
+| `6bc2aa6` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

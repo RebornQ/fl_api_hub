@@ -1,0 +1,7 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/tasks/04-28-widescreen-draggable-divider/prd.md", "reason": "Task PRD: acceptance criteria to verify against"}
+{"file": "lib/core/widgets/split_pane.dart", "reason": "New SplitPane widget to review"}
+{"file": "lib/core/storage/split_pane_provider.dart", "reason": "New Riverpod provider for ratio persistence"}
+{"file": "lib/features/accounts/presentation/pages/accounts_page.dart", "reason": "Verify migration: accounts page split replacement"}
+{"file": "lib/features/check_in/presentation/pages/check_in_page.dart", "reason": "Verify migration: check-in page split replacement"}
+{"file": "lib/features/dev_tools/request_logger/presentation/pages/request_logger_page.dart", "reason": "Verify migration: request logger page split replacement"}

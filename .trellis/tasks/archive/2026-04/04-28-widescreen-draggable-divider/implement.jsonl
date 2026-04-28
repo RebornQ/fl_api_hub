@@ -1,0 +1,8 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Riverpod state management patterns"}
+{"file": ".trellis/tasks/04-28-widescreen-draggable-divider/prd.md", "reason": "Task PRD: requirements, acceptance criteria, technical approach"}
+{"file": "CLAUDE.md", "reason": "Target architecture and repository guidelines"}
+{"file": "lib/features/accounts/presentation/pages/accounts_page.dart", "reason": "Primary migration target with most complex widescreen layout"}
+{"file": "lib/features/check_in/presentation/pages/check_in_page.dart", "reason": "Migration target: check-in wide layout"}
+{"file": "lib/features/dev_tools/request_logger/presentation/pages/request_logger_page.dart", "reason": "Migration target: request logger wide layout"}

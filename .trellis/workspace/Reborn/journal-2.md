@@ -1948,3 +1948,36 @@ macOS/Windows/Linux 三平台最小窗口限制从 1024x768 统一调整为 800x
 ### Next Steps
 
 - None - task complete
+
+
+## Session 64: 请求记录器敏感信息显示+移除截断
+
+**Date**: 2026-04-28
+**Task**: 请求记录器敏感信息显示+移除截断
+**Branch**: `main`
+
+### Summary
+
+添加敏感信息显示切换按钮、移除请求/响应体截断、改进展开按钮嵌入省略号末尾
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `0e9b9b1` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

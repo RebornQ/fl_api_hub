@@ -49,10 +49,12 @@ class DoneHubAdapter extends OneHubAdapter {
   /// methods are inaccessible from this compilation unit.
   Future<Result<GroupListDto>> _fetchUserGroupMap(ApiRequest request) async {
     try {
-      final response = await dioClient.dio.request(
-        '/api/user_group_map',
-        options: Options(method: 'GET', extra: buildExtra(request)),
-      );
+      final response = await dioClient
+          .getDio(proxy: request.proxy)
+          .request(
+            '/api/user_group_map',
+            options: Options(method: 'GET', extra: buildExtra(request)),
+          );
 
       final json = response.data as Map<String, dynamic>;
       final success = json['success'] as bool? ?? false;
@@ -110,11 +112,13 @@ class DoneHubAdapter extends OneHubAdapter {
       var hasMore = true;
 
       while (hasMore && currentPage <= maxPages) {
-        final response = await dioClient.dio.request(
-          '/api/group/',
-          options: Options(method: 'GET', extra: buildExtra(request)),
-          queryParameters: {'page': currentPage, 'size': pageSize},
-        );
+        final response = await dioClient
+            .getDio(proxy: request.proxy)
+            .request(
+              '/api/group/',
+              options: Options(method: 'GET', extra: buildExtra(request)),
+              queryParameters: {'page': currentPage, 'size': pageSize},
+            );
 
         final json = response.data as Map<String, dynamic>;
         final success = json['success'] as bool? ?? false;

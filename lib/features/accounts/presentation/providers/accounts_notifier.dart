@@ -18,8 +18,10 @@ import '../../../../core/config/app_defaults.dart';
 import '../../../../core/network/api_request.dart';
 import '../../../../core/network/dto/site_status_dto.dart';
 import '../../../../core/network/dto/user_info_dto.dart';
+import '../../../../core/network/proxy_resolver.dart';
 import '../../../../core/network/reachability_status.dart';
 import '../../../../core/result/result.dart';
+import '../../../settings/data/providers/global_proxy_providers.dart';
 import '../../data/datasources/accounts_remote_datasource.dart';
 import '../../data/models/account_api_mapper.dart';
 import '../../domain/entities/account.dart';
@@ -261,11 +263,15 @@ class AccountsNotifier extends AsyncNotifier<List<Account>> {
       final remote = ref.read(
         accountsRemoteDataSourceProvider(account.siteType),
       );
+      final resolver = ref.read(proxyResolverProvider);
+      final globalProxy = ref.read(currentGlobalProxyProvider);
+      final resolvedProxy = resolver.resolve(account, globalProxy);
       final request = ApiRequest(
         baseUrl: account.baseUrl,
         authToken: account.accessToken,
         authType: account.authType,
         userId: account.userId,
+        proxy: resolvedProxy,
       );
 
       final results = await Future.wait([

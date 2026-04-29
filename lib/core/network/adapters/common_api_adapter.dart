@@ -71,10 +71,12 @@ class CommonApiAdapter implements SiteAdapter {
   @override
   Future<Result<CheckInResultDto>> checkIn(ApiRequest request) async {
     try {
-      final response = await dioClient.dio.request(
-        '/api/user/checkin',
-        options: Options(method: 'POST', extra: buildExtra(request)),
-      );
+      final response = await dioClient
+          .getDio(proxy: request.proxy)
+          .request(
+            '/api/user/checkin',
+            options: Options(method: 'POST', extra: buildExtra(request)),
+          );
 
       // For check-in, we parse the DTO directly from the response without
       // using ApiResponse, because we need to preserve the top-level success
@@ -122,11 +124,13 @@ class CommonApiAdapter implements SiteAdapter {
     int size = 100,
   }) async {
     try {
-      final response = await dioClient.dio.request(
-        '/api/token/',
-        options: Options(method: 'GET', extra: buildExtra(request)),
-        queryParameters: {'p': page, 'size': size},
-      );
+      final response = await dioClient
+          .getDio(proxy: request.proxy)
+          .request(
+            '/api/token/',
+            options: Options(method: 'GET', extra: buildExtra(request)),
+            queryParameters: {'p': page, 'size': size},
+          );
 
       final json = response.data as Map<String, dynamic>;
       final success = json['success'] as bool? ?? false;
@@ -185,11 +189,13 @@ class CommonApiAdapter implements SiteAdapter {
         'group': group ?? '',
       };
 
-      final response = await dioClient.dio.request(
-        '/api/token/',
-        options: Options(method: 'POST', extra: buildExtra(request)),
-        data: data,
-      );
+      final response = await dioClient
+          .getDio(proxy: request.proxy)
+          .request(
+            '/api/token/',
+            options: Options(method: 'POST', extra: buildExtra(request)),
+            data: data,
+          );
 
       final json = response.data as Map<String, dynamic>;
       final success = json['success'] as bool? ?? false;
@@ -226,10 +232,9 @@ class CommonApiAdapter implements SiteAdapter {
     required String tokenId,
   }) async {
     try {
-      final response = await dioClient.dio.delete(
-        '/api/token/$tokenId',
-        options: buildOptions(request),
-      );
+      final response = await dioClient
+          .getDio(proxy: request.proxy)
+          .delete('/api/token/$tokenId', options: buildOptions(request));
 
       final json = response.data as Map<String, dynamic>;
       final success = json['success'] as bool? ?? false;
@@ -279,11 +284,13 @@ class CommonApiAdapter implements SiteAdapter {
         'group': group ?? '',
       };
 
-      final response = await dioClient.dio.request(
-        '/api/token/',
-        options: Options(method: 'PUT', extra: buildExtra(request)),
-        data: data,
-      );
+      final response = await dioClient
+          .getDio(proxy: request.proxy)
+          .request(
+            '/api/token/',
+            options: Options(method: 'PUT', extra: buildExtra(request)),
+            data: data,
+          );
 
       final json = response.data as Map<String, dynamic>;
       final success = json['success'] as bool? ?? false;
@@ -345,10 +352,12 @@ class CommonApiAdapter implements SiteAdapter {
   /// Response format: `Record<string, {desc, ratio}>` — keys are group names.
   Future<Result<GroupListDto>> _fetchUserGroups(ApiRequest request) async {
     try {
-      final response = await dioClient.dio.request(
-        '/api/user/self/groups',
-        options: Options(method: 'GET', extra: buildExtra(request)),
-      );
+      final response = await dioClient
+          .getDio(proxy: request.proxy)
+          .request(
+            '/api/user/self/groups',
+            options: Options(method: 'GET', extra: buildExtra(request)),
+          );
 
       final json = response.data as Map<String, dynamic>;
       final success = json['success'] as bool? ?? false;
@@ -399,10 +408,12 @@ class CommonApiAdapter implements SiteAdapter {
     ApiRequest request,
   ) async {
     try {
-      final response = await dioClient.dio.request(
-        '/api/group',
-        options: Options(method: 'GET', extra: buildExtra(request)),
-      );
+      final response = await dioClient
+          .getDio(proxy: request.proxy)
+          .request(
+            '/api/group',
+            options: Options(method: 'GET', extra: buildExtra(request)),
+          );
 
       final json = response.data as Map<String, dynamic>;
       final success = json['success'] as bool? ?? false;
@@ -467,12 +478,14 @@ class CommonApiAdapter implements SiteAdapter {
     Object? data,
   }) async {
     try {
-      final response = await dioClient.dio.request(
-        path,
-        options: Options(method: method, extra: buildExtra(request)),
-        queryParameters: queryParameters,
-        data: data,
-      );
+      final response = await dioClient
+          .getDio(proxy: request.proxy)
+          .request(
+            path,
+            options: Options(method: method, extra: buildExtra(request)),
+            queryParameters: queryParameters,
+            data: data,
+          );
 
       final apiResponse = ApiResponse.fromJson(
         response.data as Map<String, dynamic>,
@@ -513,6 +526,11 @@ class CommonApiAdapter implements SiteAdapter {
     };
     if (request.correlationId case final id?) {
       extra['__correlation_id'] = id;
+    }
+    // R9: inject proxy label for request logger observability.
+    if (request.proxy case final proxy?) {
+      extra['__proxy_label'] =
+          '${proxy.scheme.name}://${proxy.host}:${proxy.port}';
     }
     return extra;
   }

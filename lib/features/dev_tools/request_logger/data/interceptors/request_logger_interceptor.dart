@@ -37,6 +37,7 @@ class RequestLoggerInterceptor extends Interceptor {
   static const String _extraIdKey = '__rl_id';
   static const String _extraStartKey = '__rl_start';
   static const String _extraCorrelationIdKey = '__correlation_id';
+  static const String _extraProxyLabelKey = '__proxy_label';
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
@@ -90,6 +91,7 @@ class RequestLoggerInterceptor extends Interceptor {
       errorType: error?.type.name,
       errorMessage: error?.message ?? error?.error?.toString(),
       correlationId: options.extra[_extraCorrelationIdKey] as String?,
+      proxyLabel: options.extra[_extraProxyLabelKey] as String?,
     );
   }
 

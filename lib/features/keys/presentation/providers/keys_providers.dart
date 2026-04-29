@@ -9,7 +9,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../accounts/presentation/providers/accounts_providers.dart';
 import '../../../../core/network/api_request.dart';
+import '../../../../core/network/proxy_resolver.dart';
 import '../../../../core/network/site_adapter_provider.dart';
+import '../../../../features/settings/data/providers/global_proxy_providers.dart';
 import '../../data/datasources/keys_local_datasource.dart';
 import '../../data/datasources/keys_remote_datasource.dart';
 import '../../data/repositories/keys_repository_impl.dart';
@@ -35,11 +37,15 @@ final keysRepositoryProvider = Provider.family<KeysRepository, String>((
 
   final adapter = ref.watch(siteAdapterForTypeProvider(account.siteType));
   final remote = KeysRemoteDataSource(adapter);
+  final resolver = ref.read(proxyResolverProvider);
+  final globalProxy = ref.read(currentGlobalProxyProvider);
+  final resolvedProxy = resolver.resolve(account, globalProxy);
   final request = ApiRequest(
     baseUrl: account.baseUrl,
     authToken: account.accessToken,
     authType: account.authType,
     userId: account.userId > 0 ? account.userId : null,
+    proxy: resolvedProxy,
   );
 
   return KeysRepositoryImpl(remote: remote, request: request, local: local);

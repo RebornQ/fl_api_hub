@@ -202,6 +202,36 @@ All three layers play a role:
   → `test/features/accounts/domain/entities/account_test.dart`
   `Account constructs with default values for extended fields`.
 
+### Mistake 7: Inconsistent Proxy Propagation Across the Network Stack
+
+**Bad**: An account is configured with a custom proxy, but the repository
+constructs `ApiRequest` without a `proxy` field. The request goes through
+`DioClient.dio` (the direct/no-proxy instance) instead of
+`DioClient.getDio(proxy: resolvedProxy)`. The user sees a connection timeout
+with no indication that the proxy was silently skipped.
+
+**Good**: Every network call resolves the effective proxy via `ProxyResolver`
+*before* constructing `ApiRequest`, and passes it through the full chain:
+
+```
+Repository (resolves proxy)
+  → ApiRequest(proxy: resolvedProxy)
+    → SiteAdapter.performRequest(request)
+      → DioClient.getDio(proxy: request.proxy)
+        → Dio with IOHttpClientAdapter(findProxy: ...)
+```
+
+**Prevention checklist**:
+- When adding a new repository method that calls a SiteAdapter, always
+  resolve proxy first: `ref.read(proxyResolverProvider).resolve(account, global)`.
+- When adding a new SiteAdapter, use `dioClient.getDio(proxy: request.proxy)`
+  — never cache a `Dio` reference locally.
+- grep for `dioClient.dio` (the old singleton accessor) — it must have zero
+  hits outside `DioClient` internals.
+
+Reference: `lib/core/network/proxy_resolver.dart`,
+`lib/core/network/dio_client.dart`.
+
 ---
 
 ## Checklist for Cross-Layer Features
@@ -219,6 +249,9 @@ Before implementation:
 - [ ] If a previously-nullable field is being tightened to non-null:
       is there a **sentinel contract** agreed across entity / mapper /
       editor? (Mistake 6)
+- [ ] If the feature makes network requests: does every call site
+      resolve proxy via `ProxyResolver` and pass it through
+      `ApiRequest.proxy`? (Mistake 7)
 
 After implementation:
 - [ ] Tested with edge cases (null, empty, invalid)
@@ -230,6 +263,8 @@ After implementation:
 - [ ] If a sentinel was introduced, verified legacy payloads rehydrate
       to the sentinel and the editor forces re-entry before save
       (Mistake 6).
+- [ ] Grep for `dioClient.dio` — must return zero hits outside
+      `DioClient` internals (Mistake 7).
 
 ---
 

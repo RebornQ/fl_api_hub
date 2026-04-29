@@ -18,8 +18,11 @@ void main() {
 
     tearDown(() => container.dispose());
 
-    int loggerCount(DioClient client) =>
-        client.dio.interceptors.whereType<RequestLoggerInterceptor>().length;
+    int loggerCount(DioClient client) => client
+        .getDio()
+        .interceptors
+        .whereType<RequestLoggerInterceptor>()
+        .length;
 
     test('RequestLoggerInterceptor is always attached', () {
       final client = container.read(dioClientProvider);

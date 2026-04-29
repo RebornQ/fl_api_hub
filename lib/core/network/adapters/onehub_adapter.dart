@@ -46,10 +46,12 @@ class OneHubAdapter extends CommonApiAdapter {
   /// contains `{ id, symbol, name, ratio, ... }`.
   Future<Result<GroupListDto>> _fetchUserGroupMap(ApiRequest request) async {
     try {
-      final response = await dioClient.dio.request(
-        '/api/user_group_map',
-        options: Options(method: 'GET', extra: buildExtra(request)),
-      );
+      final response = await dioClient
+          .getDio(proxy: request.proxy)
+          .request(
+            '/api/user_group_map',
+            options: Options(method: 'GET', extra: buildExtra(request)),
+          );
 
       final json = response.data as Map<String, dynamic>;
       final success = json['success'] as bool? ?? false;

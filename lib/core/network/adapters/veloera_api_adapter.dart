@@ -33,18 +33,12 @@ class VeloeraApiAdapter extends CommonApiAdapter {
   @override
   Future<Result<CheckInResultDto>> checkIn(ApiRequest request) async {
     try {
-      final response = await dioClient.dio.request(
-        '/api/user/check_in',
-        options: Options(
-          method: 'POST',
-          extra: {
-            'apiBaseUrl': request.baseUrl,
-            'apiAuthToken': request.authToken,
-            'apiAuthType': request.authType.name,
-            'apiUserId': request.userId,
-          },
-        ),
-      );
+      final response = await dioClient
+          .getDio(proxy: request.proxy)
+          .request(
+            '/api/user/check_in',
+            options: Options(method: 'POST', extra: buildExtra(request)),
+          );
 
       // For check-in, we parse the DTO directly from the response without
       // using ApiResponse, because we need to preserve the top-level success

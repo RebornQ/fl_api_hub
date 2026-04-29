@@ -71,6 +71,12 @@ class RequestLogEntry {
   /// (e.g. a specific check-in execution). Set via `ApiRequest.correlationId`.
   final String? correlationId;
 
+  /// Proxy label for observability (e.g. `http://proxy.example.com:8080`).
+  ///
+  /// Populated from `options.extra['__proxy_label']` by the interceptor.
+  /// `null` when the request was made without a proxy (direct connection).
+  final String? proxyLabel;
+
   const RequestLogEntry({
     required this.id,
     required this.startedAt,
@@ -87,6 +93,7 @@ class RequestLogEntry {
     this.errorMessage,
     this.errorType,
     this.correlationId,
+    this.proxyLabel,
   });
 
   /// `true` when there is no status code — transport-level failure.

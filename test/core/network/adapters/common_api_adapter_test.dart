@@ -13,6 +13,7 @@ import 'package:fl_api_hub/core/network/api_request.dart';
 import 'package:fl_api_hub/core/network/adapters/common_api_adapter.dart';
 import 'package:fl_api_hub/core/network/dio_client.dart';
 import 'package:fl_api_hub/core/network/dto/token_dto.dart';
+import 'package:fl_api_hub/core/network/proxy_config.dart';
 import 'package:fl_api_hub/core/network/site_type.dart';
 import 'package:fl_api_hub/core/result/result.dart';
 
@@ -32,7 +33,7 @@ class _FakeDioClient implements DioClient {
   final Dio _dio;
 
   @override
-  Dio get dio => _dio;
+  Dio getDio({ProxyConfig? proxy}) => _dio;
 
   @override
   void addInterceptor(Interceptor interceptor) {}

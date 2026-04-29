@@ -6,13 +6,12 @@
 
 ## Overview
 
-The current implemented state management is minimal and local:
+This project uses **Riverpod** for state management:
 
-- `StatefulWidget` + `setState` are used for widget-local interaction state.
-- There is no global state library installed yet.
-- Riverpod is the target direction documented in `CLAUDE.md` and `.claude/rules/global.md`, but it is not present in `pubspec.yaml`.
-
-Document future work carefully as target architecture, not as current behavior.
+- **Providers**: Global state is exposed via Riverpod providers (`Provider`, `StateProvider`, `NotifierProvider`, `AsyncNotifierProvider`).
+- **AsyncNotifier**: For loading/mutating async data (accounts, keys, tags, etc.).
+- **Hive**: Local persistence layer; providers hydrate from Hive boxes on `build()`.
+- **Patterns**: See "Reusable Patterns" sections for established conventions.
 
 ---
 
@@ -22,49 +21,53 @@ Document future work carefully as target architecture, not as current behavior.
 
 Use local widget state for ephemeral interaction state that belongs to a single screen/widget.
 
-Current example:
+Examples:
 
-- `_counter` in `_MyHomePageState` at `lib/main.dart`
-- `_incrementCounter()` calling `setState` in `lib/main.dart`
+- Form field controllers (`TextEditingController`)
+- Animation state
+- Temporary selection state before commit
 
 ### Global App State
 
-Not implemented yet.
+Implemented via Riverpod providers:
 
-There are currently no global providers, inherited state containers beyond Flutter defaults, or service locators in the application code.
+- `accountsProvider` — list of accounts
+- `tagsProvider` — list of tags
+- `groupsProvider` — key groups
+- `globalProxyProvider` — global proxy settings
 
 ### Server State
 
-Not implemented yet.
+Network layer is implemented:
 
-There is no network layer, repository cache, or remote synchronization logic in the repository.
+- `DioClient` in `lib/core/network/` handles HTTP requests
+- Repositories in `lib/features/<feature>/data/repositories/` wrap API calls
+- Results are returned as `Result<T>` (Success/Failure sealed class)
+- Providers hydrate from Hive and sync with remote APIs
 
 ---
 
 ## When to Use Global State
 
-Current rule for this repository stage:
+Current rule for this repository:
 
-- Do **not** introduce global state for simple single-screen demo behavior.
-- Promote state out of a widget only when the same data is needed by multiple screens/features, must survive navigation boundaries, or represents business logic rather than display-only UI state.
-- When promotion is needed, follow the documented target architecture and place shared state behind Riverpod once the dependency is added.
+- Use Riverpod providers for state that is shared across widgets/features.
+- Use `AsyncNotifier` for async data loading with built-in loading/error states.
+- Promote state out of a widget when:
+  - Multiple screens need the same data
+  - State must survive navigation boundaries
+  - State represents business logic, not UI-only concerns
 
 ---
 
 ## Server State
 
-No server-state approach is implemented yet.
+Server-state approach:
 
-Intended future flow from the target architecture:
-
-- Dio-based client in `lib/core/network/`
-- repositories/data sources in `lib/features/<feature>/data/`
-- UI consumption through Riverpod providers in `presentation/`
-
-Until those layers exist:
-
-- avoid embedding future server-state assumptions into docs or code
-- avoid calling APIs directly from widgets as the long-term pattern
+- `DioClient` provides HTTP client with proxy support (see Pattern 8)
+- Repositories wrap API calls and return `Result<T>`
+- Providers hydrate from Hive on startup and sync with remote
+- Background updates use Pattern 3 (Progressive State Update)
 
 ---
 
@@ -583,3 +586,195 @@ final derivedProvider = Provider<AsyncValue<View>>((ref) {
   non-existent A.
 - Don't substitute `on catch` + retry on the UI side — fix the flow at
   the repository layer so every caller gets the same guarantee.
+
+---
+
+## Reusable Patterns (from proxy config, 2026-04)
+
+These patterns emerged from implementing per-account and global proxy
+configuration with a Dio instance pool. They encode the contract between
+proxy resolution, Dio instance caching, and cross-layer proxy propagation.
+
+### Pattern 8 — Dio Instance Pool Keyed by ProxyConfig
+
+> **Trigger**: new cross-layer contract. Apply the full 7-section
+> treatment when network requests need per-request proxy selection.
+
+**Scope / Trigger**
+
+- Trigger: accounts or requests may route through different HTTP proxies
+  (direct, custom per-account, or follow global setting). Each proxy
+  requires a distinct `Dio` instance with its own `HttpClient` adapter.
+- Mandatory when the same `DioClient` must serve multiple proxy contexts
+  without recreating interceptors or losing connection pooling.
+
+**Signatures**
+
+```dart
+class DioClient {
+  final Map<String, Dio> _pool = {};
+  final void Function(Dio) _configureInterceptors;
+
+  /// Returns a cached Dio instance for the given proxy configuration.
+  /// Same proxy → same instance; null proxy → direct/no-proxy instance.
+  Dio getDio({ProxyConfig? proxy});
+
+  /// Internal: builds a fresh Dio with the proxy wired into HttpClient.
+  Dio _buildDio({ProxyConfig? proxy});
+}
+
+class ProxyConfig {
+  final ProxyScheme scheme;  // http / https / socks5 (future)
+  final String host;
+  final int port;
+  final String? username;
+  final String? password;
+}
+```
+
+Reference implementation:
+
+- `lib/core/network/dio_client.dart` — `_pool`, `getDio`, `_buildDio`
+- `lib/core/network/proxy_config.dart` — entity definition
+
+**Contracts**
+
+| Cache key | Dio instance behavior |
+| --------- | --------------------- |
+| `_directKey` (constant) | No proxy; direct connection |
+| `'http://host:port'` | HTTP proxy without auth |
+| `'https://host:port'` | HTTPS proxy without auth |
+| Same key string | Same Dio instance (cached) |
+
+| Platform | Adapter | Proxy support |
+| -------- | ------- | ------------- |
+| `kIsWeb == false` | `IOHttpClientAdapter` | Yes — via `findProxy` + `addProxyCredentials` |
+| `kIsWeb == true` | `BrowserHttpClientAdapter` | No — browser controls proxy |
+
+**Validation & Error Matrix**
+
+| Condition | Result |
+| --------- | ------ |
+| `proxy == null` | Returns direct Dio instance |
+| `proxy.host` empty | Treated as null → direct Dio |
+| `proxy.port` invalid (≤0) | Throws `ArgumentError` in `_buildDio` |
+| Auth fields partially set | Only applies `addProxyCredentials` when both `username` and `password` are non-empty |
+| Web platform | Skips proxy config; returns a Dio with `BrowserHttpClientAdapter` |
+
+**Good / Base / Bad Cases**
+
+- **Good**: Repository calls `ProxyResolver.resolve(account, global)` once,
+  passes the result to `ApiRequest(proxy: resolved)`, adapter calls
+  `dioClient.getDio(proxy: request.proxy)`. Proxy is applied end-to-end.
+- **Base**: No proxy configured anywhere. All calls use `getDio()` which
+  returns the direct instance. Behavior unchanged from pre-pool design.
+- **Bad**: Adapter caches `final _dio = dioClient.dio` in a field, then
+  uses `_dio.get(...)` regardless of `request.proxy`. Proxy is silently
+  ignored on that adapter.
+
+**Tests Required**
+
+- `test/core/network/dio_client_test.dart`:
+  - `getDio()` returns same instance on repeated calls.
+  - `getDio(proxy: p1)` and `getDio(proxy: p2)` return different instances when `p1 != p2`.
+  - `getDio(proxy: sameProxy)` returns the cached instance.
+  - Web platform returns `BrowserHttpClientAdapter`.
+- `test/core/network/proxy_resolver_test.dart`:
+  - Three-state priority: `direct` → null, `custom` → account proxy,
+    `followGlobal` → global if enabled else null.
+
+**Wrong vs Correct**
+
+```dart
+// Wrong — cached Dio ignores per-request proxy.
+class CommonApiAdapter {
+  final Dio _dio;  // captured in constructor
+  Future<Result<T>> performRequest(ApiRequest request) async {
+    final response = await _dio.get(request.path);  // proxy never applied
+    ...
+  }
+}
+```
+
+```dart
+// Correct — resolve Dio per request.
+class CommonApiAdapter {
+  final DioClient _client;
+  Future<Result<T>> performRequest(ApiRequest request) async {
+    final dio = _client.getDio(proxy: request.proxy);  // proxy-aware
+    final response = await dio.get(request.path);
+    ...
+  }
+}
+```
+
+**Implementation note — dart:io HttpClient proxy configuration**:
+
+The `findProxy` callback returns a string in PAC-like format, NOT a full URL
+with credentials:
+
+```dart
+// ❌ Wrong — dart:io does NOT parse user:pass from this string.
+httpClient.findProxy = (uri) => 'PROXY user:pass@host:port';
+
+// ✅ Correct — host:port in findProxy, credentials via addProxyCredentials.
+httpClient.findProxy = (uri) => 'PROXY host:port';
+if (username != null && password != null) {
+  httpClient.addProxyCredentials(host, port, '', HttpClientBasicCredentials(username, password));
+}
+```
+
+The realm parameter is typically empty string `''` for basic auth proxies.
+
+### Pattern 9 — ProxyResolver Pure Function with Three-State Priority
+
+**When to use**: an account can be in one of three proxy modes — direct
+(no proxy), custom (account-specific proxy), or follow-global (defer to
+global setting). The resolver must produce a single effective `ProxyConfig?`
+without side effects.
+
+**Reference implementation**:
+
+- `lib/core/network/proxy_resolver.dart`
+
+**Signature contract**:
+
+```dart
+class ProxyResolver {
+  const ProxyResolver();
+
+  /// Resolves the effective proxy configuration for an account.
+  /// Returns null if the effective mode is "direct" (no proxy).
+  ProxyConfig? resolve(Account account, GlobalProxySetting global) {
+    return switch (account.proxyMode) {
+      AccountProxyMode.direct => null,
+      AccountProxyMode.custom => account.proxyConfig,
+      AccountProxyMode.followGlobal => global.enabled ? global.config : null,
+    };
+  }
+}
+
+final proxyResolverProvider = Provider((ref) => const ProxyResolver());
+```
+
+**Rules**:
+- Resolver is a **pure function** — no provider reads, no I/O, no mutation.
+- Caller is responsible for obtaining `Account` and `GlobalProxySetting`.
+- Riverpod provider exists only for convenient injection in tests and
+  presentation layer; the resolver itself has no dependency on Riverpod.
+- `GlobalProxySetting.enabled` gate is evaluated *inside* `followGlobal`
+  branch — disabled global means fallback to null (direct).
+
+**Don't**:
+- Don't read `globalProxyProvider` inside `resolve`. That couples the
+  domain function to presentation state and breaks testability.
+- Don't return a default `ProxyConfig` with placeholder values — null means
+  "no proxy", and a placeholder would cause connection failures.
+
+**Required tests**:
+
+- Direct mode returns null regardless of account.proxyConfig or global.
+- Custom mode returns `account.proxyConfig` even if global is enabled.
+- Follow-global with `global.enabled == true` returns `global.config`.
+- Follow-global with `global.enabled == false` returns null.
+- Priority order: `direct > custom > followGlobal` (earlier branches win).

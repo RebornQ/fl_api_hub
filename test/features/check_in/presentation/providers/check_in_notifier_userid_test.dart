@@ -27,6 +27,8 @@ import 'package:fl_api_hub/features/check_in/domain/entities/check_in_result.dar
 import 'package:fl_api_hub/features/check_in/domain/entities/check_in_task.dart';
 import 'package:fl_api_hub/features/check_in/domain/repositories/check_in_repository.dart';
 import 'package:fl_api_hub/features/check_in/presentation/providers/check_in_providers.dart';
+import 'package:fl_api_hub/features/settings/data/providers/global_proxy_providers.dart';
+import 'package:fl_api_hub/features/settings/domain/entities/global_proxy_setting.dart';
 
 // ── Test doubles ────────────────────────────────────────────────────
 
@@ -150,6 +152,10 @@ void main() {
         checkInRepositoryProvider.overrideWithValue(checkInRepo),
         accountsRepositoryProvider.overrideWithValue(accountsRepo),
         checkInRemoteDataSourceProvider(siteType).overrideWithValue(capturing),
+        // Default: global proxy disabled (no proxy for tests).
+        currentGlobalProxyProvider.overrideWithValue(
+          GlobalProxySetting.disabled,
+        ),
       ],
     );
     addTearDown(container.dispose);

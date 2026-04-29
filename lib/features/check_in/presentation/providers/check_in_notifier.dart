@@ -9,9 +9,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/network/api_request.dart';
+import '../../../../core/network/proxy_resolver.dart';
 import '../../../../core/network/site_type.dart';
 import '../../../../core/result/result.dart';
 import '../../../accounts/presentation/providers/accounts_providers.dart';
+import '../../../settings/data/providers/global_proxy_providers.dart';
 import '../../data/datasources/check_in_remote_datasource.dart';
 import '../../data/models/check_in_api_mapper.dart';
 import '../../domain/entities/check_in_result.dart';
@@ -201,12 +203,16 @@ class CheckInNotifier extends AsyncNotifier<List<CheckInTask>> {
     final now = DateTime.now();
     final resultId = const Uuid().v4();
 
+    final resolver = ref.read(proxyResolverProvider);
+    final globalProxy = ref.read(currentGlobalProxyProvider);
+    final resolvedProxy = resolver.resolve(account, globalProxy);
     final request = ApiRequest(
       baseUrl: account.baseUrl,
       authToken: token,
       authType: account.authType,
       userId: account.userId,
       correlationId: resultId,
+      proxy: resolvedProxy,
     );
 
     // 5. Call the remote API.

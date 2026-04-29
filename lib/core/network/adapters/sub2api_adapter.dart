@@ -83,12 +83,14 @@ class Sub2ApiAdapter implements SiteAdapter {
     int size = 100,
   }) async {
     try {
-      final response = await _dioClient.dio.request(
-        '/api/v1/keys',
-        options: Options(method: 'GET', extra: _buildExtra(request)),
-        // Sub2API pages start from 1, Common from 0.
-        queryParameters: {'page': page + 1, 'page_size': size},
-      );
+      final response = await _dioClient
+          .getDio(proxy: request.proxy)
+          .request(
+            '/api/v1/keys',
+            options: Options(method: 'GET', extra: _buildExtra(request)),
+            // Sub2API pages start from 1, Common from 0.
+            queryParameters: {'page': page + 1, 'page_size': size},
+          );
 
       final json = response.data as Map<String, dynamic>;
       if (!_isSuccess(json)) {
@@ -152,11 +154,13 @@ class Sub2ApiAdapter implements SiteAdapter {
         }
       }
 
-      final response = await _dioClient.dio.request(
-        '/api/v1/keys',
-        options: Options(method: 'POST', extra: _buildExtra(request)),
-        data: data,
-      );
+      final response = await _dioClient
+          .getDio(proxy: request.proxy)
+          .request(
+            '/api/v1/keys',
+            options: Options(method: 'POST', extra: _buildExtra(request)),
+            data: data,
+          );
 
       final json = response.data as Map<String, dynamic>;
       if (!_isSuccess(json)) {
@@ -225,11 +229,13 @@ class Sub2ApiAdapter implements SiteAdapter {
         }
       }
 
-      final response = await _dioClient.dio.request(
-        '/api/v1/keys/$tokenId',
-        options: Options(method: 'PUT', extra: _buildExtra(request)),
-        data: data,
-      );
+      final response = await _dioClient
+          .getDio(proxy: request.proxy)
+          .request(
+            '/api/v1/keys/$tokenId',
+            options: Options(method: 'PUT', extra: _buildExtra(request)),
+            data: data,
+          );
 
       final json = response.data as Map<String, dynamic>;
       if (!_isSuccess(json)) {
@@ -265,10 +271,12 @@ class Sub2ApiAdapter implements SiteAdapter {
     required String tokenId,
   }) async {
     try {
-      final response = await _dioClient.dio.delete(
-        '/api/v1/keys/$tokenId',
-        options: Options(extra: _buildExtra(request)),
-      );
+      final response = await _dioClient
+          .getDio(proxy: request.proxy)
+          .delete(
+            '/api/v1/keys/$tokenId',
+            options: Options(extra: _buildExtra(request)),
+          );
 
       final json = response.data as Map<String, dynamic>;
       if (!_isSuccess(json)) {
@@ -359,10 +367,12 @@ class Sub2ApiAdapter implements SiteAdapter {
   /// Throws on network or parsing errors so that [fetchGroups] can handle
   /// them in its outer catch block.
   Future<Map<String, dynamic>> _fetchAvailableGroups(ApiRequest request) async {
-    final response = await _dioClient.dio.request(
-      '/api/v1/groups/available',
-      options: Options(method: 'GET', extra: _buildExtra(request)),
-    );
+    final response = await _dioClient
+        .getDio(proxy: request.proxy)
+        .request(
+          '/api/v1/groups/available',
+          options: Options(method: 'GET', extra: _buildExtra(request)),
+        );
 
     final json = response.data as Map<String, dynamic>;
     if (!_isSuccess(json)) {
@@ -379,10 +389,12 @@ class Sub2ApiAdapter implements SiteAdapter {
   /// or `null` on failure (degraded mode).
   Future<Map<String, num>?> _fetchGroupRates(ApiRequest request) async {
     try {
-      final response = await _dioClient.dio.request(
-        '/api/v1/groups/rates',
-        options: Options(method: 'GET', extra: _buildExtra(request)),
-      );
+      final response = await _dioClient
+          .getDio(proxy: request.proxy)
+          .request(
+            '/api/v1/groups/rates',
+            options: Options(method: 'GET', extra: _buildExtra(request)),
+          );
 
       final json = response.data as Map<String, dynamic>;
       if (!_isSuccess(json)) {
@@ -444,12 +456,18 @@ class Sub2ApiAdapter implements SiteAdapter {
 
   /// Builds the per-request extra map carried through Dio [Options].
   Map<String, dynamic> _buildExtra(ApiRequest request) {
-    return {
+    final extra = <String, dynamic>{
       'apiBaseUrl': request.baseUrl,
       'apiAuthToken': request.authToken,
       'apiAuthType': request.authType.name,
       'apiUserId': request.userId,
     };
+    // R9: inject proxy label for request logger observability.
+    if (request.proxy case final proxy?) {
+      extra['__proxy_label'] =
+          '${proxy.scheme.name}://${proxy.host}:${proxy.port}';
+    }
+    return extra;
   }
 
   /// Resolves a group name to a Sub2API group ID.

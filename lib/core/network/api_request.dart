@@ -8,6 +8,7 @@
 /// context.
 library;
 
+import 'proxy_config.dart';
 import 'site_type.dart';
 
 /// Configuration for a single API request targeting a specific account.
@@ -37,11 +38,20 @@ class ApiRequest {
   /// retrieved later by this ID.
   final String? correlationId;
 
+  /// Resolved proxy configuration for this request.
+  ///
+  /// Set by the repository layer after consulting [ProxyResolver]. When
+  /// `null`, the request goes through a direct connection. When non-null,
+  /// the [SiteAdapter] passes this to [DioClient.getDio] to obtain a
+  /// proxy-configured Dio instance.
+  final ProxyConfig? proxy;
+
   const ApiRequest({
     required this.baseUrl,
     this.authToken,
     required this.authType,
     this.userId,
     this.correlationId,
+    this.proxy,
   });
 }

@@ -15,6 +15,8 @@ import 'package:fl_api_hub/features/accounts/domain/repositories/account_reachab
 import 'package:fl_api_hub/features/accounts/domain/repositories/accounts_repository.dart';
 import 'package:fl_api_hub/features/accounts/presentation/providers/account_reachability_providers.dart';
 import 'package:fl_api_hub/features/accounts/presentation/providers/accounts_providers.dart';
+import 'package:fl_api_hub/features/settings/data/providers/global_proxy_providers.dart';
+import 'package:fl_api_hub/features/settings/domain/entities/global_proxy_setting.dart';
 
 class MockAccountsRepository extends Mock implements AccountsRepository {}
 
@@ -366,6 +368,10 @@ void main() {
             ),
             accountsRemoteDataSourceProvider.overrideWith(
               (ref, siteType) => mockRemote,
+            ),
+            // Default: global proxy disabled (no proxy for tests).
+            currentGlobalProxyProvider.overrideWithValue(
+              GlobalProxySetting.disabled,
             ),
           ],
         );

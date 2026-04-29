@@ -41,7 +41,6 @@ class _AccountSelectorState extends State<AccountSelector> {
   final _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
   final _searchController = TextEditingController();
-  String _searchQuery = '';
 
   bool get _isOpen => _overlayEntry != null;
 
@@ -77,7 +76,6 @@ class _AccountSelectorState extends State<AccountSelector> {
     final theme = Theme.of(context);
 
     _searchController.clear();
-    _searchQuery = '';
 
     _overlayEntry = OverlayEntry(
       builder: (context) => _AccountSelectorOverlay(
@@ -86,11 +84,9 @@ class _AccountSelectorState extends State<AccountSelector> {
         theme: theme,
         searchController: _searchController,
         onSearchChanged: (query) {
-          _searchQuery = query;
           _overlayEntry?.markNeedsBuild();
         },
         accounts: widget.accounts,
-        searchQuery: _searchQuery,
         selectedId: widget.selectedId,
         onSelected: (id) {
           widget.onChanged(id);
@@ -108,7 +104,6 @@ class _AccountSelectorState extends State<AccountSelector> {
     _overlayEntry?.remove();
     _overlayEntry = null;
     _searchController.clear();
-    _searchQuery = '';
     if (mounted) setState(() {});
   }
 
@@ -191,7 +186,8 @@ class _AccountSelectorOverlay extends StatelessWidget {
   final TextEditingController searchController;
   final ValueChanged<String> onSearchChanged;
   final List<Account> accounts;
-  final String searchQuery;
+
+  String get searchQuery => searchController.text;
   final String? selectedId;
   final ValueChanged<String> onSelected;
   final VoidCallback onDismiss;
@@ -203,7 +199,6 @@ class _AccountSelectorOverlay extends StatelessWidget {
     required this.searchController,
     required this.onSearchChanged,
     required this.accounts,
-    required this.searchQuery,
     required this.selectedId,
     required this.onSelected,
     required this.onDismiss,

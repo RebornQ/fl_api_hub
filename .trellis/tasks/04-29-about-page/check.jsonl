@@ -1,0 +1,4 @@
+{"path":".trellis/tasks/04-29-about-page/prd.md","role":"spec","description":"关于页面 PRD - 验收标准"}
+{"path":"lib/features/settings/presentation/pages/about_page.dart","role":"target","description":"新增的关于页面文件"}
+{"path":"lib/features/settings/presentation/pages/settings_page.dart","role":"target","description":"修改后的设置页面，需包含关于入口"}
+{"path":"pubspec.yaml","role":"target","description":"检查 package_info_plus 依赖和 assets 配置是否正确"}

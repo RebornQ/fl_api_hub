@@ -13,6 +13,7 @@ import '../../../dev_tools/request_logger/presentation/pages/developer_options_p
 import '../../../../core/widgets/section_card.dart';
 import '../widgets/appearance_settings.dart';
 import '../widgets/browser_settings.dart';
+import 'about_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -55,20 +56,37 @@ class SettingsPage extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           SectionCard(
-            icon: Icons.developer_mode_outlined,
-            title: '开发者',
-            child: ListTile(
-              leading: const Icon(Icons.code),
-              title: const Text('开发者选项'),
-              subtitle: const Text('请求记录器等调试工具'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const DeveloperOptionsPage(),
-                  ),
-                );
-              },
+            icon: Icons.info_outline,
+            title: '信息',
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.developer_mode_outlined),
+                  title: const Text('开发者选项'),
+                  subtitle: const Text('请求记录器等调试工具'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const DeveloperOptionsPage(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.info_outline),
+                  title: const Text('关于 Fl API HUB'),
+                  subtitle: const Text('版本信息、开源许可、源码'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const AboutPage(),
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
           ),
         ],

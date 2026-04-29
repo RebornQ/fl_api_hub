@@ -1,0 +1,6 @@
+{"path":".trellis/tasks/04-29-about-page/prd.md","role":"spec","description":"关于页面 PRD - 完整需求和验收标准"}
+{"path":"lib/features/settings/presentation/pages/settings_page.dart","role":"context","description":"设置页面入口，需要添加关于 SectionCard"}
+{"path":"lib/core/widgets/section_card.dart","role":"context","description":"SectionCard 组件，关于页面可参考的 UI 模式"}
+{"path":"lib/app/theme/design_tokens.dart","role":"context","description":"设计令牌 AppSpacing/AppRadius，保持 UI 一致性"}
+{"path":"icons/icon-hub-1024-play-512.png","role":"context","description":"应用图标源文件，用于关于页面展示"}
+{"path":"pubspec.yaml","role":"context","description":"需要添加 package_info_plus 依赖和 assets 配置"}

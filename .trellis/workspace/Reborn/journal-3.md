@@ -138,3 +138,36 @@ GroupDto添加ratio字段，Sub2API双端点合并(available+rates)，新建Done
 ### Next Steps
 
 - None - task complete
+
+
+## Session 69: 关于页面
+
+**Date**: 2026-04-29
+**Task**: 关于页面
+**Branch**: `main`
+
+### Summary
+
+新增关于页面：应用图标、名称、版本号(package_info_plus)、开源许可(showLicensePage)、GitHub 源码链接。设置页新增信息 SectionCard 合并开发者选项和关于入口。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3d4db92` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

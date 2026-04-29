@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 68
+- **Total Sessions**: 69
 - **Last Active**: 2026-04-29
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~140 | Active |
+| `journal-3.md` | ~173 | Active |
 | `journal-2.md` | ~1983 | Archived |
 | `journal-1.md` | ~1977 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 69 | 2026-04-29 | 关于页面 | `3d4db92` | `main` |
 | 68 | 2026-04-29 | Fix group API requests with ratio and DoneHub adapter | `526b637` | `main` |
 | 67 | 2026-04-29 | feat(keys): add group selection for key CRUD | `3e56f4b` | `main` |
 | 66 | 2026-04-28 | Account list UX improvements (S1/S2/S3) | `d407fb2`, `6bc2aa6` | `main` |

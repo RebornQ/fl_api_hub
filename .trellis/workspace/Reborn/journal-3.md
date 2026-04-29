@@ -171,3 +171,36 @@ GroupDto添加ratio字段，Sub2API双端点合并(available+rates)，新建Done
 ### Next Steps
 
 - None - task complete
+
+
+## Session 70: Sticky Header + 备份密码确认
+
+**Date**: 2026-04-30
+**Task**: Sticky Header + 备份密码确认
+**Branch**: `main`
+
+### Summary
+
+签到列表使用 CustomScrollView+SliverPersistentHeader 实现 sticky filter bar；备份加密关闭增加二次确认对话框
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `2830701` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

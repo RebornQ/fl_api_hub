@@ -1,0 +1,4 @@
+{"role": "system", "content": "质量检查：验证 sticky header 和备份密码二次确认的代码实现质量。"}
+{"role": "spec", "path": ".trellis/tasks/04-29-sticky-header-backup-confirm/prd.md"}
+{"role": "context", "path": "lib/features/check_in/presentation/pages/check_in_page.dart"}
+{"role": "context", "path": "lib/features/backup/presentation/pages/backup_page.dart"}

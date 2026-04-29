@@ -67,25 +67,19 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
     final tasksAsync = ref.watch(checkInProvider);
 
     return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(latestResultPerAccountProvider);
-          ref.invalidate(checkInProvider);
-        },
-        child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final isWide = constraints.maxWidth >= 900;
-              return isWide
-                  ? _buildWideLayout(context, stats, summariesAsync, tasksAsync)
-                  : _buildNarrowLayout(
-                      context,
-                      stats,
-                      summariesAsync,
-                      tasksAsync,
-                    );
-            },
-          ),
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth >= 900;
+            return isWide
+                ? _buildWideLayout(context, stats, summariesAsync, tasksAsync)
+                : _buildNarrowLayout(
+                    context,
+                    stats,
+                    summariesAsync,
+                    tasksAsync,
+                  );
+          },
         ),
       ),
       floatingActionButton: Column(
@@ -230,6 +224,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
   }
 
   /// Master column: summary/stats/filter + list. Used by both layouts.
+  /// Uses CustomScrollView + SliverPersistentHeader for sticky filter bar.
   Widget _buildMasterColumn(
     BuildContext context,
     CheckInDashboardStats stats,
@@ -253,52 +248,78 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
         .where((d) => d.result.status == CheckInStatus.skipped)
         .length;
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(
-        AppSpacing.md,
-        AppSpacing.xs,
-        AppSpacing.md,
-        isWide ? 24 : 160,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          CheckInSummaryCard(stats: stats),
-          const SizedBox(height: AppSpacing.sm),
-          CheckInStatsGrid(stats: stats),
-          const SizedBox(height: AppSpacing.sm + AppSpacing.xs),
-          CheckInFilterBar(
-            selectedFilter: _selectedFilter,
-            searchQuery: _searchQuery,
-            totalCount: displays.length,
-            successCount: successCount,
-            failedCount: failedCount,
-            skippedCount: skippedCount,
-            onFilterChanged: (filter) {
-              setState(() => _selectedFilter = filter);
-              ref.read(selectedAccountIdProvider.notifier).state = null;
-            },
-            onSearchChanged: (query) {
-              setState(() => _searchQuery = query);
-              ref.read(selectedAccountIdProvider.notifier).state = null;
-            },
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(latestResultPerAccountProvider);
+        ref.invalidate(checkInProvider);
+      },
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          // Summary + Stats: scroll away
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.xs,
+                AppSpacing.md,
+                0,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  CheckInSummaryCard(stats: stats),
+                  const SizedBox(height: AppSpacing.sm),
+                  CheckInStatsGrid(stats: stats),
+                ],
+              ),
+            ),
           ),
-          const SizedBox(height: AppSpacing.sm),
+          SliverToBoxAdapter(
+            child: const SizedBox(height: AppSpacing.sm + AppSpacing.xs),
+          ),
+          // Sticky filter bar
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _StickyFilterBarDelegate(
+              filterBar: CheckInFilterBar(
+                selectedFilter: _selectedFilter,
+                searchQuery: _searchQuery,
+                totalCount: displays.length,
+                successCount: successCount,
+                failedCount: failedCount,
+                skippedCount: skippedCount,
+                onFilterChanged: (filter) {
+                  setState(() => _selectedFilter = filter);
+                  ref.read(selectedAccountIdProvider.notifier).state = null;
+                },
+                onSearchChanged: (query) {
+                  setState(() => _searchQuery = query);
+                  ref.read(selectedAccountIdProvider.notifier).state = null;
+                },
+              ),
+            ),
+          ),
+          // Result list
           summariesAsync.when(
             data: (_) =>
-                _buildMasterList(context, filtered, tasksAsync, isWide),
-            loading: () => const SizedBox(
-              height: 200,
-              child: AppLoadingState(message: '加载中...'),
+                _buildMasterListSliver(context, filtered, tasksAsync, isWide),
+            loading: () => const SliverToBoxAdapter(
+              child: SizedBox(
+                height: 200,
+                child: AppLoadingState(message: '加载中...'),
+              ),
             ),
-            error: (err, _) => SizedBox(
-              height: 200,
-              child: AppErrorState(
-                message: err.toString(),
-                onRetry: () {
-                  ref.invalidate(latestResultPerAccountProvider);
-                  ref.invalidate(checkInProvider);
-                },
+            error: (err, _) => SliverToBoxAdapter(
+              child: SizedBox(
+                height: 200,
+                child: AppErrorState(
+                  message: err.toString(),
+                  onRetry: () {
+                    ref.invalidate(latestResultPerAccountProvider);
+                    ref.invalidate(checkInProvider);
+                  },
+                ),
               ),
             ),
           ),
@@ -307,8 +328,8 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
     );
   }
 
-  /// Builds the filtered master list or the appropriate empty state.
-  Widget _buildMasterList(
+  /// Builds the filtered master list as a Sliver for CustomScrollView.
+  Widget _buildMasterListSliver(
     BuildContext context,
     List<CheckInResultDisplay> filtered,
     AsyncValue<List<CheckInTask>> tasksAsync,
@@ -316,21 +337,25 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
   ) {
     final tasks = tasksAsync.valueOrNull ?? [];
     if (tasks.isEmpty) {
-      return const SizedBox(
-        height: 200,
-        child: AppEmptyState(
-          icon: Icons.check_circle_outline,
-          message: '暂无签到任务',
+      return const SliverToBoxAdapter(
+        child: SizedBox(
+          height: 200,
+          child: AppEmptyState(
+            icon: Icons.check_circle_outline,
+            message: '暂无签到任务',
+          ),
         ),
       );
     }
 
     if (filtered.isEmpty) {
-      return const SizedBox(
-        height: 200,
-        child: AppEmptyState(
-          icon: Icons.event_available_outlined,
-          message: '暂无签到记录',
+      return const SliverToBoxAdapter(
+        child: SizedBox(
+          height: 200,
+          child: AppEmptyState(
+            icon: Icons.event_available_outlined,
+            message: '暂无签到记录',
+          ),
         ),
       );
     }
@@ -343,27 +368,31 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
       }
     }
 
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      itemCount: filtered.length,
-      itemBuilder: (context, index) {
-        final display = filtered[index];
-        final isSelected = isWide && display.result.accountId == selectedId;
-        return Padding(
-          key: isWide ? _itemKeys[display.result.accountId] : null,
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: CheckInResultCard(
-            display: display,
-            isSelected: isSelected,
-            onTap: () => _openDetail(display.result.accountId, isWide),
-            onLongPress: display.result.status == CheckInStatus.failed
-                ? () => _openBrowserForFailed(display)
-                : null,
-          ),
-        );
-      },
+    return SliverPadding(
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.xs,
+        AppSpacing.md,
+        isWide ? 24 : 160,
+      ),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final display = filtered[index];
+          final isSelected = isWide && display.result.accountId == selectedId;
+          return Padding(
+            key: isWide ? _itemKeys[display.result.accountId] : null,
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: CheckInResultCard(
+              display: display,
+              isSelected: isSelected,
+              onTap: () => _openDetail(display.result.accountId, isWide),
+              onLongPress: display.result.status == CheckInStatus.failed
+                  ? () => _openBrowserForFailed(display)
+                  : null,
+            ),
+          );
+        }, childCount: filtered.length),
+      ),
     );
   }
 
@@ -581,5 +610,49 @@ class _CheckInDetailPanel extends ConsumerWidget {
         ref.read(selectedAccountIdProvider.notifier).state = null;
       },
     );
+  }
+}
+
+/// SliverPersistentHeaderDelegate that pins the [CheckInFilterBar]
+/// at the top of a [CustomScrollView].
+class _StickyFilterBarDelegate extends SliverPersistentHeaderDelegate {
+  final CheckInFilterBar filterBar;
+
+  _StickyFilterBarDelegate({required this.filterBar});
+
+  @override
+  double get minExtent => _computeHeight();
+
+  @override
+  double get maxExtent => _computeHeight();
+
+  double _computeHeight() {
+    // Filter chips row (40) + spacing (12) + search bar (56) ≈ 108
+    // Use a safe estimate; actual size may vary by theme.
+    // TODO 优化：FilterBar 的高度还是不要用硬编码了，以免日后有改动又要重新算一次
+    return 108;
+  }
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Container(
+      color: Theme.of(context).colorScheme.surface,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      child: filterBar,
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _StickyFilterBarDelegate oldDelegate) {
+    return filterBar.selectedFilter != oldDelegate.filterBar.selectedFilter ||
+        filterBar.searchQuery != oldDelegate.filterBar.searchQuery ||
+        filterBar.totalCount != oldDelegate.filterBar.totalCount ||
+        filterBar.successCount != oldDelegate.filterBar.successCount ||
+        filterBar.failedCount != oldDelegate.filterBar.failedCount ||
+        filterBar.skippedCount != oldDelegate.filterBar.skippedCount;
   }
 }

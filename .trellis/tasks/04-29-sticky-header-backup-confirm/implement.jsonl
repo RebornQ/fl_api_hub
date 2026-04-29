@@ -1,0 +1,6 @@
+{"role": "system", "content": "你是一个 Flutter 开发专家。任务：实现签到列表 sticky header + 备份密码关闭二次确认。"}
+{"role": "spec", "path": ".trellis/tasks/04-29-sticky-header-backup-confirm/prd.md"}
+{"role": "context", "path": "lib/features/check_in/presentation/pages/check_in_page.dart"}
+{"role": "context", "path": "lib/features/check_in/presentation/widgets/check_in_filter_bar.dart"}
+{"role": "context", "path": "lib/features/backup/presentation/pages/backup_page.dart"}
+{"role": "context", "path": "lib/app/theme/design_tokens.dart"}

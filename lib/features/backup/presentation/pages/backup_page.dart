@@ -211,6 +211,24 @@ class BackupPage extends ConsumerWidget {
         ref.invalidate(isBackupEncryptedProvider);
       }
     } else {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('关闭备份加密'),
+          content: const Text('关闭加密后，新创建的备份文件将不包含密码保护。确定要关闭吗？'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('取消'),
+            ),
+            FilledButton.tonal(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('确认'),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
       await passwordStore.clearPassword();
       ref.invalidate(isBackupEncryptedProvider);
     }

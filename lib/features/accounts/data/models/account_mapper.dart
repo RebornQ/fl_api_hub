@@ -5,6 +5,7 @@
 library;
 
 import '../../../../core/config/app_defaults.dart';
+import '../../../../core/network/proxy_config.dart';
 import '../../../../core/network/site_type.dart';
 import '../../domain/entities/account.dart';
 import '../../domain/entities/check_in_config.dart';
@@ -35,6 +36,8 @@ class AccountMapper {
     'createdAt': account.createdAt.toIso8601String(),
     'updatedAt': account.updatedAt.toIso8601String(),
     'sortOrder': account.sortOrder,
+    'proxyMode': account.proxyMode.name,
+    'proxyConfig': proxyConfigToMap(account.proxyConfig),
   };
 
   /// Deserializes a map back into an [Account].
@@ -71,6 +74,8 @@ class AccountMapper {
       createdAt: DateTime.parse(map['createdAt'] as String),
       updatedAt: DateTime.parse(map['updatedAt'] as String),
       sortOrder: (map['sortOrder'] as int?) ?? 0,
+      proxyMode: _readProxyMode(map['proxyMode']),
+      proxyConfig: proxyConfigFromMap(map['proxyConfig']),
     );
   }
 
@@ -119,5 +124,55 @@ class AccountMapper {
       );
     }
     return CheckInConfig.disabled;
+  }
+
+  /// Falls back to [AccountProxyMode.followGlobal] for missing or unknown
+  /// values so legacy records (and forward-compat additions to the enum)
+  /// still load.
+  static AccountProxyMode _readProxyMode(Object? raw) {
+    if (raw is! String) return AccountProxyMode.followGlobal;
+    return AccountProxyMode.values.firstWhere(
+      (e) => e.name == raw,
+      orElse: () => AccountProxyMode.followGlobal,
+    );
+  }
+
+  /// Serializes a [ProxyConfig] (or `null`) into a JSON-compatible map.
+  ///
+  /// Exposed so other persistence layers (e.g. the global proxy
+  /// repository) can reuse the same wire format without duplicating
+  /// the field list.
+  static Map<String, dynamic>? proxyConfigToMap(ProxyConfig? config) {
+    if (config == null) return null;
+    return {
+      'scheme': config.scheme.name,
+      'host': config.host,
+      'port': config.port,
+      'username': config.username,
+      'password': config.password,
+    };
+  }
+
+  /// Deserializes a stored proxy-config payload back into a [ProxyConfig].
+  ///
+  /// Returns `null` for missing maps or payloads that lack the required
+  /// `host`/`port` fields, treating them as "no proxy configured".
+  static ProxyConfig? proxyConfigFromMap(Object? raw) {
+    if (raw is! Map) return null;
+    final map = Map<String, dynamic>.from(raw);
+    final host = map['host'] as String?;
+    final portRaw = map['port'];
+    if (host == null || host.isEmpty) return null;
+    final port = portRaw is num
+        ? portRaw.toInt()
+        : (portRaw is String ? int.tryParse(portRaw.trim()) : null);
+    if (port == null) return null;
+    return ProxyConfig(
+      scheme: ProxyScheme.fromString(map['scheme'] as String?),
+      host: host,
+      port: port,
+      username: map['username'] as String?,
+      password: map['password'] as String?,
+    );
   }
 }

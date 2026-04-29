@@ -1,4 +1,4 @@
-/// Raw backup payload — stores entity maps from 7 Hive boxes.
+/// Raw backup payload — stores entity maps from 8 Hive boxes.
 ///
 /// Each field holds the same `Map<String, dynamic>` values that existing
 /// mappers produce via `toMap()`. On restore, `fromMap()` is called to
@@ -29,6 +29,12 @@ class BackupData {
   /// General app data key-value pairs.
   final Map<String, dynamic> appData;
 
+  /// Global network proxy setting (singleton document).
+  ///
+  /// Introduced in backup schema v2; older v1 backups omit this field
+  /// and load as an empty map (treated as "no global proxy configured").
+  final Map<String, dynamic> globalProxy;
+
   const BackupData({
     required this.accounts,
     required this.keys,
@@ -37,6 +43,7 @@ class BackupData {
     required this.checkInResults,
     required this.schedulerConfig,
     required this.appData,
+    this.globalProxy = const {},
   });
 
   Map<String, dynamic> toMap() => {
@@ -47,6 +54,7 @@ class BackupData {
     'check_in_results': checkInResults,
     'scheduler_config': schedulerConfig,
     'app_data': appData,
+    'global_proxy': globalProxy,
   };
 
   static BackupData fromMap(Map<String, dynamic> map) => BackupData(
@@ -59,6 +67,7 @@ class BackupData {
       map['scheduler_config'] as Map? ?? {},
     ),
     appData: Map<String, dynamic>.from(map['app_data'] as Map? ?? {}),
+    globalProxy: Map<String, dynamic>.from(map['global_proxy'] as Map? ?? {}),
   );
 }
 

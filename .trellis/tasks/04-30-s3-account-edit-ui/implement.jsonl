@@ -1,0 +1,14 @@
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "SectionCard / Form patterns to follow"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Riverpod usage in account edit form"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Lint / format / test bar"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Reuse SectionCard, _FormSnapshot, dirty detection patterns"}
+{"file": ".trellis/tasks/04-30-04-30-proxy-config/prd.md", "reason": "Parent PRD: R5 scoped to S3"}
+{"file": ".trellis/tasks/04-30-s3-account-edit-ui/prd.md", "reason": "S3 PRD: section card, three-state segmented button, fields, test button"}
+{"file": ".trellis/tasks/04-30-s1-data-layer/prd.md", "reason": "Account.proxyMode + proxyConfig fields established here"}
+{"file": ".trellis/tasks/04-30-s2-network-layer/prd.md", "reason": "ProxyTestService contract used by Test button"}
+{"file": "lib/features/accounts/presentation/pages/account_edit_page.dart", "reason": "Wraps the form; PopScope dirty handling already in place"}
+{"file": "lib/features/accounts/presentation/widgets/account_edit_form.dart", "reason": "Form to extend with proxy section + _FormSnapshot fields"}
+{"file": "lib/features/accounts/presentation/widgets/check_in_config_section.dart", "reason": "Reference: existing SectionCard used in this form"}
+{"file": "lib/core/widgets/section_card.dart", "reason": "Shared SectionCard widget — visual consistency"}
+{"file": "lib/app/theme/design_tokens.dart", "reason": "AppSpacing / AppRadius for consistent spacing"}
+{"file": "lib/features/accounts/domain/entities/account.dart", "reason": "Read proxyMode + proxyConfig from existing account when editing (S1 will add these fields)"}

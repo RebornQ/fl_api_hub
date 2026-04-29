@@ -5,8 +5,27 @@
 library;
 
 import '../../../../core/config/app_defaults.dart';
+import '../../../../core/network/proxy_config.dart';
 import '../../../../core/network/site_type.dart';
 import 'check_in_config.dart';
+
+/// How an [Account] resolves the network proxy used for its API calls.
+///
+/// Resolution priority (handled by the network layer at runtime):
+/// 1. [AccountProxyMode.direct]       — force direct connection.
+/// 2. [AccountProxyMode.custom]       — use [Account.proxyConfig].
+/// 3. [AccountProxyMode.followGlobal] — defer to the app-wide global
+///    proxy setting (and direct if the global setting is disabled).
+enum AccountProxyMode {
+  /// Defer to the global proxy setting (default).
+  followGlobal,
+
+  /// Explicitly bypass any proxy, even if the global proxy is enabled.
+  direct,
+
+  /// Use [Account.proxyConfig] for this account's requests.
+  custom,
+}
 
 /// A connected API site account.
 class Account {
@@ -98,6 +117,16 @@ class Account {
   /// Lower values appear first. Defaults to `0` for legacy records.
   final int sortOrder;
 
+  /// How this account resolves its proxy at request time.
+  ///
+  /// Defaults to [AccountProxyMode.followGlobal] for legacy and newly
+  /// created records.
+  final AccountProxyMode proxyMode;
+
+  /// Account-level proxy configuration. Only consulted when
+  /// [proxyMode] is [AccountProxyMode.custom]; ignored otherwise.
+  final ProxyConfig? proxyConfig;
+
   const Account({
     required this.id,
     required this.name,
@@ -119,6 +148,8 @@ class Account {
     required this.createdAt,
     required this.updatedAt,
     this.sortOrder = 0,
+    this.proxyMode = AccountProxyMode.followGlobal,
+    this.proxyConfig,
   });
 
   /// Creates a copy of this account with the given fields replaced.
@@ -143,6 +174,8 @@ class Account {
     DateTime? createdAt,
     DateTime? updatedAt,
     int? sortOrder,
+    AccountProxyMode? proxyMode,
+    ProxyConfig? proxyConfig,
   }) {
     return Account(
       id: id ?? this.id,
@@ -166,6 +199,8 @@ class Account {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       sortOrder: sortOrder ?? this.sortOrder,
+      proxyMode: proxyMode ?? this.proxyMode,
+      proxyConfig: proxyConfig ?? this.proxyConfig,
     );
   }
 
@@ -196,6 +231,8 @@ class Account {
     if (createdAt != other.createdAt) return false;
     if (updatedAt != other.updatedAt) return false;
     if (sortOrder != other.sortOrder) return false;
+    if (proxyMode != other.proxyMode) return false;
+    if (proxyConfig != other.proxyConfig) return false;
     return true;
   }
 

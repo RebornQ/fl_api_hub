@@ -7,7 +7,15 @@ library;
 
 /// Backup file metadata.
 class BackupMetadata {
-  /// Format version (currently `1`).
+  /// Format version.
+  ///
+  /// - `1` (legacy): seven Hive boxes — `accounts`, `keys`, `tags`,
+  ///   `check_in_tasks`, `check_in_results`, `scheduler_config`,
+  ///   `app_data`.
+  /// - `2` (current): adds the `network_proxy` singleton box and exposes
+  ///   it as the top-level `global_proxy` field. Account entities also
+  ///   gain `proxyMode` + `proxyConfig`. Older v1 backups still load
+  ///   because every new field defaults to a no-op value when missing.
   final int version;
 
   /// Whether the payload is AES-256-GCM encrypted.

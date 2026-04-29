@@ -211,6 +211,13 @@ class MergeResult {
   final mergedAppData = Map<String, dynamic>.from(local.appData);
   mergedAppData.addAll(incoming.appData);
 
+  // 8. Global proxy: take incoming when present, otherwise keep local.
+  //    Backup schemas v1 omit this field entirely (incoming is empty),
+  //    so legacy backups never overwrite a configured local proxy.
+  final mergedGlobalProxy = incoming.globalProxy.isNotEmpty
+      ? Map<String, dynamic>.from(incoming.globalProxy)
+      : Map<String, dynamic>.from(local.globalProxy);
+
   return (
     resolved: BackupData(
       accounts: mergedAccounts.values.toList(),
@@ -220,6 +227,7 @@ class MergeResult {
       checkInResults: mergedResults.values.toList(),
       schedulerConfig: mergedScheduler,
       appData: mergedAppData,
+      globalProxy: mergedGlobalProxy,
     ),
     result: MergeResult(
       accountsInserted: accountsInserted,

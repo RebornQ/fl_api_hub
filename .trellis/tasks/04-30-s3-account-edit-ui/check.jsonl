@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Visual / form pattern compliance"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Quality bar"}
+{"file": ".trellis/tasks/04-30-04-30-proxy-config/prd.md", "reason": "Parent acceptance criteria for R5"}
+{"file": ".trellis/tasks/04-30-s3-account-edit-ui/prd.md", "reason": "Subtask PRD acceptance criteria"}

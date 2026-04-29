@@ -46,7 +46,10 @@ class BackupRepositoryImpl implements BackupRepository {
         final checksum = BackupCodec.computeChecksum(dataJson);
 
         final metadata = BackupMetadata(
-          version: 1,
+          // v2 introduces the `global_proxy` top-level field. Older v1
+          // backups still load fine — `BackupData.fromMap` falls back to
+          // an empty map when the field is missing.
+          version: 2,
           encrypted: password != null,
           timestamp: DateTime.now(),
           appVersion: '1.0.0',

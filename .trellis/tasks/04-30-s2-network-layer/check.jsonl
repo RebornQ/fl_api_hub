@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Quality bar"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Verify adapter ↔ DioClient ↔ ApiRequest ↔ Repository chain has no leaks"}
+{"file": ".trellis/tasks/04-30-04-30-proxy-config/prd.md", "reason": "Parent acceptance criteria for R2 / R3 / R4 / R9"}
+{"file": ".trellis/tasks/04-30-s2-network-layer/prd.md", "reason": "Subtask PRD acceptance criteria"}

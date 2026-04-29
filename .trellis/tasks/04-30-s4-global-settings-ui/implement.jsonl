@@ -1,0 +1,17 @@
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Settings tile + page form patterns"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Riverpod StateNotifier pattern for settings"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Lint / format / test bar"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Mirror existing browser settings 3-tier UI / provider pattern"}
+{"file": ".trellis/tasks/04-30-04-30-proxy-config/prd.md", "reason": "Parent PRD: R6 scoped to S4"}
+{"file": ".trellis/tasks/04-30-s4-global-settings-ui/prd.md", "reason": "S4 PRD: settings tile, NetworkProxySettingsPage, providers"}
+{"file": ".trellis/tasks/04-30-s1-data-layer/prd.md", "reason": "GlobalProxySetting + repository contract from S1"}
+{"file": ".trellis/tasks/04-30-s2-network-layer/prd.md", "reason": "ProxyTestService consumed by Test button"}
+{"file": "lib/features/settings/presentation/pages/settings_page.dart", "reason": "Add network-proxy ListTile entry point"}
+{"file": "lib/features/settings/presentation/widgets/browser_settings.dart", "reason": "Reference: settings widget pattern"}
+{"file": "lib/features/settings/presentation/widgets/appearance_settings.dart", "reason": "Reference: settings widget pattern"}
+{"file": "lib/features/settings/presentation/providers/browser_providers.dart", "reason": "Reference: provider wiring pattern to mirror"}
+{"file": "lib/features/settings/presentation/providers/browser_notifier.dart", "reason": "Reference: StateNotifier pattern"}
+{"file": "lib/features/settings/domain/entities/browser_preference.dart", "reason": "Reference: settings entity shape (S1 will add GlobalProxySetting following this pattern)"}
+{"file": "lib/features/settings/data/repositories/browser_repository_impl.dart", "reason": "Reference: settings repo impl shape (S1 will add GlobalProxyRepositoryImpl following this pattern)"}
+{"file": "lib/core/widgets/section_card.dart", "reason": "Reuse SectionCard widget for visual consistency"}
+{"file": "lib/app/theme/design_tokens.dart", "reason": "AppSpacing / AppRadius for consistent spacing"}

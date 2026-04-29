@@ -1,0 +1,22 @@
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Riverpod patterns for ProxyResolver / ProxyTestService providers"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Lint / typecheck / test bar"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Adapter ↔ DioClient ↔ ApiRequest ↔ Repository propagation must stay consistent"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Dio pool must reuse AuthInterceptor + RequestLoggerInterceptor wiring instead of forking"}
+{"file": ".trellis/tasks/04-30-04-30-proxy-config/prd.md", "reason": "Parent PRD: R2 / R3 / R4 / R9 are scoped to S2"}
+{"file": ".trellis/tasks/04-30-s2-network-layer/prd.md", "reason": "S2 PRD: Dio pool, ProxyResolver, adapter migration, test service"}
+{"file": ".trellis/tasks/04-30-s1-data-layer/prd.md", "reason": "S1 contract: ProxyConfig / GlobalProxySetting shapes consumed here"}
+{"file": "lib/core/network/dio_client.dart", "reason": "Refactor target: single Dio → pool keyed by ProxyConfig"}
+{"file": "lib/core/network/auth_interceptor.dart", "reason": "Stateless interceptor — must remain attached on every pool entry"}
+{"file": "lib/core/network/api_request.dart", "reason": "Add proxy field; downstream adapters read it"}
+{"file": "lib/core/network/site_adapter.dart", "reason": "Adapter contract — request carries proxy now"}
+{"file": "lib/core/network/site_adapter_provider.dart", "reason": "Adapter wiring — confirm dioClientProvider still single instance"}
+{"file": "lib/core/network/adapters/common_api_adapter.dart", "reason": "Switch all dio.* calls to dioClient.getDio(proxy: request.proxy)"}
+{"file": "lib/core/network/adapters/onehub_adapter.dart", "reason": "Same migration"}
+{"file": "lib/core/network/adapters/donehub_adapter.dart", "reason": "Same migration"}
+{"file": "lib/core/network/adapters/veloera_api_adapter.dart", "reason": "Same migration"}
+{"file": "lib/core/network/adapters/sub2api_adapter.dart", "reason": "Same migration"}
+{"file": "lib/core/network/adapters/wong_api_adapter.dart", "reason": "Same migration"}
+{"file": "lib/features/dev_tools/request_logger/data/interceptors/request_logger_interceptor.dart", "reason": "Logger interceptor must keep working in every pool Dio"}
+{"file": "lib/features/accounts/data/repositories/accounts_repository_impl.dart", "reason": "Repository constructs ApiRequest for account ops — inject resolved proxy via ProxyResolver"}
+{"file": "lib/features/check_in/data/repositories/check_in_repository_impl.dart", "reason": "Check-in repository constructs ApiRequest — same proxy injection"}
+{"file": "lib/features/keys/data/repositories/keys_repository_impl.dart", "reason": "Keys repository constructs ApiRequest — same proxy injection"}

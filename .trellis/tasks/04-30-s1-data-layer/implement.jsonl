@@ -1,0 +1,17 @@
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "Confirms domain/data/presentation layout for new ProxyConfig + GlobalProxySetting modules"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Lint / typecheck / format bar"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Pattern reuse: mirror browser_preference 3-tier (entity/repo/datasource) when designing global proxy"}
+{"file": ".trellis/tasks/04-30-04-30-proxy-config/prd.md", "reason": "Parent PRD: R1, R7, R8 are scoped to S1"}
+{"file": ".trellis/tasks/04-30-s1-data-layer/prd.md", "reason": "S1 PRD: Account/ProxyConfig/GlobalProxySetting entity + Hive serialization + backup schema"}
+{"file": "lib/features/accounts/domain/entities/account.dart", "reason": "Add proxyMode + proxyConfig fields, update copyWith/deepEquals"}
+{"file": "lib/features/accounts/data/models/account_mapper.dart", "reason": "Add backward-compatible serialization for proxy fields"}
+{"file": "lib/features/settings/domain/entities/browser_preference.dart", "reason": "Reference: settings entity pattern for GlobalProxySetting"}
+{"file": "lib/features/settings/domain/repositories/browser_repository.dart", "reason": "Reference: settings repository interface pattern"}
+{"file": "lib/features/settings/data/datasources/browser_local_datasource.dart", "reason": "Reference: hive datasource pattern (Map serialization, no hive adapters)"}
+{"file": "lib/features/settings/data/repositories/browser_repository_impl.dart", "reason": "Reference: repository implementation pattern"}
+{"file": "lib/features/accounts/data/datasources/accounts_local_datasource.dart", "reason": "Reference: account hive datasource pattern (Map serialization)"}
+{"file": "lib/features/backup/data/models/backup_data.dart", "reason": "Backup payload schema — extend with globalProxy and ensure account proxy fields ride along"}
+{"file": "lib/features/backup/data/models/backup_codec.dart", "reason": "Backup encode/decode — verify forward/backward compatibility"}
+{"file": "lib/features/backup/data/repositories/backup_repository_impl.dart", "reason": "Backup repository — assemble/restore now must include globalProxy"}
+{"file": "lib/features/backup/data/datasources/backup_hive_reader.dart", "reason": "Hive snapshot reader — may need to read network_proxy box"}
+{"file": "lib/main.dart", "reason": "Hive initialization site if a new box `network_proxy` is introduced"}

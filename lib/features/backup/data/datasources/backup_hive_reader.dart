@@ -1,4 +1,4 @@
-/// Reads all data from the 7 backed-up Hive boxes and writes data back.
+/// Reads all data from the 8 backed-up Hive boxes and writes data back.
 ///
 /// Operates on raw `Map<String, dynamic>` values — the same format that
 /// existing mappers' `toMap()` produces. This avoids depending on typed
@@ -11,7 +11,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../models/backup_data.dart';
 
-/// Names of the 7 Hive boxes included in a backup.
+/// Names of the 8 Hive boxes included in a backup.
 const _boxNames = [
   'accounts',
   'keys',
@@ -20,6 +20,7 @@ const _boxNames = [
   'check_in_results',
   'scheduler_config',
   'app_data',
+  'network_proxy',
 ];
 
 /// Keys in `app_data` that are excluded from backup (device-specific settings).
@@ -27,7 +28,7 @@ const _excludedAppDataKeys = {'backup_password', 'backup_encrypted'};
 
 /// Reads and writes backup data to/from Hive boxes.
 class BackupHiveReader {
-  /// Reads all 7 boxes and returns a [BackupData].
+  /// Reads all 8 boxes and returns a [BackupData].
   BackupData readAll() {
     return BackupData(
       accounts: _readBox('accounts'),
@@ -37,21 +38,22 @@ class BackupHiveReader {
       checkInResults: _readBox('check_in_results'),
       schedulerConfig: _readSingleton('scheduler_config'),
       appData: _readAppData(),
+      globalProxy: _readSingleton('network_proxy'),
     );
   }
 
-  /// Clears all 7 boxes then writes [data] (replace strategy).
+  /// Clears all 8 boxes then writes [data] (replace strategy).
   Future<void> writeAll(BackupData data) async {
     await clearAll();
     await _writeData(data);
   }
 
-  /// Writes [data] into the 7 boxes without clearing first (merge strategy).
+  /// Writes [data] into the 8 boxes without clearing first (merge strategy).
   Future<void> writeData(BackupData data) async {
     await _writeData(data);
   }
 
-  /// Clears all data in the 7 boxes.
+  /// Clears all data in the 8 boxes.
   Future<void> clearAll() async {
     for (final name in _boxNames) {
       await Hive.box(name).clear();
@@ -98,6 +100,7 @@ class BackupHiveReader {
     // Write singleton boxes.
     await _writeSingleton('scheduler_config', data.schedulerConfig);
     await _writeSingleton('app_data', data.appData);
+    await _writeSingleton('network_proxy', data.globalProxy);
   }
 
   Future<void> _writeBox(

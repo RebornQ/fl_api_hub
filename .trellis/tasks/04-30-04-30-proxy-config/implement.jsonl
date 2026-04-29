@@ -1,0 +1,22 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide entry point"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Riverpod patterns this project uses for settings/feature providers"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "Clean Architecture feature-first directory layout the new proxy module must follow"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "SectionCard / Form patterns to mirror in account edit + settings UIs"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Lint / typecheck / test bar for PR-ready code"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Cross-layer impact (domain ↔ data ↔ presentation ↔ network) is high — checklist required"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "ProxyConfig field/UI must reuse existing SectionCard / form / settings tile patterns"}
+{"file": ".trellis/tasks/04-30-04-30-proxy-config/prd.md", "reason": "Parent task PRD: requirements R1-R9, acceptance criteria, subtask plan"}
+{"file": "lib/core/network/dio_client.dart", "reason": "Dio singleton wiring — must become a per-proxy pool"}
+{"file": "lib/core/network/auth_interceptor.dart", "reason": "Stateless interceptor pattern reading from RequestOptions.extra — proxy is transport-level so cannot ride here"}
+{"file": "lib/core/network/api_request.dart", "reason": "Per-request context bundle — must add proxy field"}
+{"file": "lib/core/network/site_adapter.dart", "reason": "SiteAdapter contract — every adapter implementation must switch to dioClient.getDio(proxy:)"}
+{"file": "lib/core/network/site_adapter_provider.dart", "reason": "All 6 adapters wired here, share dioClientProvider"}
+{"file": "lib/features/accounts/domain/entities/account.dart", "reason": "Account entity to extend with proxyMode + proxyConfig"}
+{"file": "lib/features/accounts/data/models/account_mapper.dart", "reason": "Hive serialization — must default missing proxy fields for legacy records"}
+{"file": "lib/features/accounts/presentation/widgets/account_edit_form.dart", "reason": "Edit form _FormSnapshot + dirty detection + new SectionCard insertion point"}
+{"file": "lib/features/settings/presentation/pages/settings_page.dart", "reason": "Settings list — must add network-proxy entry"}
+{"file": "lib/features/settings/presentation/widgets/browser_settings.dart", "reason": "Reference implementation: settings widget pattern"}
+{"file": "lib/features/settings/data/repositories/browser_repository_impl.dart", "reason": "Reference impl: settings repository pattern"}
+{"file": "lib/features/settings/data/datasources/browser_local_datasource.dart", "reason": "Reference impl: settings hive datasource pattern"}
+{"file": "lib/features/settings/presentation/providers/browser_providers.dart", "reason": "Reference impl: settings Riverpod provider pattern"}

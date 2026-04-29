@@ -1,0 +1,31 @@
+{
+  "id": "04-30-proxy-config",
+  "name": "04-30-proxy-config",
+  "title": "account-and-global-proxy-config",
+  "description": "账号编辑页面新增网络代理配置，支持账号级三态（跟随全局/自定义/显式直连）+ 全局代理 + HTTP/HTTPS + 用户名密码认证 + 测试连通性 + 备份恢复",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "Reborn",
+  "assignee": "Reborn",
+  "createdAt": "2026-04-30",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "04-30-s1-data-layer",
+    "04-30-s2-network-layer",
+    "04-30-s3-account-edit-ui",
+    "04-30-s4-global-settings-ui"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

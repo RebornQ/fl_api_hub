@@ -204,3 +204,36 @@ GroupDto添加ratio字段，Sub2API双端点合并(available+rates)，新建Done
 ### Next Steps
 
 - None - task complete
+
+
+## Session 71: S2 Network Layer: Dio Pool & Proxy Resolver
+
+**Date**: 2026-04-30
+**Task**: S2 Network Layer: Dio Pool & Proxy Resolver
+**Branch**: `main`
+
+### Summary
+
+Implemented DioClient proxy pool (keyed by ProxyConfig), ProxyResolver 3-state priority, ApiRequest.proxy propagation through 6 SiteAdapters, ProxyTestService for connectivity testing, global proxy providers, and updated spec docs with Pattern 8/9.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `fb873d6` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

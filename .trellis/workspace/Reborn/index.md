@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 70
+- **Total Sessions**: 71
 - **Last Active**: 2026-04-30
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~206 | Active |
+| `journal-3.md` | ~239 | Active |
 | `journal-2.md` | ~1983 | Archived |
 | `journal-1.md` | ~1977 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 71 | 2026-04-30 | S2 Network Layer: Dio Pool & Proxy Resolver | `fb873d6` | `main` |
 | 70 | 2026-04-30 | Sticky Header + 备份密码确认 | `2830701` | `main` |
 | 69 | 2026-04-29 | 关于页面 | `3d4db92` | `main` |
 | 68 | 2026-04-29 | Fix group API requests with ratio and DoneHub adapter | `526b637` | `main` |

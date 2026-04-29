@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fl_api_hub/core/config/app_defaults.dart';
+import 'package:fl_api_hub/core/network/proxy_config.dart';
 import 'package:fl_api_hub/core/network/site_type.dart';
 import 'package:fl_api_hub/features/accounts/data/models/account_mapper.dart';
 import 'package:fl_api_hub/features/accounts/domain/entities/account.dart';
@@ -24,6 +25,8 @@ void main() {
       List<String> tagIds = const [],
       CheckInConfig checkIn = CheckInConfig.disabled,
       String? redemptionUrl,
+      AccountProxyMode proxyMode = AccountProxyMode.followGlobal,
+      ProxyConfig? proxyConfig,
     }) {
       return Account(
         id: 'acc-001',
@@ -46,6 +49,8 @@ void main() {
         redemptionUrl: redemptionUrl,
         createdAt: fixedCreatedAt,
         updatedAt: fixedUpdatedAt,
+        proxyMode: proxyMode,
+        proxyConfig: proxyConfig,
       );
     }
 
@@ -128,6 +133,44 @@ void main() {
         expect(map['userId'], equals(-1));
         expect(map['manualBalanceUsd'], isNull);
         expect(map['redemptionUrl'], isNull);
+      });
+
+      test('serializes proxyMode as enum name', () {
+        final account = createTestAccount(proxyMode: AccountProxyMode.custom);
+        final map = AccountMapper.toMap(account);
+
+        expect(map['proxyMode'], equals('custom'));
+      });
+
+      test('serializes proxyConfig as nested map', () {
+        const config = ProxyConfig(
+          scheme: ProxyScheme.https,
+          host: 'proxy.example.com',
+          port: 8080,
+          username: 'user',
+          password: 'secret',
+        );
+        final account = createTestAccount(
+          proxyMode: AccountProxyMode.custom,
+          proxyConfig: config,
+        );
+        final map = AccountMapper.toMap(account);
+
+        expect(map['proxyConfig'], isA<Map>());
+        final pc = map['proxyConfig'] as Map;
+        expect(pc['scheme'], equals('https'));
+        expect(pc['host'], equals('proxy.example.com'));
+        expect(pc['port'], equals(8080));
+        expect(pc['username'], equals('user'));
+        expect(pc['password'], equals('secret'));
+      });
+
+      test('serializes null proxyConfig as null', () {
+        final account = createTestAccount();
+        final map = AccountMapper.toMap(account);
+
+        expect(map['proxyMode'], equals('followGlobal'));
+        expect(map['proxyConfig'], isNull);
       });
     });
 
@@ -329,6 +372,74 @@ void main() {
         final account = AccountMapper.fromMap(map);
         expect(account.siteType, equals(SiteType.unknown));
       });
+
+      test('deserializes proxyMode and proxyConfig from map', () {
+        final map = <String, dynamic>{
+          'id': 'acc-proxy',
+          'name': 'Proxied',
+          'baseUrl': 'https://example.com',
+          'siteType': 'new-api',
+          'authType': 'accessToken',
+          'proxyMode': 'custom',
+          'proxyConfig': {
+            'scheme': 'https',
+            'host': 'proxy.example.com',
+            'port': 3128,
+            'username': 'admin',
+            'password': 's3cret',
+          },
+          'createdAt': fixedCreatedAt.toIso8601String(),
+          'updatedAt': fixedUpdatedAt.toIso8601String(),
+        };
+
+        final account = AccountMapper.fromMap(map);
+
+        expect(account.proxyMode, equals(AccountProxyMode.custom));
+        expect(account.proxyConfig, isNotNull);
+        expect(account.proxyConfig!.scheme, equals(ProxyScheme.https));
+        expect(account.proxyConfig!.host, equals('proxy.example.com'));
+        expect(account.proxyConfig!.port, equals(3128));
+        expect(account.proxyConfig!.username, equals('admin'));
+        expect(account.proxyConfig!.password, equals('s3cret'));
+      });
+
+      test('defaults proxyMode to followGlobal when missing (legacy)', () {
+        final legacyMap = <String, dynamic>{
+          'id': 'acc-legacy-no-proxy',
+          'name': 'Legacy No Proxy',
+          'baseUrl': 'https://example.com',
+          'siteType': 'new-api',
+          'authType': 'accessToken',
+          'createdAt': fixedCreatedAt.toIso8601String(),
+          'updatedAt': fixedUpdatedAt.toIso8601String(),
+        };
+
+        final account = AccountMapper.fromMap(legacyMap);
+
+        expect(account.proxyMode, equals(AccountProxyMode.followGlobal));
+        expect(account.proxyConfig, isNull);
+      });
+
+      test(
+        'defaults proxyMode to followGlobal for unknown proxyMode value',
+        () {
+          final map = <String, dynamic>{
+            'id': 'acc-future-proxy',
+            'name': 'Future Proxy Mode',
+            'baseUrl': 'https://example.com',
+            'siteType': 'new-api',
+            'authType': 'accessToken',
+            'proxyMode': 'someFutureMode',
+            'createdAt': fixedCreatedAt.toIso8601String(),
+            'updatedAt': fixedUpdatedAt.toIso8601String(),
+          };
+
+          final account = AccountMapper.fromMap(map);
+
+          expect(account.proxyMode, equals(AccountProxyMode.followGlobal));
+          expect(account.proxyConfig, isNull);
+        },
+      );
     });
 
     group('roundtrip', () {
@@ -365,6 +476,41 @@ void main() {
           expect(restored.name, equals(original.name));
         },
       );
+
+      test('toMap then fromMap preserves proxy fields', () {
+        const proxyConfig = ProxyConfig(
+          scheme: ProxyScheme.http,
+          host: '10.0.0.1',
+          port: 8888,
+          username: 'proxyUser',
+          password: 'proxyPass',
+        );
+        final original = createTestAccount(
+          proxyMode: AccountProxyMode.custom,
+          proxyConfig: proxyConfig,
+        );
+        final map = AccountMapper.toMap(original);
+        final restored = AccountMapper.fromMap(map);
+
+        expect(restored.deepEquals(original), isTrue);
+        expect(restored.proxyMode, equals(AccountProxyMode.custom));
+        expect(restored.proxyConfig, isNotNull);
+        expect(restored.proxyConfig!.scheme, equals(ProxyScheme.http));
+        expect(restored.proxyConfig!.host, equals('10.0.0.1'));
+        expect(restored.proxyConfig!.port, equals(8888));
+        expect(restored.proxyConfig!.username, equals('proxyUser'));
+        expect(restored.proxyConfig!.password, equals('proxyPass'));
+      });
+
+      test('toMap then fromMap preserves direct proxy mode', () {
+        final original = createTestAccount(proxyMode: AccountProxyMode.direct);
+        final map = AccountMapper.toMap(original);
+        final restored = AccountMapper.fromMap(map);
+
+        expect(restored.deepEquals(original), isTrue);
+        expect(restored.proxyMode, equals(AccountProxyMode.direct));
+        expect(restored.proxyConfig, isNull);
+      });
     });
   });
 }

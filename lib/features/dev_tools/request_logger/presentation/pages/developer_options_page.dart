@@ -39,12 +39,18 @@ class DeveloperOptionsPage extends ConsumerWidget {
               children: [
                 SwitchListTile(
                   value: enabled,
-                  onChanged: (value) =>
-                      ref.read(requestLoggerEnabledProvider.notifier).state =
-                          value,
+                  onChanged: kDebugMode
+                      ? null
+                      : (value) =>
+                            ref
+                                    .read(requestLoggerEnabledProvider.notifier)
+                                    .state =
+                                value,
                   title: const Text('启用记录'),
                   subtitle: Text(
-                    '打开后记录 App 内每个请求（仅内存，关闭或重启后丢失）',
+                    kDebugMode
+                        ? 'Debug 模式下记录器锁定开启'
+                        : '打开后记录 App 内每个请求（仅内存，关闭或重启后丢失）',
                     style: TextStyle(color: colorScheme.onSurfaceVariant),
                   ),
                   secondary: Icon(

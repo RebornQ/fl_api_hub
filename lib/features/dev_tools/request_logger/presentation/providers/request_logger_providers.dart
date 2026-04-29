@@ -16,6 +16,7 @@ library;
 
 import 'dart:collection';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/request_log_entry.dart';
@@ -25,8 +26,9 @@ import '../../domain/entities/status_bucket.dart';
 /// Maximum number of entries kept in the in-memory ring buffer.
 const int kRequestLogBufferCapacity = 500;
 
-/// On/off switch. Not persisted — every cold start is `false`.
-final requestLoggerEnabledProvider = StateProvider<bool>((ref) => false);
+/// On/off switch. Not persisted — defaults to `kDebugMode` on every cold
+/// start (locked on in debug builds).
+final requestLoggerEnabledProvider = StateProvider<bool>((ref) => kDebugMode);
 
 /// Current filter (keyword + status bucket) applied to the list view.
 final requestLogFilterProvider = StateProvider<RequestLogFilter>(

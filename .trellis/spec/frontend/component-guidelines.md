@@ -316,3 +316,105 @@ from a previous API response).
   desyncs the dropdown from the API and confuses users.
 - Don't use `CircularProgressIndicator` for loading state in dropdowns —
   the layout shift causes visual jank.
+
+---
+
+### Pattern — Overlay-based Searchable Dropdown
+
+**When to use**: a dropdown selector that needs search/filter functionality
+when the item list is long. Standard `DropdownButtonFormField` does not
+support embedded search fields.
+
+**Reference implementation**:
+
+- `lib/features/keys/presentation/widgets/account_selector.dart`
+
+**Signature contract**:
+
+```dart
+class SearchableDropdown<T> extends StatefulWidget {
+  final List<T> items;
+  final T? selectedId;
+  final ValueChanged<T?> onChanged;
+  final String Function(T) displayName;  // e.g. (a) => a.name
+  final String label;                    // "选择账号"
+  final String searchHint;               // "搜索账号..."
+
+  const SearchableDropdown({...});
+}
+
+class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
+  final _layerLink = LayerLink();
+  OverlayEntry? _overlayEntry;
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  bool get _isOpen => _overlayEntry != null;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _closeOverlay();  // Critical: clean up overlay
+    super.dispose();
+  }
+
+  void _openOverlay() {
+    _overlayEntry = OverlayEntry(builder: (context) => _OverlayContent(...));
+    Overlay.of(context).insert(_overlayEntry!);
+    setState(() {});
+  }
+
+  void _closeOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+    _searchController.clear();
+    _searchQuery = '';
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: Material(
+        child: InkWell(
+          onTap: _toggleOverlay,
+          child: InputDecorator(...),  // Mimics DropdownButtonFormField visual
+        ),
+      ),
+    );
+  }
+}
+```
+
+**Rules**:
+
+- Use `Overlay` + `CompositedTransformTarget/Follower` for popup positioning.
+  This keeps the popup visually anchored to the trigger widget.
+- Manage overlay lifecycle carefully:
+  - Create in `_openOverlay()`, insert via `Overlay.of(context).insert()`.
+  - Remove in `_closeOverlay()` via `_overlayEntry?.remove()`, then set to `null`.
+  - Always call `_closeOverlay()` in `dispose()` to prevent memory leaks.
+- Include a dismiss barrier (full-screen `GestureDetector` behind the popup)
+  so taps outside close the dropdown.
+- Filter items with case-insensitive `contains`:
+  ```dart
+  final q = searchQuery.toLowerCase();
+  return items.where((i) => displayName(i).toLowerCase().contains(q)).toList();
+  ```
+- Show "没有匹配项" empty state when filter returns empty list.
+- Reset search state on selection: clear `_searchController` and `_searchQuery`
+  after calling `onChanged`.
+- Maintain the same public API as `DropdownButtonFormField` (`items`, `selectedId`,
+  `onChanged`) so callers need minimal changes when upgrading.
+- Use `LayerLink` + `CompositedTransformFollower` for positioning — this handles
+  scrolling and layout changes automatically.
+
+**Don't**:
+
+- Don't forget to remove the overlay in `dispose()` — it causes memory leaks
+  and crashes if the widget is rebuilt.
+- Don't use `showMenu()` — it doesn't support arbitrary widgets like search
+  fields inside the menu.
+- Don't store search state in a global provider — it's UI-local state that
+  should reset when the dropdown closes.

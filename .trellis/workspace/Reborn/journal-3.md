@@ -206,7 +206,33 @@ GroupDto添加ratio字段，Sub2API双端点合并(available+rates)，新建Done
 - None - task complete
 
 
-## Session 71: S2 Network Layer: Dio Pool & Proxy Resolver
+## Session 72: S1 Data Layer — Quality Gate + Test Coverage
+
+**Date**: 2026-04-30
+**Task**: S1 Data Layer: Proxy Entity & Storage
+**Branch**: `main`
+
+### Summary
+
+S1 数据层代码此前已实现并提交。本次会话执行 Phase 2.2 质量检查 → Phase 3 收尾。trellis-check 确认全部 8 项验收标准通过，并补充了 8 个 AccountMapper 代理字段序列化测试。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `c1bbce3` | test(accounts): add proxy field serialization coverage for AccountMapper |
+
+### Testing
+
+- [OK] 24/24 AccountMapper tests passed
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- S1 可归档，继续推进 S3 或 S4
 
 **Date**: 2026-04-30
 **Task**: S2 Network Layer: Dio Pool & Proxy Resolver
@@ -225,6 +251,39 @@ Implemented DioClient proxy pool (keyed by ProxyConfig), ProxyResolver 3-state p
 | Hash | Message |
 |------|---------|
 | `fb873d6` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
+
+
+## Session 72: S1 Data Layer — Quality Gate + Test Coverage
+
+**Date**: 2026-04-30
+**Task**: S1 Data Layer — Quality Gate + Test Coverage
+**Branch**: `main`
+
+### Summary
+
+S1 数据层质量检查通过（8/8 验收标准），补充 8 个 AccountMapper 代理字段序列化测试，归档 S1 任务
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `c1bbce3` | (see git log) |
 
 ### Testing
 

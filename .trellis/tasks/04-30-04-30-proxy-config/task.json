@@ -20,7 +20,6 @@
   "subtasks": [],
   "children": [
     "04-30-s1-data-layer",
-    "04-30-s2-network-layer",
     "04-30-s3-account-edit-ui",
     "04-30-s4-global-settings-ui"
   ],

@@ -443,6 +443,7 @@ class AccountEditFormState extends ConsumerState<AccountEditForm> {
           initialValue: _authType,
           decoration: const InputDecoration(labelText: '认证方式'),
           items: AuthType.values
+              .where((t) => t == AuthType.accessToken)
               .map(
                 (t) => DropdownMenuItem(value: t, child: Text(t.displayName)),
               )

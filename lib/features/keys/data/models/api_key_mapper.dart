@@ -21,6 +21,7 @@ class ApiKeyMapper {
     'expiresAt': apiKey.expiresAt?.toIso8601String(),
     'createdAt': apiKey.createdAt.toIso8601String(),
     'updatedAt': apiKey.updatedAt.toIso8601String(),
+    'group': apiKey.group,
   };
 
   /// Deserializes a map back into an [ApiKey].
@@ -37,6 +38,7 @@ class ApiKeyMapper {
           : null,
       createdAt: DateTime.parse(map['createdAt'] as String),
       updatedAt: DateTime.parse(map['updatedAt'] as String),
+      group: map['group'] as String?,
     );
   }
 }

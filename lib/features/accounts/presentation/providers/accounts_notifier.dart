@@ -72,14 +72,40 @@ class AccountsNotifier extends AsyncNotifier<List<Account>> {
   }
 
   /// Updates an existing account and refreshes the list.
+  ///
+  /// If the enabled state changed, the account's sortOrder is updated to
+  /// place it at the end of its new partition (enabled or disabled).
   Future<void> saveAccount(Account account) async {
+    final current = state.valueOrNull;
+
+    // Check if enabled state changed and update sortOrder accordingly
+    Account accountToSave = account;
+    if (current != null) {
+      final existing = current.where((a) => a.id == account.id).firstOrNull;
+      if (existing != null && existing.enabled != account.enabled) {
+        // Enabled state changed — place at end of new partition
+        final maxSortOrder = current.fold<int>(
+          -1,
+          (max, a) => a.sortOrder > max ? a.sortOrder : max,
+        );
+        accountToSave = account.copyWith(
+          sortOrder: maxSortOrder + 1,
+          updatedAt: DateTime.now(),
+        );
+      }
+    }
+
     state = const AsyncLoading();
     final repo = ref.read(accountsRepositoryProvider);
-    final result = await repo.update(account);
+    final result = await repo.update(accountToSave);
     switch (result) {
       case Success():
         final updated = await repo.getAll();
         state = AsyncData(updated.dataOrNull ?? []);
+        // If the account was just disabled, clear its cached reachability.
+        if (!accountToSave.enabled) {
+          await ref.read(accountReachabilityMapProvider.notifier).remove(account.id);
+        }
       case Failure(:final exception):
         state = AsyncError(exception, StackTrace.current);
     }
@@ -110,8 +136,19 @@ class AccountsNotifier extends AsyncNotifier<List<Account>> {
       (a) => a.id == id,
       orElse: () => throw StateError('Account $id not found in state'),
     );
+
+    // When toggling, always place the account at the end of its new partition:
+    // - Enabling (disabled -> enabled): place at end of enabled partition
+    // - Disabling (enabled -> disabled): place at end of disabled partition (sink to bottom)
+    final maxSortOrder = current.fold<int>(
+      -1,
+      (max, a) => a.sortOrder > max ? a.sortOrder : max,
+    );
+    final newSortOrder = maxSortOrder + 1;
+
     final updated = account.copyWith(
       enabled: !account.enabled,
+      sortOrder: newSortOrder,
       updatedAt: DateTime.now(),
     );
 

@@ -1,7 +1,7 @@
 /// File I/O for backup files — read, write, share, and save.
 library;
 
-import 'dart:io';
+import 'dart:io' show File, FileSystemException;
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
@@ -37,8 +37,9 @@ class BackupFileDataSource {
 
   /// Saves [bytes] to a user-chosen location via save dialog.
   ///
-  /// On desktop platforms, [saveFile] only returns the selected path —
-  /// we must write the bytes ourselves.
+  /// On mobile platforms (Android/iOS), [bytes] is passed to the native save
+  /// dialog which handles the file write automatically via SAF / system picker.
+  /// On desktop platforms, the plugin also writes bytes when provided.
   /// Returns the saved file path, or `null` if the user cancelled.
   Future<String?> saveToFile(Uint8List bytes, String suggestedName) async {
     final selectedPath = await FilePicker.platform.saveFile(
@@ -46,10 +47,8 @@ class BackupFileDataSource {
       fileName: suggestedName.replaceAll('.flhbkp', ''),
       type: FileType.custom,
       allowedExtensions: ['flhbkp'],
+      bytes: bytes,
     );
-    if (selectedPath == null) return null;
-    final file = File(selectedPath);
-    await file.writeAsBytes(bytes);
     return selectedPath;
   }
 

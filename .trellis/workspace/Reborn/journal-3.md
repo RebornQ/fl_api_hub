@@ -362,3 +362,37 @@ S1 数据层质量检查通过（8/8 验收标准），补充 8 个 AccountMappe
 ### Next Steps
 
 - None - task complete
+
+
+## Session 75: Hive → Hive CE Migration
+
+**Date**: 2026-05-01
+**Task**: Hive → Hive CE Migration
+**Branch**: `main`
+
+### Summary
+
+Migrated hive_flutter to hive_ce_flutter (v2.3.4). Updated 17 source/test files, fixed TextEditingController dispose bug, rewrote database-guidelines spec.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `516800f` | (see git log) |
+| `38627a8` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

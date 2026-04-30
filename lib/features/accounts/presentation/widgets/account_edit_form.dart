@@ -15,6 +15,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../app/theme/design_tokens.dart';
 import '../../../../core/config/app_defaults.dart';
+import '../../../../core/network/proxy_config.dart';
 import '../../../../core/network/site_type.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../../../tags/presentation/widgets/tag_chip_input.dart';
@@ -22,6 +23,7 @@ import '../../domain/entities/account.dart';
 import '../../domain/entities/check_in_config.dart';
 import '../providers/accounts_providers.dart';
 import '../widgets/check_in_config_section.dart';
+import '../widgets/proxy_config_section.dart';
 
 /// Reusable account edit form.
 ///
@@ -75,6 +77,9 @@ class AccountEditFormState extends ConsumerState<AccountEditForm> {
   bool _tokenModified = false;
   bool _isSubmitting = false;
 
+  late AccountProxyMode _proxyMode;
+  ProxyConfig? _proxyConfig;
+
   final _urlFocusNode = FocusNode();
   Timer? _urlDebounce;
   bool _isDuplicateUrl = false;
@@ -114,6 +119,8 @@ class AccountEditFormState extends ConsumerState<AccountEditForm> {
     _tagIds = List<String>.from(a?.tagIds ?? const []);
     _checkIn = a?.checkIn ?? CheckInConfig.disabled;
     _redemptionUrl = a?.redemptionUrl;
+    _proxyMode = a?.proxyMode ?? AccountProxyMode.followGlobal;
+    _proxyConfig = a?.proxyConfig;
 
     _initialSnapshot = _FormSnapshot.fromControllers(
       name: _nameController.text,
@@ -131,6 +138,8 @@ class AccountEditFormState extends ConsumerState<AccountEditForm> {
       tagIds: _tagIds,
       checkIn: _checkIn,
       redemptionUrl: _redemptionUrl,
+      proxyMode: _proxyMode,
+      proxyConfig: _proxyConfig,
     );
 
     _urlFocusNode.addListener(_onUrlFocusChanged);
@@ -167,6 +176,8 @@ class AccountEditFormState extends ConsumerState<AccountEditForm> {
     tagIds: _tagIds,
     checkIn: _checkIn,
     redemptionUrl: _redemptionUrl,
+    proxyMode: _proxyMode,
+    proxyConfig: _proxyConfig,
   );
 
   /// Resets the dirty baseline to the current form state.
@@ -280,6 +291,16 @@ class AccountEditFormState extends ConsumerState<AccountEditForm> {
               icon: Icons.key,
               title: '认证凭据',
               child: _buildCredentialsFields(),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            ProxyConfigSection(
+              key: const ValueKey('proxyConfigSection'),
+              proxyMode: _proxyMode,
+              proxyConfig: _proxyConfig,
+              baseUrl: _urlController.text.trim(),
+              onModeChanged: (mode) => setState(() => _proxyMode = mode),
+              onConfigChanged: (config) =>
+                  setState(() => _proxyConfig = config),
             ),
             const SizedBox(height: AppSpacing.md),
             SectionCard(
@@ -726,6 +747,8 @@ class AccountEditFormState extends ConsumerState<AccountEditForm> {
       redemptionUrl: _redemptionUrl,
       createdAt: widget.account?.createdAt ?? now,
       updatedAt: now,
+      proxyMode: _proxyMode,
+      proxyConfig: _proxyMode == AccountProxyMode.custom ? _proxyConfig : null,
     );
   }
 }
@@ -752,6 +775,8 @@ class _FormSnapshot {
   final List<String> tagIds;
   final CheckInConfig checkIn;
   final String? redemptionUrl;
+  final AccountProxyMode proxyMode;
+  final ProxyConfig? proxyConfig;
 
   const _FormSnapshot({
     required this.name,
@@ -769,6 +794,8 @@ class _FormSnapshot {
     required this.tagIds,
     required this.checkIn,
     required this.redemptionUrl,
+    required this.proxyMode,
+    required this.proxyConfig,
   });
 
   factory _FormSnapshot.fromControllers({
@@ -787,6 +814,8 @@ class _FormSnapshot {
     required bool enabled,
     required CheckInConfig checkIn,
     required String? redemptionUrl,
+    required AccountProxyMode proxyMode,
+    required ProxyConfig? proxyConfig,
   }) {
     return _FormSnapshot(
       name: name,
@@ -804,6 +833,8 @@ class _FormSnapshot {
       tagIds: List<String>.from(tagIds),
       checkIn: checkIn,
       redemptionUrl: redemptionUrl,
+      proxyMode: proxyMode,
+      proxyConfig: proxyConfig,
     );
   }
 
@@ -825,6 +856,8 @@ class _FormSnapshot {
     if (enabled != other.enabled) return false;
     if (checkIn != other.checkIn) return false;
     if (redemptionUrl != other.redemptionUrl) return false;
+    if (proxyMode != other.proxyMode) return false;
+    if (proxyConfig != other.proxyConfig) return false;
     if (tagIds.length != other.tagIds.length) return false;
     for (var i = 0; i < tagIds.length; i++) {
       if (tagIds[i] != other.tagIds[i]) return false;
@@ -849,5 +882,7 @@ class _FormSnapshot {
     Object.hashAll(tagIds),
     checkIn,
     redemptionUrl,
+    proxyMode,
+    proxyConfig,
   );
 }

@@ -91,7 +91,7 @@ flutter build web        # Web
 flutter build macos      # macOS
 ```
 
-## 🛠️ 技术架构
+## 📁 项目目录
 
 ```
 lib/
@@ -112,7 +112,17 @@ lib/
     └── backup/           # 数据备份
 ```
 
-**技术栈**：Clean Architecture + Feature First + Riverpod + Dio + Hive + Material Design 3
+## 🛠️ 技术栈
+
+| 类别   | 技术                                 |
+|------|------------------------------------|
+| 框架   | Flutter 3 (Dart SDK ^3.10.4)       |
+| 架构   | Clean Architecture + Feature First |
+| 状态管理 | Riverpod                           |
+| 网络层  | Dio + 站点适配器模式                      |
+| 持久化  | Hive (结构化数据)                       |
+| UI   | Material Design 3 + Dynamic Color  |
+| 测试   | flutter_test + mocktail            |
 
 ## 🧪 测试
 
@@ -142,9 +152,9 @@ dart fix --apply
 
 提交前请确保 `flutter analyze` 无警告。
 
-## 📄 许可证
+## 📄 开源协议
 
-本项目仅供个人学习和研究使用。
+本项目基于 [AGPL-3.0](LICENSE) 协议开源。
 
 ## 🙏 致谢
 

@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "Hive is the local database layer; this spec covers persistence patterns"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "Error handling patterns for data layer operations"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Quality checks: analyze, format, test requirements"}

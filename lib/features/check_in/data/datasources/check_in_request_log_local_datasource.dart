@@ -6,7 +6,7 @@
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 
 import '../../../dev_tools/request_logger/domain/entities/request_log_entry.dart';
 import '../models/check_in_request_log_mapper.dart';

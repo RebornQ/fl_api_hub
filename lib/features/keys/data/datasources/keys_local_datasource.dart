@@ -5,7 +5,7 @@
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 
 import '../../domain/entities/api_key.dart';
 import '../models/api_key_mapper.dart';

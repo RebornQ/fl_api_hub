@@ -54,8 +54,10 @@ class _AccountSelectorState extends State<AccountSelector> {
 
   @override
   void dispose() {
+    // Remove overlay without calling setState during dispose.
+    _overlayEntry?.remove();
+    _overlayEntry = null;
     _searchController.dispose();
-    _closeOverlay();
     super.dispose();
   }
 

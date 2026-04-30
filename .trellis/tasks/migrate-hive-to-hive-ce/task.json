@@ -1,0 +1,28 @@
+{
+  "id": "migrate-hive-to-hive-ce",
+  "title": "将 hive/hive_flutter 迁移到 hive_ce/hive_ce_flutter",
+  "status": "pending",
+  "assignee": "Reborn",
+  "created_at": "2026-05-01",
+  "prd_path": "prd.md",
+  "subtasks": [
+    {
+      "id": "s1-update-pubspec",
+      "title": "更新 pubspec.yaml 依赖",
+      "status": "pending",
+      "description": "移除 hive_flutter，添加 hive_ce_flutter: ^2.19.3"
+    },
+    {
+      "id": "s2-update-imports",
+      "title": "更新所有 import 语句",
+      "status": "pending",
+      "description": "15个文件中将 package:hive_flutter/hive_flutter.dart 替换为 package:hive_ce_flutter/hive_flutter.dart"
+    },
+    {
+      "id": "s3-verify-migration",
+      "title": "验证迁移结果",
+      "status": "pending",
+      "description": "运行 flutter pub get, flutter analyze, dart format, flutter test"
+    }
+  ]
+}

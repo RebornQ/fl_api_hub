@@ -52,16 +52,17 @@ function hasCuratedJsonlEntry(jsonlPath) {
  * Check current task status and return structured status string.
  * JavaScript equivalent of _get_task_status in Claude's session-start.py.
  */
-function getTaskStatus(ctx) {
-  const taskRef = ctx.getCurrentTask()
+function getTaskStatus(ctx, platformInput = null) {
+  const active = ctx.getActiveTask(platformInput)
+  const taskRef = active.taskPath
   if (!taskRef) {
-    return "Status: NO ACTIVE TASK\nNext: Describe what you want to work on"
+    return `Status: NO ACTIVE TASK\nSource: ${active.source}\nNext: Describe what you want to work on`
   }
 
   const taskDir = ctx.resolveTaskDir(taskRef)
 
-  if (!taskDir || !existsSync(taskDir)) {
-    return `Status: STALE POINTER\nTask: ${taskRef}\nNext: Task directory not found. Run: python3 ./.trellis/scripts/task.py finish`
+  if (active.stale || !taskDir || !existsSync(taskDir)) {
+    return `Status: STALE POINTER\nTask: ${taskRef}\nSource: ${active.source}\nNext: Task directory not found. Run: python3 ./.trellis/scripts/task.py finish`
   }
 
   let taskData = {}
@@ -79,7 +80,7 @@ function getTaskStatus(ctx) {
 
   if (taskStatus === "completed") {
     const dirName = basename(taskDir)
-    return `Status: COMPLETED\nTask: ${taskTitle}\nNext: Archive with \`python3 ./.trellis/scripts/task.py archive ${dirName}\` or start a new task`
+    return `Status: COMPLETED\nTask: ${taskTitle}\nSource: ${active.source}\nNext: Archive with \`python3 ./.trellis/scripts/task.py archive ${dirName}\` or start a new task`
   }
 
   let hasContext = false
@@ -94,18 +95,23 @@ function getTaskStatus(ctx) {
   const hasPrd = existsSync(join(taskDir, "prd.md"))
 
   if (!hasPrd) {
-    return `Status: NOT READY\nTask: ${taskTitle}\nMissing: prd.md not created\nNext: Write PRD (see workflow.md Phase 1.1) then curate implement.jsonl per Phase 1.3`
+    return `Status: NOT READY\nTask: ${taskTitle}\nSource: ${active.source}\nMissing: prd.md not created\nNext: Write PRD (see workflow.md Phase 1.1) then curate implement.jsonl per Phase 1.3`
   }
 
   if (!hasContext) {
-    return `Status: NOT READY\nTask: ${taskTitle}\nMissing: implement.jsonl / check.jsonl missing or empty\nNext: Curate entries per workflow.md Phase 1.3 (spec + research files only), then \`task.py start\``
+    return `Status: NOT READY\nTask: ${taskTitle}\nSource: ${active.source}\nMissing: implement.jsonl / check.jsonl missing or empty\nNext: Curate entries per workflow.md Phase 1.3 (spec + research files only), then \`task.py start\``
   }
 
   return (
     `Status: READY\nTask: ${taskTitle}\n` +
+    `Source: ${active.source}\n` +
     "Next required action: dispatch `trellis-implement` per Phase 2.1. " +
-    "For agent-capable platforms, do NOT edit code in the main session. " +
-    "After implementation, dispatch `trellis-check` per Phase 2.2 before reporting completion."
+    "For agent-capable platforms, the default is to NOT edit code in the main session. " +
+    "After implementation, dispatch `trellis-check` per Phase 2.2 before reporting completion.\n" +
+    "User override (per-turn escape hatch): if the user's CURRENT message explicitly tells the " +
+    "main session to handle it directly (\"你直接改\" / \"别派 sub-agent\" / \"main session 写就行\" / " +
+    "\"do it inline\" / \"不用 sub-agent\"), honor it for this turn and edit code directly. " +
+    "Per-turn only; do NOT invent an override the user did not say."
   )
 }
 
@@ -113,7 +119,7 @@ function getTaskStatus(ctx) {
  * Load Trellis config for session-start decisions.
  * Calls get_context.py --mode packages --json for reliable config data.
  */
-function loadTrellisConfig(directory) {
+function loadTrellisConfig(directory, contextKey = null) {
   const scriptPath = join(directory, ".trellis", "scripts", "get_context.py")
   if (!existsSync(scriptPath)) {
     return { isMonorepo: false, packages: {}, specScope: null, activeTaskPackage: null, defaultPackage: null }
@@ -124,6 +130,10 @@ function loadTrellisConfig(directory) {
       timeout: 5000,
       encoding: "utf-8",
       stdio: ["pipe", "pipe", "pipe"],
+      env: {
+        ...process.env,
+        ...(contextKey ? { TRELLIS_CONTEXT_ID: contextKey } : {}),
+      },
     })
     const data = JSON.parse(output)
     if (data.mode !== "monorepo") {
@@ -226,11 +236,14 @@ function resolveSpecScope(config) {
 /**
  * Build session context for injection
  */
-export function buildSessionContext(ctx) {
+export function buildSessionContext(ctx, platformInput = null) {
   const directory = ctx.directory
   const trellisDir = join(directory, ".trellis")
+  const contextKey = typeof ctx.getContextKey === "function"
+    ? ctx.getContextKey(platformInput)
+    : null
 
-  const config = loadTrellisConfig(directory)
+  const config = loadTrellisConfig(directory, contextKey)
   const allowedPkgs = resolveSpecScope(config)
 
   const parts = []
@@ -251,7 +264,7 @@ Read and follow all instructions below carefully.
   // 2. Current Context (dynamic)
   const contextScript = join(trellisDir, "scripts", "get_context.py")
   if (existsSync(contextScript)) {
-    const output = ctx.runScript(contextScript)
+    const output = ctx.runScript(contextScript, undefined, contextKey)
     if (output) {
       parts.push("<current-state>")
       parts.push(output)
@@ -385,7 +398,7 @@ Read and follow all instructions below carefully.
   parts.push("</guidelines>")
 
   // 6. Task status
-  const taskStatus = getTaskStatus(ctx)
+  const taskStatus = getTaskStatus(ctx, platformInput)
   parts.push(`<task-status>\n${taskStatus}\n</task-status>`)
 
   // 7. Final directive
@@ -514,7 +527,7 @@ export default async ({ directory, client }) => {
           }
 
           // Build context
-          const context = buildSessionContext(ctx)
+          const context = buildSessionContext(ctx, input)
           debugLog("session", "Built context, length:", context.length)
 
           // Inject context directly into output.parts so it gets persisted by updatePart

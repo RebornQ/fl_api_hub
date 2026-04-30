@@ -12,7 +12,7 @@ Core Design Philosophy:
 
 Trigger: PreToolUse (before Task tool call)
 
-Context Source: .trellis/.current-task points to task directory
+Context Source: Trellis active task resolver points to task directory
 - implement.jsonl - Implement agent dedicated context
 - check.jsonl     - Check agent dedicated context
 - prd.md          - Requirements document
@@ -29,6 +29,7 @@ import json
 import os
 import sys
 from pathlib import Path
+from typing import Any
 
 # IMPORTANT: Force stdout to use UTF-8 on Windows
 # This fixes UnicodeEncodeError when outputting non-ASCII characters
@@ -46,7 +47,6 @@ if sys.platform.startswith("win"):
 
 DIR_WORKFLOW = ".trellis"
 DIR_SPEC = "spec"
-FILE_CURRENT_TASK = ".current-task"
 FILE_TASK_JSON = "task.json"
 
 # =============================================================================
@@ -78,31 +78,56 @@ def find_repo_root(start_path: str) -> str | None:
     return None
 
 
-def get_current_task(repo_root: str) -> str | None:
-    """
-    Read current task directory path from .trellis/.current-task
+def _detect_platform(input_data: dict) -> str | None:
+    if isinstance(input_data.get("cursor_version"), str):
+        return "cursor"
+    env_map = {
+        "CLAUDE_PROJECT_DIR": "claude",
+        "CURSOR_PROJECT_DIR": "cursor",
+        "CODEBUDDY_PROJECT_DIR": "codebuddy",
+        "FACTORY_PROJECT_DIR": "droid",
+        "GEMINI_PROJECT_DIR": "gemini",
+        "QODER_PROJECT_DIR": "qoder",
+        "KIRO_PROJECT_DIR": "kiro",
+        "COPILOT_PROJECT_DIR": "copilot",
+    }
+    for env_name, platform in env_map.items():
+        if os.environ.get(env_name):
+            return platform
+    script_parts = set(Path(sys.argv[0]).parts)
+    if ".claude" in script_parts:
+        return "claude"
+    if ".cursor" in script_parts:
+        return "cursor"
+    if ".gemini" in script_parts:
+        return "gemini"
+    if ".qoder" in script_parts:
+        return "qoder"
+    if ".codebuddy" in script_parts:
+        return "codebuddy"
+    if ".factory" in script_parts:
+        return "droid"
+    if ".kiro" in script_parts:
+        return "kiro"
+    return None
 
-    Returns:
-        Task directory relative path (relative to repo_root)
-        None if not set
-    """
-    current_task_file = os.path.join(repo_root, DIR_WORKFLOW, FILE_CURRENT_TASK)
-    if not os.path.exists(current_task_file):
-        return None
 
+def get_current_task(repo_root: str, input_data: dict) -> str | None:
+    """Resolve current task directory through the unified active task resolver."""
+    scripts_dir = Path(repo_root) / DIR_WORKFLOW / "scripts"
+    if str(scripts_dir) not in sys.path:
+        sys.path.insert(0, str(scripts_dir))
     try:
-        with open(current_task_file, "r", encoding="utf-8") as f:
-            content = f.read().strip()
-            if not content:
-                return None
-            normalized = content.replace("\\", "/")
-            while normalized.startswith("./"):
-                normalized = normalized[2:]
-            if normalized.startswith("tasks/"):
-                normalized = f".trellis/{normalized}"
-            return normalized
+        from common.active_task import resolve_active_task  # type: ignore[import-not-found]
     except Exception:
         return None
+
+    active = resolve_active_task(
+        Path(repo_root),
+        input_data,
+        platform=_detect_platform(input_data),
+    )
+    return active.task_path
 
 
 def read_file_content(base_path: str, file_path: str) -> str | None:
@@ -517,13 +542,90 @@ Provide structured search results including:
 - External references (if any)"""
 
 
+def _string_value(value: Any) -> str:
+    if isinstance(value, str):
+        stripped = value.strip()
+        return stripped
+    return ""
+
+
+def _extract_subagent_name(value: Any) -> str:
+    """Extract a sub-agent name from common platform encodings.
+
+    Cursor's native Task args encode custom sub-agents as a protobuf oneof,
+    which can appear in hook JSON as either ``{"custom": {"name": "..."}}``
+    or ``{"type": {"case": "custom", "value": {"name": "..."}}}``.
+    """
+    direct = _string_value(value)
+    if direct:
+        return direct
+
+    if not isinstance(value, dict):
+        return ""
+
+    for key in ("name", "subagent_type_name", "subagentTypeName"):
+        direct = _string_value(value.get(key))
+        if direct:
+            return direct
+
+    custom = value.get("custom")
+    if isinstance(custom, dict):
+        custom_name = _string_value(custom.get("name"))
+        if custom_name:
+            return custom_name
+
+    oneof = value.get("type")
+    if isinstance(oneof, dict):
+        case_name = _string_value(oneof.get("case"))
+        if case_name == "custom":
+            nested_value = oneof.get("value")
+            if isinstance(nested_value, dict):
+                custom_name = _string_value(nested_value.get("name"))
+                if custom_name:
+                    return custom_name
+        if case_name:
+            return case_name
+
+    case_name = _string_value(value.get("case"))
+    if case_name == "custom":
+        nested_value = value.get("value")
+        if isinstance(nested_value, dict):
+            custom_name = _string_value(nested_value.get("name"))
+            if custom_name:
+                return custom_name
+    if case_name:
+        return case_name
+
+    for agent_name in AGENTS_ALL:
+        if agent_name in value:
+            return agent_name
+
+    return ""
+
+
+def _extract_subagent_type(tool_input: dict) -> str:
+    for key in (
+        "subagent_type",
+        "subagentType",
+        "subagent_type_name",
+        "subagentTypeName",
+        "agent_type",
+        "agentType",
+        "name",
+    ):
+        agent_name = _extract_subagent_name(tool_input.get(key))
+        if agent_name:
+            return agent_name
+    return ""
+
+
 def _parse_hook_input(input_data: dict) -> tuple[str, str, dict]:
     """Parse hook input across different platform formats.
 
     Returns (subagent_type, original_prompt, tool_input).
     Handles:
     - Claude Code / Qoder / CodeBuddy / Droid: tool_name=Task|Agent, tool_input.subagent_type
-    - Cursor: tool_name=Task, tool_input.subagent_type
+    - Cursor: tool_name=Task|Subagent, tool_input.subagent_type
     - Copilot CLI: toolName=task (camelCase key, lowercase value)
     - Gemini CLI: tool_name IS the agent name (BeforeTool matcher already filtered)
     - Kiro: agentSpawn hook, agent_name field at top level
@@ -532,9 +634,9 @@ def _parse_hook_input(input_data: dict) -> tuple[str, str, dict]:
 
     # Standard format: Task/Agent tool with subagent_type
     tool_name = input_data.get("tool_name", "") or input_data.get("toolName", "")
-    if tool_name.lower() in ("task", "agent"):
+    if tool_name.lower() in ("task", "agent", "subagent"):
         return (
-            tool_input.get("subagent_type", ""),
+            _extract_subagent_type(tool_input),
             tool_input.get("prompt", ""),
             tool_input,
         )
@@ -576,7 +678,7 @@ def main():
         sys.exit(0)
 
     # Get current task directory (research doesn't require it)
-    task_dir = get_current_task(repo_root)
+    task_dir = get_current_task(repo_root, input_data)
 
     # implement/check need task directory
     if subagent_type in AGENTS_REQUIRE_TASK:

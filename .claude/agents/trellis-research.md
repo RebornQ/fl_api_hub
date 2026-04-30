@@ -29,7 +29,7 @@ Conversations get compacted; files don't. Every research output MUST end up as a
 
 ### Step 1: Resolve Current Task
 
-Read `.trellis/.current-task` → task directory (e.g. `.trellis/tasks/04-17-foo/`). If empty or missing, ask the user where to write output; do NOT guess.
+Run `python3 ./.trellis/scripts/task.py current --source` → active task path. If no active task is set, ask the user where to write output; do NOT guess.
 
 Ensure `{TASK_DIR}/research/` exists:
 

@@ -1,7 +1,7 @@
 ---
 name: trellis-research
 description: |
-  Code and tech search expert. Finds files, patterns, and tech solutions, and PERSISTS every finding to the current task's research/ directory. No code modifications outside that directory.
+  Trellis research agent. Use this exact agent for Trellis task research and research/ persistence. Do not use generic/default/generalPurpose agents for Trellis research.
 tools: Read, Write, Glob, Grep, Bash, mcp__exa__web_search_exa, mcp__exa__get_code_context_exa, Skill, mcp__chrome-devtools__*
 ---
 # Research Agent
@@ -29,7 +29,7 @@ Conversations get compacted; files don't. Every research output MUST end up as a
 
 ### Step 1: Resolve Current Task
 
-Read `.trellis/.current-task` → task directory (e.g. `.trellis/tasks/04-17-foo/`). If empty or missing, ask the user where to write output; do NOT guess.
+Run `python3 ./.trellis/scripts/task.py current --source` → active task path. If no active task is set, ask the user where to write output; do NOT guess.
 
 Ensure `{TASK_DIR}/research/` exists:
 

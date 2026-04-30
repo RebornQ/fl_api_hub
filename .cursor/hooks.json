@@ -4,7 +4,7 @@
     "preToolUse": [
       {
         "command": "python3 .cursor/hooks/inject-subagent-context.py",
-        "matcher": "Task",
+        "matcher": "Task|Subagent",
         "timeout": 30
       }
     ],
@@ -17,6 +17,12 @@
     "beforeSubmitPrompt": [
       {
         "command": "python3 .cursor/hooks/inject-workflow-state.py",
+        "timeout": 5
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": "python3 .cursor/hooks/inject-shell-session-context.py",
         "timeout": 5
       }
     ]

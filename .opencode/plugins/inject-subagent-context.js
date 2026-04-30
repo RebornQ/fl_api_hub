@@ -1,3 +1,4 @@
+/* global process */
 /**
  * Trellis Context Injection Plugin
  *
@@ -255,12 +256,66 @@ ${originalPrompt}
   return templates[agentType] || originalPrompt
 }
 
+function shellQuote(value) {
+  return `'${String(value).replace(/'/g, "'\\''")}'`
+}
+
+function powershellQuote(value) {
+  return `'${String(value).replace(/'/g, "''")}'`
+}
+
+function buildTrellisContextPrefix(contextKey, hostPlatform = process.platform) {
+  if (hostPlatform === "win32") {
+    // OpenCode's Windows Bash tool runs through PowerShell, not a POSIX shell.
+    return `$env:TRELLIS_CONTEXT_ID = ${powershellQuote(contextKey)}; `
+  }
+
+  return `export TRELLIS_CONTEXT_ID=${shellQuote(contextKey)}; `
+}
+
+function getBashCommandKey(args) {
+  if (!args || typeof args !== "object") return null
+  if (typeof args.command === "string") return "command"
+  if (typeof args.cmd === "string") return "cmd"
+  return null
+}
+
+function commandStartsWithTrellisContext(command) {
+  const firstCommand = command.trimStart().split(/[;&|]/, 1)[0].trimStart()
+  return (
+    /^TRELLIS_CONTEXT_ID\s*=/.test(firstCommand) ||
+    /^export\s+TRELLIS_CONTEXT_ID\s*=/.test(firstCommand) ||
+    /^env\s+(?:[^\s=]+\s+)*TRELLIS_CONTEXT_ID\s*=/.test(firstCommand) ||
+    /^\$env:TRELLIS_CONTEXT_ID\s*=/i.test(firstCommand)
+  )
+}
+
+/**
+ * OpenCode TUI may not expose OPENCODE_RUN_ID to Bash. The plugin hook still
+ * receives session identity, so inject it into Bash commands before execution.
+ */
+function injectTrellisContextIntoBash(ctx, input, output, hostPlatform) {
+  const args = output?.args
+  const commandKey = getBashCommandKey(args)
+  if (!commandKey) return false
+
+  const command = args[commandKey]
+  if (!command.trim()) return false
+  if (commandStartsWithTrellisContext(command)) return false
+
+  const contextKey = ctx.getContextKey(input)
+  if (!contextKey) return false
+
+  args[commandKey] = `${buildTrellisContextPrefix(contextKey, hostPlatform)}${command}`
+  return true
+}
+
 // OpenCode plugin factory: `export default async (input) => hooks`.
 // OpenCode 1.2.x iterates every module export and invokes it as a function
 // (packages/opencode/src/plugin/index.ts — `for ([_, fn] of Object.entries(mod)) await fn(input)`);
 // the previous `{ id, server }` object shape failed with
 // `TypeError: fn is not a function` in 1.2.x.
-export default async ({ directory }) => {
+export default async ({ directory, platform: hostPlatform = process.platform }) => {
   const ctx = new TrellisContext(directory)
   debugLog("inject", "Plugin loaded, directory:", directory)
 
@@ -270,6 +325,13 @@ export default async ({ directory }) => {
           debugLog("inject", "tool.execute.before called, tool:", input?.tool)
 
           const toolName = input?.tool?.toLowerCase()
+          if (toolName === "bash") {
+            if (injectTrellisContextIntoBash(ctx, input, output, hostPlatform)) {
+              debugLog("inject", "Injected TRELLIS_CONTEXT_ID into Bash command")
+            }
+            return
+          }
+
           if (toolName !== "task") {
             return
           }
@@ -277,21 +339,24 @@ export default async ({ directory }) => {
           const args = output?.args
           if (!args) return
 
-          const subagentType = args.subagent_type
+          const rawSubagentType = args.subagent_type
+          // Strip "trellis-" prefix added by v0.5.0-beta.5 agent rename migration
+          const subagentType = (rawSubagentType || "").replace(/^trellis-/, "")
           const originalPrompt = args.prompt || ""
 
-          debugLog("inject", "Task tool called, subagent_type:", subagentType)
+          debugLog("inject", "Task tool called, subagent_type:", rawSubagentType)
 
           if (!AGENTS_ALL.includes(subagentType)) {
             debugLog("inject", "Skipping - unsupported subagent_type")
             return
           }
 
-          // Read current task
-          const taskDir = ctx.getCurrentTask()
+          // Resolve active task through session runtime context.
+          const taskDir = ctx.getCurrentTask(input)
 
           // Agents requiring task directory
           if (AGENTS_REQUIRE_TASK.includes(subagentType)) {
+            // subagentType is already stripped of "trellis-" prefix above
             if (!taskDir) {
               debugLog("inject", "Skipping - no current task")
               return

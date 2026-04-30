@@ -21,7 +21,7 @@ You are the Implement Agent in the Trellis workflow.
 
 Otherwise, load context yourself:
 
-1. Read `.trellis/.current-task` → get task directory (e.g., `.trellis/tasks/xxx`)
+1. Run `python3 ./.trellis/scripts/task.py current --source` → get active task directory and source (e.g., `Current task: .trellis/tasks/xxx`)
 2. Read `{task_dir}/implement.jsonl`
 3. For each entry in JSONL (JSON object per line):
    - Skip rows without a `"file"` field (e.g. `{"_example": "..."}` seed rows)

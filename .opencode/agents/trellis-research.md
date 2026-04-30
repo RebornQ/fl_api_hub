@@ -6,7 +6,7 @@ permission:
   read: allow
   write: deny
   edit: deny
-  bash: deny
+  bash: allow
   glob: allow
   grep: allow
   mcp__exa__*: allow
@@ -22,7 +22,7 @@ You are the Research Agent in the Trellis workflow.
 
 Otherwise, if task-specific research is needed:
 
-1. Read `.trellis/.current-task` → get task directory (if exists)
+1. Run `python3 ./.trellis/scripts/task.py current --source` → get active task directory and source (if set)
 2. For each entry in JSONL (if task dir exists):
    - If `path` is a file → Read it
    - If `path` is a directory → Read all `.md` files in it

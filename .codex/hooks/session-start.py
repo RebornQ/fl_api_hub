@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 import warnings
@@ -74,10 +75,32 @@ def read_file(path: Path, fallback: str = "") -> str:
         return fallback
 
 
-def run_script(script_path: Path) -> str:
+def _resolve_context_key(project_dir: Path, hook_input: dict) -> str | None:
+    scripts_dir = project_dir / ".trellis" / "scripts"
+    if str(scripts_dir) not in sys.path:
+        sys.path.insert(0, str(scripts_dir))
+    try:
+        from common.active_task import resolve_context_key  # type: ignore[import-not-found]
+    except Exception:
+        return None
+    return resolve_context_key(hook_input, platform="codex")
+
+
+def _resolve_active_task(trellis_dir: Path, hook_input: dict):
+    scripts_dir = trellis_dir / "scripts"
+    if str(scripts_dir) not in sys.path:
+        sys.path.insert(0, str(scripts_dir))
+    from common.active_task import resolve_active_task  # type: ignore[import-not-found]
+
+    return resolve_active_task(trellis_dir.parent, hook_input, platform="codex")
+
+
+def run_script(script_path: Path, context_key: str | None = None) -> str:
     try:
         env = os.environ.copy()
         env["PYTHONIOENCODING"] = "utf-8"
+        if context_key:
+            env["TRELLIS_CONTEXT_ID"] = context_key
         cmd = [sys.executable, "-W", "ignore", str(script_path)]
         result = subprocess.run(
             cmd,
@@ -123,18 +146,15 @@ def _resolve_task_dir(trellis_dir: Path, task_ref: str) -> Path:
     return trellis_dir / "tasks" / path_obj
 
 
-def _get_task_status(trellis_dir: Path) -> str:
-    current_task_file = trellis_dir / ".current-task"
-    if not current_task_file.is_file():
-        return "Status: NO ACTIVE TASK\nNext: Describe what you want to work on"
+def _get_task_status(trellis_dir: Path, hook_input: dict) -> str:
+    active = _resolve_active_task(trellis_dir, hook_input)
+    if not active.task_path:
+        return f"Status: NO ACTIVE TASK\nSource: {active.source}\nNext: Describe what you want to work on"
 
-    task_ref = _normalize_task_ref(current_task_file.read_text(encoding="utf-8").strip())
-    if not task_ref:
-        return "Status: NO ACTIVE TASK\nNext: Describe what you want to work on"
-
+    task_ref = active.task_path
     task_dir = _resolve_task_dir(trellis_dir, task_ref)
-    if not task_dir.is_dir():
-        return f"Status: STALE POINTER\nTask: {task_ref}\nNext: Task directory not found. Run: python3 ./.trellis/scripts/task.py finish"
+    if active.stale or not task_dir.is_dir():
+        return f"Status: STALE POINTER\nTask: {task_ref}\nSource: {active.source}\nNext: Task directory not found. Run: python3 ./.trellis/scripts/task.py finish"
 
     task_json_path = task_dir / "task.json"
     task_data: dict = {}
@@ -148,7 +168,7 @@ def _get_task_status(trellis_dir: Path) -> str:
     task_status = task_data.get("status", "unknown")
 
     if task_status == "completed":
-        return f"Status: COMPLETED\nTask: {task_title}\nNext: Archive with `python3 ./.trellis/scripts/task.py archive {task_dir.name}` or start a new task"
+        return f"Status: COMPLETED\nTask: {task_title}\nSource: {active.source}\nNext: Archive with `python3 ./.trellis/scripts/task.py archive {task_dir.name}` or start a new task"
 
     has_context = False
     for jsonl_name in ("implement.jsonl", "check.jsonl", "spec.jsonl"):
@@ -160,16 +180,21 @@ def _get_task_status(trellis_dir: Path) -> str:
     has_prd = (task_dir / "prd.md").is_file()
 
     if not has_prd:
-        return f"Status: NOT READY\nTask: {task_title}\nMissing: prd.md not created\nNext: Write PRD (see workflow.md Phase 1.1) then curate implement.jsonl per Phase 1.3"
+        return f"Status: NOT READY\nTask: {task_title}\nSource: {active.source}\nMissing: prd.md not created\nNext: Write PRD (see workflow.md Phase 1.1) then curate implement.jsonl per Phase 1.3"
 
     if not has_context:
-        return f"Status: NOT READY\nTask: {task_title}\nMissing: implement.jsonl / check.jsonl missing or empty\nNext: Curate entries per workflow.md Phase 1.3 (spec + research files only), then `task.py start`"
+        return f"Status: NOT READY\nTask: {task_title}\nSource: {active.source}\nMissing: implement.jsonl / check.jsonl missing or empty\nNext: Curate entries per workflow.md Phase 1.3 (spec + research files only), then `task.py start`"
 
     return (
         f"Status: READY\nTask: {task_title}\n"
+        f"Source: {active.source}\n"
         "Next required action: dispatch `trellis-implement` per Phase 2.1. "
-        "For agent-capable platforms, do NOT edit code in the main session. "
-        "After implementation, dispatch `trellis-check` per Phase 2.2 before reporting completion."
+        "For agent-capable platforms, the default is to NOT edit code in the main session. "
+        "After implementation, dispatch `trellis-check` per Phase 2.2 before reporting completion.\n"
+        "User override (per-turn escape hatch): if the user's CURRENT message explicitly tells the "
+        "main session to handle it directly (\"你直接改\" / \"别派 sub-agent\" / \"main session 写就行\" / "
+        "\"do it inline\" / \"不用 sub-agent\"), honor it for this turn and edit code directly. "
+        "Per-turn only; do NOT invent an override the user did not say."
     )
 
 
@@ -193,8 +218,24 @@ def _extract_range(content: str, start_header: str, end_header: str) -> str:
     return "\n".join(lines[start:end]).rstrip()
 
 
+_BREADCRUMB_TAG_RE = re.compile(
+    r"\[workflow-state:([A-Za-z0-9_-]+)\]\s*\n.*?\n\s*\[/workflow-state:\1\]",
+    re.DOTALL,
+)
+
+
+def _strip_breadcrumb_tag_blocks(content: str) -> str:
+    return _BREADCRUMB_TAG_RE.sub("", content)
+
+
 def _build_workflow_toc(workflow_path: Path) -> str:
-    """Inject workflow guide: TOC + Phase Index + Phase 1/2/3 step details."""
+    """Inject workflow guide: TOC + Phase Index + Phase 1/2/3 step details.
+
+    Since v0.5.0-rc.0 the [workflow-state:STATUS] breadcrumb tag blocks
+    live inside ## Phase Index. They're consumed by inject-workflow-state.py
+    on each UserPromptSubmit, so strip them from the session-start payload
+    to avoid duplicating context.
+    """
     content = read_file(workflow_path)
     if not content:
         return "No workflow.md found"
@@ -210,9 +251,9 @@ def _build_workflow_toc(workflow_path: Path) -> str:
             out_lines.append(line)
     out_lines += ["", "---", ""]
 
-    phases = _extract_range(content, "Phase Index", "Workflow State Breadcrumbs")
+    phases = _extract_range(content, "Phase Index", "Customizing Trellis (for forks)")
     if phases:
-        out_lines.append(phases)
+        out_lines.append(_strip_breadcrumb_tag_blocks(phases).rstrip())
 
     return "\n".join(out_lines).rstrip()
 
@@ -224,13 +265,17 @@ def main() -> None:
     # Read hook input from stdin
     try:
         hook_input = json.loads(sys.stdin.read())
+        if not isinstance(hook_input, dict):
+            hook_input = {}
         project_dir = Path(hook_input.get("cwd", ".")).resolve()
     except (json.JSONDecodeError, KeyError):
+        hook_input = {}
         project_dir = Path(".").resolve()
 
     configure_project_encoding(project_dir)
 
     trellis_dir = project_dir / ".trellis"
+    context_key = _resolve_context_key(project_dir, hook_input)
 
     output = StringIO()
 
@@ -245,7 +290,7 @@ Read and follow all instructions below carefully.
 
     output.write("<current-state>\n")
     context_script = trellis_dir / "scripts" / "get_context.py"
-    output.write(run_script(context_script))
+    output.write(run_script(context_script, context_key))
     output.write("\n</current-state>\n\n")
 
     output.write("<workflow>\n")
@@ -260,9 +305,11 @@ Read and follow all instructions below carefully.
         "- If you're spawning an implement/check sub-agent, context is injected "
         "automatically via `{task}/implement.jsonl` / `check.jsonl`. You do NOT "
         "need to read these indexes yourself.\n"
-        "- For agent-capable platforms, do NOT edit code directly in the main "
-        "session; dispatch `trellis-implement` and `trellis-check` so JSONL "
-        "context is loaded by the sub-agents.\n\n"
+        "- For agent-capable platforms, the default is to dispatch "
+        "`trellis-implement` and `trellis-check` (so JSONL context is loaded by "
+        "the sub-agents) rather than editing code in the main session. "
+        "Honor a per-turn user override only if the user's current message "
+        "explicitly opts out (see <task-status> below for override phrases).\n\n"
     )
 
     # guides/ inlined (cross-package thinking, broadly useful)
@@ -306,7 +353,7 @@ Read and follow all instructions below carefully.
     )
     output.write("</guidelines>\n\n")
 
-    task_status = _get_task_status(trellis_dir)
+    task_status = _get_task_status(trellis_dir, hook_input)
     output.write(f"<task-status>\n{task_status}\n</task-status>\n\n")
 
     output.write("""<ready>

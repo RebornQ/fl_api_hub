@@ -62,6 +62,9 @@ Before any Q&A, ensure a task exists. If none exists, create one immediately.
 TASK_DIR=$(python3 ./.trellis/scripts/task.py create "brainstorm: <short goal>" --slug <auto>)
 ```
 
+Use a slug without a date prefix. `task.py create` adds the `MM-DD-`
+directory prefix automatically.
+
 Create/seed `prd.md` immediately with what you know:
 
 ```markdown

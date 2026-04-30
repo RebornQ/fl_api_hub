@@ -21,7 +21,7 @@ You are the Check Agent in the Trellis workflow.
 
 Otherwise, load context yourself:
 
-1. Read `.trellis/.current-task` → get task directory (e.g., `.trellis/tasks/xxx`)
+1. Run `python3 ./.trellis/scripts/task.py current --source` → get active task directory and source (e.g., `Current task: .trellis/tasks/xxx`)
 2. Read `{task_dir}/check.jsonl`
 3. For each entry in JSONL:
    - If `path` is a file → Read it

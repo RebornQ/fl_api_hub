@@ -296,3 +296,36 @@ S1 数据层质量检查通过（8/8 验收标准），补充 8 个 AccountMappe
 ### Next Steps
 
 - None - task complete
+
+
+## Session 73: S3 account-edit-proxy-section-ui
+
+**Date**: 2026-04-30
+**Task**: S3 account-edit-proxy-section-ui
+**Branch**: `main`
+
+### Summary
+
+实现账号编辑表单代理配置 SectionCard：三态切换、代理字段录入+校验、测试代理按钮、dirty 检测集成。修复了 DropdownButtonFormField 溢出、InkFeature detached、setState during build 等问题。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f1b6f0e` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

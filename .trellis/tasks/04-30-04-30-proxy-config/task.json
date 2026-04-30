@@ -19,7 +19,6 @@
   "pr_url": null,
   "subtasks": [],
   "children": [
-    "04-30-s3-account-edit-ui",
     "04-30-s4-global-settings-ui"
   ],
   "parent": null,

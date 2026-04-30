@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 73
-- **Last Active**: 2026-04-30
+- **Total Sessions**: 74
+- **Last Active**: 2026-05-01
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~331 | Active |
+| `journal-3.md` | ~364 | Active |
 | `journal-2.md` | ~1983 | Archived |
 | `journal-1.md` | ~1977 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 74 | 2026-05-01 | S4 Global Proxy Settings UI | `982bb11` | `main` |
 | 73 | 2026-04-30 | S3 account-edit-proxy-section-ui | `f1b6f0e` | `main` |
 | 72 | 2026-04-30 | S1 Data Layer — Quality Gate + Test Coverage | `c1bbce3` | `main` |
 | 71 | 2026-04-30 | S2 Network Layer: Dio Pool & Proxy Resolver | `fb873d6` | `main` |

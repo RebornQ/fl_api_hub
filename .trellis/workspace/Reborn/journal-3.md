@@ -329,3 +329,36 @@ S1 数据层质量检查通过（8/8 验收标准），补充 8 个 AccountMappe
 ### Next Steps
 
 - None - task complete
+
+
+## Session 74: S4 Global Proxy Settings UI
+
+**Date**: 2026-05-01
+**Task**: S4 Global Proxy Settings UI
+**Branch**: `main`
+
+### Summary
+
+完成全局代理设置 UI：NetworkProxySettingsPage + GlobalProxyNotifier + Settings tile；包含启用开关、代理字段编辑、测试按钮、PopScope dirty detection、Web 平台兜底
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `982bb11` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

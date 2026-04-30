@@ -239,7 +239,7 @@ class _ProxyConfigSectionState extends ConsumerState<ProxyConfigSection> {
     final colors = theme.colorScheme;
 
     return SectionCard(
-      icon: Icons.lan_outlined,
+      icon: Icons.travel_explore_outlined,
       title: '网络代理',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

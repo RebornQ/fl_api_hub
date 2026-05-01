@@ -607,3 +607,37 @@ Created GitHub Actions workflow for full-platform CI: Android (3 ABIs, signed AP
 ### Next Steps
 
 - None - task complete
+
+
+## Session 81: 修复签到 API 请求实现
+
+**Date**: 2026-05-02
+**Task**: 修复签到 API 请求实现
+**Branch**: `main`
+
+### Summary
+
+对照 API 文档修复 6 个签到请求偏差：CommonApiAdapter 增加 body {}、VeloeraApiAdapter 状态检查覆写、WongApiAdapter 状态检查覆写（Cache-Control: no-store）、新建 AnyRouterAdapter（/api/user/sign_in + X-Requested-With）、注册并解锁 WONG/AnyRouter 签到、增强消息匹配关键词
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `4843967` | (see git log) |
+| `512fef0` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

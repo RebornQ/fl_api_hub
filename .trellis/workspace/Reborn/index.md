@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 77
+- **Total Sessions**: 78
 - **Last Active**: 2026-05-01
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~464 | Active |
+| `journal-3.md` | ~497 | Active |
 | `journal-2.md` | ~1983 | Archived |
 | `journal-1.md` | ~1977 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 78 | 2026-05-01 | feat(accounts): add long-press/right-click context menu for account cards | `ddfd071` | `main` |
 | 77 | 2026-05-01 | feat(accounts): edit mode for reordering with wobble animation | `3e0cf0c` | `main` |
 | 76 | 2026-05-01 | fix: 四项 UI 和功能修复 | `34e0348` | `main` |
 | 75 | 2026-05-01 | Hive → Hive CE Migration | `516800f`, `38627a8` | `main` |

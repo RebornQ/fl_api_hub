@@ -462,3 +462,36 @@ Migrated hive_flutter to hive_ce_flutter (v2.3.4). Updated 17 source/test files,
 ### Next Steps
 
 - None - task complete
+
+
+## Session 78: feat(accounts): add long-press/right-click context menu for account cards
+
+**Date**: 2026-05-01
+**Task**: feat(accounts): add long-press/right-click context menu for account cards
+**Branch**: `main`
+
+### Summary
+
+账号列表非编辑模式下，长按/右键弹出 PopupMenu：签到（条件显示）、刷新状态、访问站点（禁用账号二次确认）、禁用/启用。禁用账号仅显示访问站点和启用两项。菜单在按压点弹出，带圆角。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `ddfd071` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

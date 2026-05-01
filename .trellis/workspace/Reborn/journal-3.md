@@ -429,3 +429,36 @@ Migrated hive_flutter to hive_ce_flutter (v2.3.4). Updated 17 source/test files,
 ### Next Steps
 
 - None - task complete
+
+
+## Session 77: feat(accounts): edit mode for reordering with wobble animation
+
+**Date**: 2026-05-01
+**Task**: feat(accounts): edit mode for reordering with wobble animation
+**Branch**: `main`
+
+### Summary
+
+为账号列表添加编辑模式：标题栏右侧编辑按钮（图标切换），编辑模式下列表项抖动动画 + 拖拽图标（drag_indicator_outlined），使用 ReorderableDragStartListener 替代长按拖拽。新增 Pattern 文档到 component-guidelines.md。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3e0cf0c` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

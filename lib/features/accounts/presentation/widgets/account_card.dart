@@ -10,8 +10,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/design_tokens.dart';
 import '../../../../core/network/reachability_status.dart';
-import '../../../check_in/domain/entities/check_in_result.dart';
-import '../../../check_in/presentation/providers/check_in_providers.dart';
 import '../../domain/entities/account.dart';
 import '../providers/account_reachability_providers.dart';
 
@@ -71,13 +69,14 @@ class _AccountCardState extends ConsumerState<AccountCard>
 
     final isDisabled = !widget.account.enabled;
 
-    // Watch the latest check-in result for this account only.
-    final latestResult = ref.watch(
-      latestResultByAccountProvider.select((map) => map[widget.account.id]),
+    // Watch the reachability record for API check-in status.
+    final reachabilityRecord = ref.watch(
+      accountReachabilityMapProvider.select((map) => map[widget.account.id]),
     );
+
     final checkInIcon = _resolveCheckInIcon(
       autoCheckInEnabled: widget.account.checkIn.autoCheckInEnabled,
-      latestResult: latestResult,
+      apiCheckInStatusToday: reachabilityRecord?.checkInStatusToday,
     );
 
     // Start/stop wobble animation based on edit mode.
@@ -357,44 +356,25 @@ Color _resolveDotColor(Account account, ReachabilityRecord? record) {
 /// Resolves the check-in status icon for an account.
 ///
 /// Returns `null` when auto-check-in is disabled (no icon shown).
-/// Otherwise returns `(IconData, Color)` based on today's latest result:
-/// - success / alreadyChecked → green check_circle
-/// - failed                   → orange error
-/// - skipped / no result / stale → red cancel
+/// Otherwise returns `(IconData, Color)` based solely on API check-in status:
+/// - API checkedInToday=true → green check_circle
+/// - API checkedInToday=false or unknown → red cancel
+///
+/// The API status is the single source of truth; local check-in results
+/// are not considered for icon display.
 ({IconData icon, Color color})? _resolveCheckInIcon({
   required bool autoCheckInEnabled,
-  required CheckInResult? latestResult,
+  required bool? apiCheckInStatusToday,
 }) {
   if (!autoCheckInEnabled) return null;
 
-  if (latestResult == null) {
-    return (icon: Icons.cancel, color: const Color(0xFFEF4444));
+  // API status is the single source of truth.
+  if (apiCheckInStatusToday == true) {
+    return (icon: Icons.check_circle, color: const Color(0xFF10B981));
   }
 
-  final now = DateTime.now();
-  final today = DateTime(now.year, now.month, now.day);
-  final executedAt = latestResult.executedAt;
-  final resultDate = DateTime(
-    executedAt.year,
-    executedAt.month,
-    executedAt.day,
-  );
-
-  if (resultDate != today) {
-    return (icon: Icons.cancel, color: const Color(0xFFEF4444));
-  }
-
-  return switch (latestResult.status) {
-    CheckInStatus.success || CheckInStatus.alreadyChecked => (
-      icon: Icons.check_circle,
-      color: const Color(0xFF10B981),
-    ),
-    CheckInStatus.failed => (icon: Icons.error, color: const Color(0xFFF97316)),
-    CheckInStatus.skipped => (
-      icon: Icons.cancel,
-      color: const Color(0xFFEF4444),
-    ),
-  };
+  // Not checked in today (or status unknown).
+  return (icon: Icons.cancel, color: const Color(0xFFEF4444));
 }
 
 /// Right-side column showing balance and status text.

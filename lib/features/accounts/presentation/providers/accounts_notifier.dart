@@ -16,11 +16,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/config/app_defaults.dart';
 import '../../../../core/network/api_request.dart';
+import '../../../../core/network/dto/check_in_status_dto.dart';
 import '../../../../core/network/dto/site_status_dto.dart';
 import '../../../../core/network/dto/user_info_dto.dart';
 import '../../../../core/network/proxy_resolver.dart';
 import '../../../../core/network/reachability_status.dart';
 import '../../../../core/result/result.dart';
+import '../../../check_in/data/datasources/check_in_remote_datasource.dart';
 import '../../../settings/data/providers/global_proxy_providers.dart';
 import '../../data/datasources/accounts_remote_datasource.dart';
 import '../../data/models/account_api_mapper.dart';
@@ -287,10 +289,11 @@ class AccountsNotifier extends AsyncNotifier<List<Account>> {
   /// Fetches account info for [account], updates the reachability cache
   /// and persists the refreshed account fields on success.
   ///
-  /// Issues [fetchAccountInfo] and [fetchSiteStatus] in parallel. Reachability
-  /// is driven purely by the user-info result; a failing status call only
-  /// degrades the balance computation to the default quota factor and never
-  /// marks the account as unreachable.
+  /// Issues [fetchAccountInfo], [fetchSiteStatus], and [fetchCheckInStatus]
+  /// in parallel. Reachability is driven purely by the user-info result;
+  /// a failing status call only degrades the balance computation to the
+  /// default quota factor and never marks the account as unreachable.
+  /// The check-in status is stored in [ReachabilityRecord.checkInStatusToday].
   Future<void> _checkSingle(Account account) async {
     final reachabilityNotifier = ref.read(
       accountReachabilityMapProvider.notifier,
@@ -299,6 +302,9 @@ class AccountsNotifier extends AsyncNotifier<List<Account>> {
     try {
       final remote = ref.read(
         accountsRemoteDataSourceProvider(account.siteType),
+      );
+      final checkInRemote = ref.read(
+        checkInRemoteDataSourceProvider(account.siteType),
       );
       final resolver = ref.read(proxyResolverProvider);
       final globalProxy = ref.read(currentGlobalProxyProvider);
@@ -311,26 +317,35 @@ class AccountsNotifier extends AsyncNotifier<List<Account>> {
         proxy: resolvedProxy,
       );
 
+      // Compute current month string for check-in status API.
+      final now = DateTime.now();
+      final currentMonth = '${now.year}-${now.month.toString().padLeft(2, '0')}';
+
       final results = await Future.wait([
         remote.fetchAccountInfo(request),
         remote.fetchSiteStatus(request),
+        checkInRemote.fetchCheckInStatus(request, month: currentMonth),
       ]);
       final userInfoResult = results[0] as Result<UserInfoDto>;
       final statusResult = results[1] as Result<SiteStatusDto>;
+      final checkInStatusResult = results[2] as Result<CheckInStatusDto>;
 
-      final now = DateTime.now();
+      final timestamp = DateTime.now();
       switch (userInfoResult) {
         case Success(:final data):
+          final checkInStatusToday = checkInStatusResult is Success<CheckInStatusDto>
+              ? checkInStatusResult.data.checkedInToday
+              : null;
           await reachabilityNotifier.put(
             account.id,
-            ReachabilityRecord.ok(now),
+            ReachabilityRecord.ok(timestamp, checkInStatusToday: checkInStatusToday),
           );
           final quotaPerUnit = _resolveQuotaPerUnit(statusResult);
           await _syncAccountInfo(account, data, quotaPerUnit);
         case Failure(:final exception):
           await reachabilityNotifier.put(
             account.id,
-            ReachabilityRecord.fail(now, categorizeFailure(exception)),
+            ReachabilityRecord.fail(timestamp, categorizeFailure(exception)),
           );
       }
     } catch (e) {

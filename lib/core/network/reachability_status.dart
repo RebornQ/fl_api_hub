@@ -24,15 +24,24 @@ class ReachabilityRecord {
   final DateTime checkedAt;
   final FailCategory? failCategory;
 
+  /// Whether the account has checked in today according to API.
+  /// `null` means the check-in status was not fetched or is unknown.
+  final bool? checkInStatusToday;
+
   const ReachabilityRecord({
     required this.status,
     required this.checkedAt,
     this.failCategory,
+    this.checkInStatusToday,
   });
 
   /// Convenience constructor for a successful check.
-  factory ReachabilityRecord.ok(DateTime at) =>
-      ReachabilityRecord(status: ReachabilityStatus.ok, checkedAt: at);
+  factory ReachabilityRecord.ok(DateTime at, {bool? checkInStatusToday}) =>
+      ReachabilityRecord(
+        status: ReachabilityStatus.ok,
+        checkedAt: at,
+        checkInStatusToday: checkInStatusToday,
+      );
 
   /// Convenience constructor for a failed check.
   factory ReachabilityRecord.fail(DateTime at, FailCategory category) =>
@@ -47,6 +56,7 @@ class ReachabilityRecord {
     'status': status.name,
     'checkedAt': checkedAt.toIso8601String(),
     'failCategory': failCategory?.name,
+    'checkInStatusToday': checkInStatusToday,
   };
 
   /// Deserializes from a Hive-stored map. Returns `null` if the map is
@@ -72,6 +82,7 @@ class ReachabilityRecord {
       status: status,
       checkedAt: checkedAt,
       failCategory: failCategory,
+      checkInStatusToday: map['checkInStatusToday'] as bool?,
     );
   }
 }

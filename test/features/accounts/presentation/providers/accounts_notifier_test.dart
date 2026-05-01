@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:fl_api_hub/core/error/app_exception.dart';
 import 'package:fl_api_hub/core/network/api_request.dart';
+import 'package:fl_api_hub/core/network/dto/check_in_status_dto.dart';
 import 'package:fl_api_hub/core/network/dto/site_status_dto.dart';
 import 'package:fl_api_hub/core/network/dto/user_info_dto.dart';
 import 'package:fl_api_hub/core/network/reachability_status.dart';
@@ -15,6 +16,7 @@ import 'package:fl_api_hub/features/accounts/domain/repositories/account_reachab
 import 'package:fl_api_hub/features/accounts/domain/repositories/accounts_repository.dart';
 import 'package:fl_api_hub/features/accounts/presentation/providers/account_reachability_providers.dart';
 import 'package:fl_api_hub/features/accounts/presentation/providers/accounts_providers.dart';
+import 'package:fl_api_hub/features/check_in/data/datasources/check_in_remote_datasource.dart';
 import 'package:fl_api_hub/features/settings/data/providers/global_proxy_providers.dart';
 import 'package:fl_api_hub/features/settings/domain/entities/global_proxy_setting.dart';
 
@@ -22,6 +24,9 @@ class MockAccountsRepository extends Mock implements AccountsRepository {}
 
 class MockAccountsRemoteDataSource extends Mock
     implements AccountsRemoteDataSource {}
+
+class MockCheckInRemoteDataSource extends Mock
+    implements CheckInRemoteDataSource {}
 
 /// In-memory fake so tests don't need to open the Hive box backing the
 /// real [AccountReachabilityRepository].
@@ -351,9 +356,11 @@ void main() {
 
     group('checkOne (exercises _checkSingle)', () {
       late MockAccountsRemoteDataSource mockRemote;
+      late MockCheckInRemoteDataSource mockCheckInRemote;
 
       setUp(() {
         mockRemote = MockAccountsRemoteDataSource();
+        mockCheckInRemote = MockCheckInRemoteDataSource();
       });
 
       ProviderContainer buildContainer(List<Account> accounts) {
@@ -368,6 +375,9 @@ void main() {
             ),
             accountsRemoteDataSourceProvider.overrideWith(
               (ref, siteType) => mockRemote,
+            ),
+            checkInRemoteDataSourceProvider.overrideWith(
+              (ref, siteType) => mockCheckInRemote,
             ),
             // Default: global proxy disabled (no proxy for tests).
             currentGlobalProxyProvider.overrideWithValue(
@@ -394,6 +404,12 @@ void main() {
             (_) async =>
                 Success(SiteStatusDto(quotaPerUnit: 500000, version: 'v1')),
           );
+          when(() => mockCheckInRemote.fetchCheckInStatus(
+            any(),
+            month: any(named: 'month'),
+          )).thenAnswer(
+            (_) async => const Success(CheckInStatusDto(checkedInToday: true)),
+          );
           when(
             () => mockRepo.update(any()),
           ).thenAnswer((_) async => Success(testAccount));
@@ -403,10 +419,9 @@ void main() {
 
           await container.read(accountsProvider.notifier).checkOne('acc-1');
 
-          expect(
-            fakeReachability.getAll()['acc-1']?.status,
-            ReachabilityStatus.ok,
-          );
+          final record = fakeReachability.getAll()['acc-1'];
+          expect(record?.status, ReachabilityStatus.ok);
+          expect(record?.checkInStatusToday, isTrue);
 
           final captured = verify(() => mockRepo.update(captureAny())).captured;
           final patched = captured.single as Account;
@@ -433,6 +448,12 @@ void main() {
           when(() => mockRemote.fetchSiteStatus(any())).thenAnswer(
             (_) async => Failure(NetworkException(message: 'status boom')),
           );
+          when(() => mockCheckInRemote.fetchCheckInStatus(
+            any(),
+            month: any(named: 'month'),
+          )).thenAnswer(
+            (_) async => const Success(CheckInStatusDto(checkedInToday: false)),
+          );
           when(
             () => mockRepo.update(any()),
           ).thenAnswer((_) async => Success(testAccount));
@@ -442,10 +463,9 @@ void main() {
 
           await container.read(accountsProvider.notifier).checkOne('acc-1');
 
-          expect(
-            fakeReachability.getAll()['acc-1']?.status,
-            ReachabilityStatus.ok,
-          );
+          final record = fakeReachability.getAll()['acc-1'];
+          expect(record?.status, ReachabilityStatus.ok);
+          expect(record?.checkInStatusToday, isFalse);
 
           final captured = verify(() => mockRepo.update(captureAny())).captured;
           final patched = captured.single as Account;
@@ -472,6 +492,12 @@ void main() {
           when(
             () => mockRemote.fetchSiteStatus(any()),
           ).thenAnswer((_) async => Success(SiteStatusDto(version: 'v1')));
+          when(() => mockCheckInRemote.fetchCheckInStatus(
+            any(),
+            month: any(named: 'month'),
+          )).thenAnswer(
+            (_) async => const Success(CheckInStatusDto(checkedInToday: null)),
+          );
           when(
             () => mockRepo.update(any()),
           ).thenAnswer((_) async => Success(testAccount));
@@ -480,6 +506,9 @@ void main() {
           await container.read(accountsProvider.future);
 
           await container.read(accountsProvider.notifier).checkOne('acc-1');
+
+          final record = fakeReachability.getAll()['acc-1'];
+          expect(record?.checkInStatusToday, isNull);
 
           final captured = verify(() => mockRepo.update(captureAny())).captured;
           final patched = captured.single as Account;
@@ -499,6 +528,12 @@ void main() {
           when(() => mockRemote.fetchSiteStatus(any())).thenAnswer(
             (_) async => Success(SiteStatusDto(quotaPerUnit: 500000)),
           );
+          when(() => mockCheckInRemote.fetchCheckInStatus(
+            any(),
+            month: any(named: 'month'),
+          )).thenAnswer(
+            (_) async => const Success(CheckInStatusDto(checkedInToday: true)),
+          );
 
           container = buildContainer([testAccount]);
           await container.read(accountsProvider.future);
@@ -508,6 +543,8 @@ void main() {
           final record = fakeReachability.getAll()['acc-1'];
           expect(record?.status, ReachabilityStatus.fail);
           expect(record?.failCategory, FailCategory.http4xx);
+          // checkInStatusToday is not set on failure records.
+          expect(record?.checkInStatusToday, isNull);
 
           verifyNever(() => mockRepo.update(any()));
         },
@@ -532,6 +569,12 @@ void main() {
           );
           when(() => mockRemote.fetchSiteStatus(any())).thenAnswer(
             (_) async => Success(SiteStatusDto(quotaPerUnit: 500000)),
+          );
+          when(() => mockCheckInRemote.fetchCheckInStatus(
+            any(),
+            month: any(named: 'month'),
+          )).thenAnswer(
+            (_) async => const Success(CheckInStatusDto(checkedInToday: false)),
           );
           when(
             () => mockRepo.update(any()),
@@ -571,16 +614,21 @@ void main() {
           when(() => mockRemote.fetchSiteStatus(any())).thenAnswer(
             (_) async => Success(SiteStatusDto(quotaPerUnit: 500000)),
           );
+          when(() => mockCheckInRemote.fetchCheckInStatus(
+            any(),
+            month: any(named: 'month'),
+          )).thenAnswer(
+            (_) async => const Success(CheckInStatusDto(checkedInToday: true)),
+          );
 
           container = buildContainer([already]);
           await container.read(accountsProvider.future);
 
           await container.read(accountsProvider.notifier).checkOne('acc-1');
 
-          expect(
-            fakeReachability.getAll()['acc-1']?.status,
-            ReachabilityStatus.ok,
-          );
+          final record = fakeReachability.getAll()['acc-1'];
+          expect(record?.status, ReachabilityStatus.ok);
+          expect(record?.checkInStatusToday, isTrue);
           verifyNever(() => mockRepo.update(any()));
         },
       );
@@ -595,6 +643,10 @@ void main() {
 
         verifyNever(() => mockRemote.fetchAccountInfo(any()));
         verifyNever(() => mockRemote.fetchSiteStatus(any()));
+        verifyNever(() => mockCheckInRemote.fetchCheckInStatus(
+          any(),
+          month: any(named: 'month'),
+        ));
         verifyNever(() => mockRepo.update(any()));
       });
 
@@ -614,6 +666,12 @@ void main() {
         when(
           () => mockRemote.fetchSiteStatus(any()),
         ).thenAnswer((_) async => Success(SiteStatusDto(quotaPerUnit: 500000)));
+        when(() => mockCheckInRemote.fetchCheckInStatus(
+          any(),
+          month: any(named: 'month'),
+        )).thenAnswer(
+          (_) async => const Success(CheckInStatusDto(checkedInToday: true)),
+        );
         when(
           () => mockRepo.update(any()),
         ).thenAnswer((_) async => Success(filled));
@@ -632,6 +690,45 @@ void main() {
         expect(request.authToken, equals(filled.accessToken));
         expect(request.authType, equals(filled.authType));
       });
+
+      test(
+        'check-in status failure still marks OK with null checkInStatusToday',
+        () async {
+          when(() => mockRemote.fetchAccountInfo(any())).thenAnswer(
+            (_) async => Success(
+              UserInfoDto(
+                id: 42,
+                username: 'alice',
+                quota: 500000000,
+                usedQuota: 1000000,
+              ),
+            ),
+          );
+          when(() => mockRemote.fetchSiteStatus(any())).thenAnswer(
+            (_) async =>
+                Success(SiteStatusDto(quotaPerUnit: 500000, version: 'v1')),
+          );
+          when(() => mockCheckInRemote.fetchCheckInStatus(
+            any(),
+            month: any(named: 'month'),
+          )).thenAnswer(
+            (_) async => Failure(NetworkException(message: 'check-in boom')),
+          );
+          when(
+            () => mockRepo.update(any()),
+          ).thenAnswer((_) async => Success(testAccount));
+
+          container = buildContainer([testAccount]);
+          await container.read(accountsProvider.future);
+
+          await container.read(accountsProvider.notifier).checkOne('acc-1');
+
+          final record = fakeReachability.getAll()['acc-1'];
+          expect(record?.status, ReachabilityStatus.ok);
+          // When check-in API fails, checkInStatusToday should be null.
+          expect(record?.checkInStatusToday, isNull);
+        },
+      );
     });
   });
 }

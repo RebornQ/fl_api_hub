@@ -129,9 +129,40 @@ class XMapNotifier extends Notifier<Map<String, XRecord>> {
 }
 ```
 
+**Record serialization contract** (for `ReachabilityRecord`):
+
+```dart
+class ReachabilityRecord {
+  final ReachabilityStatus status;
+  final DateTime checkedAt;
+  final FailCategory? failCategory;
+  final bool? checkInStatusToday;  // API-derived check-in status
+
+  // Serialization must handle nullable fields:
+  Map<String, dynamic> toMap() => {
+    'status': status.name,
+    'checkedAt': checkedAt.toIso8601String(),
+    'failCategory': failCategory?.name,
+    'checkInStatusToday': checkInStatusToday,  // bool? → null-safe
+  };
+
+  static ReachabilityRecord? fromMap(Map<String, dynamic> map) {
+    // ... parse status and checkedAt ...
+    return ReachabilityRecord(
+      status: status,
+      checkedAt: checkedAt,
+      failCategory: failCategory,
+      checkInStatusToday: map['checkInStatusToday'] as bool?,  // null if missing
+    );
+  }
+}
+```
+
 **Rules**:
 - Repository returns raw `Map` / `void` — **not** `Result<T>`. Missing or
   malformed records are normal, not errors.
+- When adding new fields to the record, **always** handle `null` in `fromMap`
+  for backward compatibility with existing cached data.
 - Always produce a new map reference (`{...state, ...}`) — in-place mutation
   breaks Riverpod equality checks.
 - Hive box must be opened in `lib/core/storage/hive_store.dart#initHive()`
@@ -210,6 +241,121 @@ Future<void> _runBatched<T>(
 **Pair with Pattern 1**: the per-item task typically writes to a Hive-hydrated
 map notifier and, optionally, patches the primary entity via Pattern 3.
 
+### Pattern 2.1 — Multi-API Parallel Fetch in Batched Scan
+
+> **Trigger**: extends Pattern 2 when each item requires multiple API calls.
+> Apply when a single scan needs to fetch data from 2+ endpoints per item.
+
+**Scope / Trigger**
+
+- Trigger: `_checkSingle` needs to fetch account info, site status, AND
+  check-in status in one pass. Parallel execution minimizes latency.
+- Mandatory when the per-item task can be decomposed into independent API calls.
+
+**Signatures**
+
+```dart
+// lib/features/accounts/presentation/providers/accounts_notifier.dart
+Future<void> _checkSingle(Account account) async {
+  // ...
+
+  // Compute current month for check-in status API.
+  final now = DateTime.now();
+  final currentMonth = '${now.year}-${now.month.toString().padLeft(2, '0')}';
+
+  final results = await Future.wait([
+    remote.fetchAccountInfo(request),
+    remote.fetchSiteStatus(request),
+    checkInRemote.fetchCheckInStatus(request, month: currentMonth),
+  ]);
+  final userInfoResult = results[0] as Result<UserInfoDto>;
+  final statusResult = results[1] as Result<SiteStatusDto>;
+  final checkInStatusResult = results[2] as Result<CheckInStatusDto>;
+
+  // Process results...
+}
+```
+
+**Contracts**
+
+| API Call | Purpose | Failure Behavior |
+|----------|---------|------------------|
+| `fetchAccountInfo` | User info, balance, userId | Marks account as unreachable |
+| `fetchSiteStatus` | Site version, quotaPerUnit | Degrades to default quota factor |
+| `fetchCheckInStatus` | Today's check-in status | Sets `checkInStatusToday = null` |
+
+**Validation & Error Matrix**
+
+| Condition | Result |
+|-----------|--------|
+| All 3 APIs succeed | `ReachabilityRecord.ok(timestamp, checkInStatusToday: dto.checkedInToday)` |
+| `fetchAccountInfo` fails | `ReachabilityRecord.fail(timestamp, category)`; other results ignored |
+| `fetchSiteStatus` fails | Uses `kDefaultQuotaPerUnit`; still marks OK |
+| `fetchCheckInStatus` fails | `checkInStatusToday = null`; still marks OK |
+| Any throws | Catches and marks as `ReachabilityRecord.fail` |
+
+**Good / Base / Bad Cases**
+
+- **Good**: Three parallel API calls complete in ~1 RTT. UI shows fresh
+  balance + check-in status.
+- **Base**: Check-in API fails or returns malformed data. `checkInStatusToday`
+  is `null`, account still marked OK.
+- **Bad**: Sequential awaits (`await fetchAccountInfo(); await fetchSiteStatus()`)
+  triples latency.
+
+**Tests Required**
+
+- `accounts_notifier_test.dart` — `_checkSingle`:
+  - All 3 APIs succeed → `checkInStatusToday` matches DTO value.
+  - `fetchCheckInStatus` fails → `checkInStatusToday` is `null`, account still OK.
+  - `fetchAccountInfo` fails → reachability is `fail`, other results ignored.
+  - Month string format is `YYYY-MM` with zero-padded month.
+
+**Wrong vs Correct**
+
+```dart
+// Wrong — sequential awaits triple latency.
+final userInfo = await remote.fetchAccountInfo(request);
+final status = await remote.fetchSiteStatus(request);
+final checkIn = await checkInRemote.fetchCheckInStatus(request, month: month);
+```
+
+```dart
+// Correct — parallel execution.
+final results = await Future.wait([
+  remote.fetchAccountInfo(request),
+  remote.fetchSiteStatus(request),
+  checkInRemote.fetchCheckInStatus(request, month: month),
+]);
+```
+
+**Design Decision — API as Single Source of Truth for Check-In Status**
+
+When displaying check-in status in the account list, the API `checkedInToday`
+field is the **single source of truth**. Local check-in results are NOT used
+for icon display. This ensures:
+
+1. Consistency with what the server sees (user may have checked in on web).
+2. Simpler logic — no need to reconcile local vs API state.
+3. Fresh data on every refresh — no stale local records.
+
+```dart
+// account_card.dart — API status is authoritative.
+({IconData icon, Color color})? _resolveCheckInIcon({
+  required bool autoCheckInEnabled,
+  required bool? apiCheckInStatusToday,
+}) {
+  if (!autoCheckInEnabled) return null;
+
+  // API status is the single source of truth.
+  if (apiCheckInStatusToday == true) {
+    return (icon: Icons.check_circle, color: const Color(0xFF10B981));
+  }
+
+  return (icon: Icons.cancel, color: const Color(0xFFEF4444));
+}
+```
+
 ### Pattern 3 — Progressive State Update (no `AsyncLoading`)
 
 **When to use**: you are inside an `AsyncNotifier<List<T>>` and need to
@@ -272,7 +418,11 @@ A typical "fan-out background refresh" feature composes all three:
              ├─ markChecking(ids)    → UI starts breathing dots
              ├─ _runBatched(4)
              │    └─ for each item:
-             │         ├─ fetch() → Result<Dto>
+             │         ├─ Future.wait([                [Pattern 2.1]
+             │         │    fetchAccountInfo(),
+             │         │    fetchSiteStatus(),
+             │         │    fetchCheckInStatus(month),
+             │         │  ])
              │         ├─ hydratedMap.put(id, record)  [Pattern 1]
              │         └─ _persistPartial(entity, dto) [Pattern 3]
              └─ finally: markDone() + stamp throttle

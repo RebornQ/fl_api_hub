@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 81
+- **Total Sessions**: 82
 - **Last Active**: 2026-05-02
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~643 | Active |
+| `journal-3.md` | ~676 | Active |
 | `journal-2.md` | ~1983 | Archived |
 | `journal-1.md` | ~1977 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 82 | 2026-05-02 | Fix CheckInStatusDto nested parsing | `b94a8bb` | `main` |
 | 81 | 2026-05-02 | 修复签到 API 请求实现 | `4843967`, `512fef0` | `main` |
 | 80 | 2026-05-02 | GitHub Actions CI multi-platform build workflow | `043d7b8`, `687e5fb`, `87d3372` | `main` |
 | 79 | 2026-05-02 | feat(accounts): sync check-in status on account refresh | `ee121f6` | `main` |

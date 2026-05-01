@@ -641,3 +641,36 @@ Created GitHub Actions workflow for full-platform CI: Android (3 ABIs, signed AP
 ### Next Steps
 
 - None - task complete
+
+
+## Session 82: Fix CheckInStatusDto nested parsing
+
+**Date**: 2026-05-02
+**Task**: Fix CheckInStatusDto nested parsing
+**Branch**: `main`
+
+### Summary
+
+修复 CheckInStatusDto.fromJson 无法正确解析 New API 嵌套 stats 结构的 bug，使 checkedInToday 从 stats.checked_in_today 正确提取，records 提取为 day 列表，total_quota 映射为 totalReward
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b94a8bb` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

@@ -539,3 +539,36 @@ Migrated hive_flutter to hive_ce_flutter (v2.3.4). Updated 17 source/test files,
 ### Next Steps
 
 - None - task complete
+
+
+## Session 79: feat(accounts): sync check-in status on account refresh
+
+**Date**: 2026-05-02
+**Task**: feat(accounts): sync check-in status on account refresh
+**Branch**: `main`
+
+### Summary
+
+Add fetchCheckInStatus to _checkSingle so account refresh also fetches check-in status. API checkedInToday is the single source of truth for check-in icon display.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `ee121f6` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

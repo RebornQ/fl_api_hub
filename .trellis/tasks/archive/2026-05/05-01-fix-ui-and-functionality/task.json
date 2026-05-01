@@ -1,0 +1,31 @@
+{
+  "id": "fix-ui-and-functionality",
+  "name": "fix-ui-and-functionality",
+  "title": "fix: 四项 UI 和功能修复",
+  "description": "",
+  "status": "completed",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "Reborn",
+  "assignee": "Reborn",
+  "createdAt": "2026-05-01",
+  "completedAt": "2026-05-01",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "05-01-r1-auth-type-filter",
+    "05-01-r2-re-enable-sort",
+    "05-01-r3-key-group-persist",
+    "05-01-r4-android-backup-save"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

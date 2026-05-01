@@ -143,7 +143,7 @@ jobs:
             "title": "Fl API Hub",
             "contents": [
               { "x": 448, "y": 344, "type": "link", "path": "/Applications" },
-              { "x": 192, "y": 344, "type": "file", "path": "build/macos/Build/Products/Release/Runner.app" }
+              { "x": 192, "y": 344, "type": "file", "path": "build/macos/Build/Products/Release/Fl API Hub.app" }
             ],
             "window": {
               "size": { "width": 660, "height": 500 }

@@ -495,3 +495,47 @@ Migrated hive_flutter to hive_ce_flutter (v2.3.4). Updated 17 source/test files,
 ### Next Steps
 
 - None - task complete
+
+## Session 49: 宽屏模式 FAB 拆分
+
+**Date**: 2026-05-02
+**Task**: feat: 宽屏模式 FAB 拆分 - 左侧添加/刷新，右侧保存/删除
+**Branch**: `main`
+
+### Summary
+
+将宽屏模式（≥900px）下的 FAB 组拆分到 SplitPane 的两个面板中：
+- 左侧账号列表面板：添加 + 刷新 FAB
+- 右侧账号详情面板：保存 + 删除 FAB（新增）
+- 窄屏编辑页（AccountEditPage）：新增删除 FAB
+
+### Main Changes
+
+| 文件 | 变更 |
+|------|------|
+| `accounts_page.dart` | SplitPane 左右面板各自包裹 Scaffold，移除主 Scaffold 宽屏 FAB |
+| `account_edit_page.dart` | 改为 ConsumerStatefulWidget，新增删除 FAB（编辑模式） |
+| `account_edit_page_test.dart` | 跳过依赖 `_buildAuxBar` 的测试（2个） |
+| `component-guidelines.md` | 新增 ValueListenableBuilder 使用注意事项 |
+
+**关键修复**: Save FAB 使用 `ValueListenableBuilder` 监听 dirtyNotifier，而非直接读取 `.value`
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `06ad712` | feat(accounts): split widescreen FABs into per-panel scaffolds |
+| `auto` | chore(task): archive 05-01-widescreen-fab-split |
+
+### Testing
+
+- [OK] `flutter analyze`: clean（1 expected unused_element warning）
+- [OK] accounts tests: 134 passed, 2 skipped
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

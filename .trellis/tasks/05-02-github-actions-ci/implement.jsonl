@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/platform/index.md", "reason": "Platform 层规范索引，了解平台相关配置约定"}
+{"file": ".trellis/spec/platform/macos-signing.md", "reason": "macOS 签名配置参考，用于 macOS 构建签名"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "跨层思考指南，确保 CI 配置与项目架构一致"}

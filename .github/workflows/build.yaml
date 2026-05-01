@@ -1,0 +1,209 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  FLUTTER_VERSION: '3.38.9'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          # Android builds
+          - os: ubuntu-latest
+            target: android
+            abi: arm64-v8a
+            artifact: apk
+          - os: ubuntu-latest
+            target: android
+            abi: armeabi-v7a
+            artifact: apk
+          - os: ubuntu-latest
+            target: android
+            abi: x86_64
+            artifact: apk
+          # iOS build (unsigned .ipa)
+          - os: macos-latest
+            target: ios
+            artifact: ios-unsigned
+          # macOS builds (separate architectures)
+          - os: macos-latest
+            target: macos
+            arch: arm64
+            artifact: macos-arm64
+          - os: macos-13
+            target: macos
+            arch: x86_64
+            artifact: macos-x86_64
+          # Windows build
+          - os: windows-latest
+            target: windows
+            artifact: windows
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        if: matrix.target == 'android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Flutter version
+        run: flutter --version
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      # iOS/macOS CocoaPods setup
+      - name: Install CocoaPods
+        if: matrix.target == 'ios' || matrix.target == 'macos'
+        run: pod install
+        working-directory: ${{ matrix.target == 'ios' && 'ios' || 'macos' }}
+
+      # Android specific steps
+      - name: Decode Android keystore
+        if: matrix.target == 'android'
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/keystore.jks
+
+      - name: Create Android key.properties
+        if: matrix.target == 'android'
+        env:
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+        run: |
+          cat > android/key.properties << EOF
+          storePassword=$ANDROID_STORE_PASSWORD
+          keyPassword=$ANDROID_KEY_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          storeFile=keystore.jks
+          EOF
+
+      - name: Build Android APK
+        if: matrix.target == 'android'
+        run: |
+          flutter build apk --release --target-platform android-${{ matrix.abi }}
+          mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/fl-api-hub-${{ matrix.abi }}.apk
+
+      - name: Upload Android APK artifact
+        if: matrix.target == 'android'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ matrix.abi }}
+          path: build/app/outputs/flutter-apk/fl-api-hub-${{ matrix.abi }}.apk
+
+      # iOS specific steps (unsigned .ipa)
+      - name: Build iOS (unsigned .ipa)
+        if: matrix.target == 'ios'
+        run: |
+          flutter build ios --release --no-codesign
+          mkdir -p Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r fl-api-hub.ipa Payload/
+
+      - name: Upload iOS artifact
+        if: matrix.target == 'ios'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-unsigned
+          path: fl-api-hub.ipa
+
+      # macOS specific steps
+      - name: Install macOS dependencies
+        if: matrix.target == 'macos'
+        run: npm install -g appdmg
+
+      - name: Build macOS
+        if: matrix.target == 'macos'
+        run: flutter build macos --release
+
+      - name: Package macOS DMG
+        if: matrix.target == 'macos'
+        run: |
+          cat > dmg-config.json << 'DMGEOF'
+          {
+            "title": "Fl API Hub",
+            "contents": [
+              { "x": 448, "y": 344, "type": "link", "path": "/Applications" },
+              { "x": 192, "y": 344, "type": "file", "path": "build/macos/Build/Products/Release/Runner.app" }
+            ],
+            "window": {
+              "size": { "width": 660, "height": 500 }
+            }
+          }
+          DMGEOF
+          mkdir -p dist
+          appdmg dmg-config.json "dist/fl-api-hub-macos-${{ matrix.arch }}.dmg"
+
+      - name: Upload macOS artifact
+        if: matrix.target == 'macos'
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-${{ matrix.arch }}
+          path: dist/fl-api-hub-macos-${{ matrix.arch }}.dmg
+
+      # Windows specific steps
+      - name: Build Windows
+        if: matrix.target == 'windows'
+        shell: pwsh
+        run: |
+          flutter build windows --release
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath fl-api-hub-windows.zip
+
+      - name: Upload Windows artifact
+        if: matrix.target == 'windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: fl-api-hub-windows.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List artifacts
+        run: find artifacts -type f
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/android-arm64-v8a/*.apk
+            artifacts/android-armeabi-v7a/*.apk
+            artifacts/android-x86_64/*.apk
+            artifacts/ios-unsigned/*.ipa
+            artifacts/macos-arm64/*.dmg
+            artifacts/macos-x86_64/*.dmg
+            artifacts/windows/*.zip
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}

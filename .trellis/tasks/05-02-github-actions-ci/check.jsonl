@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/platform/index.md", "reason": "Platform 层规范索引，验证构建配置符合平台约定"}
+{"file": ".trellis/spec/guides/quality-guidelines.md", "reason": "质量指南，确保 CI 配置满足项目质量标准"}

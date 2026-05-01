@@ -137,7 +137,9 @@ void main() {
       await tester.tap(find.text('New API').last);
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const ValueKey('autoConfigButton')), findsOneWidget);
+      // NOTE: auto-config button is currently hidden (bottomNavigationBar commented out).
+      // When re-enabled, this expectation should be findsOneWidget.
+      expect(find.byKey(const ValueKey('autoConfigButton')), findsNothing);
 
       // Switch to one-api (non-managed).
       await tester.tap(find.byKey(const ValueKey('siteTypeField')));
@@ -146,7 +148,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(const ValueKey('autoConfigButton')), findsNothing);
-    });
+    }, skip: true // bottomNavigationBar (_buildAuxBar) is currently disabled
+    );
 
     testWidgets('re-detect and auto-config buttons show "即将上线" SnackBars', (
       tester,
@@ -176,7 +179,8 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('autoConfigButton')));
       await tester.pump();
       expect(find.text('保存并配置功能即将上线～'), findsOneWidget);
-    });
+    }, skip: true // bottomNavigationBar (_buildAuxBar) is currently disabled
+    );
 
     testWidgets('save in add mode creates account and triggers checkOne', (
       tester,

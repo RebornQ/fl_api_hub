@@ -84,6 +84,7 @@ Current example:
 - Using mutable public widget fields instead of `final` fields.
 - Forgetting `const` constructors or `const` children where possible.
 - Mixing app shell, feature UI, and future data logic into one widget file.
+- **Reading `ValueNotifier.value` directly in `build()` instead of using `ValueListenableBuilder`** — the widget won't rebuild when the value changes. Wrap the dependent subtree in `ValueListenableBuilder<T>(valueListenable: notifier, builder: (ctx, value, _) => ...)` to ensure reactive updates.
 
 ---
 

@@ -6,14 +6,16 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/design_tokens.dart';
 import '../../../../core/network/site_type.dart';
 import '../../domain/entities/account.dart';
+import '../providers/accounts_providers.dart';
 import '../widgets/account_edit_form.dart';
 
 /// Full-screen account edit / add page.
-class AccountEditPage extends StatefulWidget {
+class AccountEditPage extends ConsumerStatefulWidget {
   /// Existing account for edit mode; `null` for add mode.
   final Account? account;
 
@@ -30,10 +32,10 @@ class AccountEditPage extends StatefulWidget {
   }
 
   @override
-  State<AccountEditPage> createState() => _AccountEditPageState();
+  ConsumerState<AccountEditPage> createState() => _AccountEditPageState();
 }
 
-class _AccountEditPageState extends State<AccountEditPage> {
+class _AccountEditPageState extends ConsumerState<AccountEditPage> {
   final _formKey = GlobalKey<AccountEditFormState>();
   final _dirtyNotifier = ValueNotifier<bool>(false);
   final _siteTypeNotifier = ValueNotifier<SiteType>(SiteType.unknown);
@@ -100,6 +102,38 @@ class _AccountEditPageState extends State<AccountEditPage> {
     }
   }
 
+  Future<void> _onDelete() async {
+    final account = widget.account;
+    if (account == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('删除账号'),
+        content: Text('确定要删除「${account.name}」吗？此操作无法撤销。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('删除'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    ref.read(accountsProvider.notifier).delete(account.id);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('账号 ${account.name} 已删除')),
+      );
+      Navigator.of(context).pop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -141,35 +175,62 @@ class _AccountEditPageState extends State<AccountEditPage> {
               siteTypeNotifier: _siteTypeNotifier,
             ),
             // bottomNavigationBar: _buildAuxBar(),
-            floatingActionButton: _buildSaveFab(isDirty),
+            floatingActionButton: _buildFabGroup(isDirty, isEditing),
           ),
         );
       },
     );
   }
 
-  /// Save FAB: visible when form is dirty, with loading state.
-  Widget _buildSaveFab(bool isDirty) {
-    if (!isDirty && !_isSubmitting) return const SizedBox.shrink();
-
+  /// FAB group: delete (edit mode only) + save (when dirty).
+  Widget _buildFabGroup(bool isDirty, bool isEditing) {
     final colorScheme = Theme.of(context).colorScheme;
-    return FloatingActionButton(
-      key: const ValueKey('primarySaveButton'),
-      onPressed: _isSubmitting ? null : _onSave,
-      backgroundColor: colorScheme.tertiary,
-      foregroundColor: colorScheme.onTertiary,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 4,
-      child: _isSubmitting
-          ? const SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.5,
-                color: Colors.white,
+    final showSave = isDirty || _isSubmitting;
+
+    // In edit mode: show delete FAB above save FAB.
+    // In add mode: show save FAB only.
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (isEditing)
+          SizedBox(
+            width: 48,
+            height: 48,
+            child: FloatingActionButton(
+              heroTag: 'delete',
+              onPressed: _onDelete,
+              backgroundColor: colorScheme.error,
+              foregroundColor: colorScheme.onError,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
               ),
-            )
-          : const Icon(Icons.check, size: 32),
+              child: const Icon(Icons.delete_outline),
+            ),
+          ),
+        if (showSave) ...[
+          if (isEditing) const SizedBox(height: AppSpacing.md),
+          FloatingActionButton(
+            key: const ValueKey('primarySaveButton'),
+            onPressed: _isSubmitting ? null : _onSave,
+            backgroundColor: colorScheme.tertiary,
+            foregroundColor: colorScheme.onTertiary,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            elevation: 4,
+            child: _isSubmitting
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.check, size: 32),
+          ),
+        ],
+      ],
     );
   }
 

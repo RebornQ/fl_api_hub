@@ -73,9 +73,6 @@ class _AccountsPageState extends ConsumerState<AccountsPage>
   /// Key to access the wide-screen detail panel's save method.
   final _detailPanelKey = GlobalKey<_AccountsDetailPanelState>();
 
-  /// Guard flag for the wide-screen save FAB.
-  bool _isWideSaving = false;
-
   @override
   void initState() {
     super.initState();
@@ -246,33 +243,34 @@ class _AccountsPageState extends ConsumerState<AccountsPage>
   Widget build(BuildContext context) {
     final accounts = ref.watch(accountsProvider);
 
-    return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: () =>
-            ref.read(accountsProvider.notifier).checkAll(force: true),
-        child: Stack(
-          children: [
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth >= _wideBreakpoint;
-                return SafeArea(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= _wideBreakpoint;
+        return Scaffold(
+          body: RefreshIndicator(
+            onRefresh: () =>
+                ref.read(accountsProvider.notifier).checkAll(force: true),
+            child: Stack(
+              children: [
+                SafeArea(
                   child: isWide
                       ? _buildWideLayout(context, accounts, constraints)
                       : _buildNarrowLayout(context, accounts),
-                );
-              },
-            ),
-            if (accounts.isLoading)
-              const Positioned.fill(
-                child: ColoredBox(
-                  color: Color(0x66FFFFFF),
-                  child: AppLoadingState(),
                 ),
-              ),
-          ],
-        ),
-      ),
-      floatingActionButton: _buildFabGroup(context),
+                if (accounts.isLoading)
+                  const Positioned.fill(
+                    child: ColoredBox(
+                      color: Color(0x66FFFFFF),
+                      child: AppLoadingState(),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          // Narrow mode: show FAB group; wide mode: each panel has its own FAB
+          floatingActionButton: isWide ? null : _buildNarrowFabGroup(context),
+        );
+      },
     );
   }
 
@@ -304,6 +302,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage>
 
   /// Desktop layout: sidebar + detail pane via [SplitPane].
   /// Wrapped in [Focus] for arrow-key navigation.
+  /// Each panel has its own Scaffold with independent FAB.
   Widget _buildWideLayout(
     BuildContext context,
     AsyncValue<List<Account>> accounts,
@@ -317,22 +316,25 @@ class _AccountsPageState extends ConsumerState<AccountsPage>
         ratio: ratio,
         onRatioChanged: (r) =>
             ref.read(splitPaneRatioProvider.notifier).setRatio(r),
-        leftChild: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildHeader(context),
-            _buildSearchAndFilter(context),
-            Expanded(
-              child: accounts.when(
-                data: (list) => _buildBody(context, list, isWide: true),
-                loading: () => const AppLoadingState(message: '加载中...'),
-                error: (err, _) => AppErrorState(
-                  message: err.toString(),
-                  onRetry: () => ref.invalidate(accountsProvider),
+        leftChild: Scaffold(
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildHeader(context),
+              _buildSearchAndFilter(context),
+              Expanded(
+                child: accounts.when(
+                  data: (list) => _buildBody(context, list, isWide: true),
+                  loading: () => const AppLoadingState(message: '加载中...'),
+                  error: (err, _) => AppErrorState(
+                    message: err.toString(),
+                    onRetry: () => ref.invalidate(accountsProvider),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
+          floatingActionButton: _buildLeftPanelFab(context),
         ),
         rightChild: _AccountsDetailPanel(
           key: _detailPanelKey,
@@ -344,78 +346,62 @@ class _AccountsPageState extends ConsumerState<AccountsPage>
 
   // ─── Shared section builders ───────────────────────────────────────
 
-  /// FAB group: switches between add and save based on wide-screen dirty state.
-  Widget _buildFabGroup(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: _detailDirtyNotifier,
-      builder: (context, isDirty, _) {
-        final showSave = isDirty && !_isWideSaving;
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Secondary FAB: refresh reachability (hidden when save is shown).
-            if (!showSave)
-              SizedBox(
-                width: 48,
-                height: 48,
-                child: FloatingActionButton(
-                  heroTag: 'accounts_refresh',
-                  onPressed: _isRefreshing ? null : _handleRefresh,
-                  backgroundColor: Theme.of(
-                    context,
-                  ).colorScheme.secondaryContainer,
-                  foregroundColor: Theme.of(
-                    context,
-                  ).colorScheme.onSecondaryContainer,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: RotationTransition(
-                    turns: _refreshController,
-                    child: const Icon(Icons.refresh),
-                  ),
-                ),
-              ),
-            if (!showSave) const SizedBox(height: AppSpacing.md),
-            showSave ? _buildSaveFab(context) : _buildAddFab(context),
-          ],
-        );
-      },
+  /// Narrow-mode FAB group: add + refresh (no save button).
+  Widget _buildNarrowFabGroup(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Secondary FAB: refresh reachability.
+        SizedBox(
+          width: 48,
+          height: 48,
+          child: FloatingActionButton(
+            heroTag: 'accounts_refresh',
+            onPressed: _isRefreshing ? null : _handleRefresh,
+            backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+            foregroundColor: Theme.of(context).colorScheme.onSecondaryContainer,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: RotationTransition(
+              turns: _refreshController,
+              child: const Icon(Icons.refresh),
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        _buildAddFab(context),
+      ],
     );
   }
 
-  Widget _buildSaveFab(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return FloatingActionButton(
-      heroTag: 'save',
-      onPressed: _isWideSaving ? null : _onWideSave,
-      backgroundColor: colorScheme.tertiary,
-      foregroundColor: colorScheme.onTertiary,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 4,
-      child: _isWideSaving
-          ? const SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.5,
-                color: Colors.white,
-              ),
-            )
-          : const Icon(Icons.check, size: 32),
+  /// Wide-mode left panel FAB: add + refresh (no dirty state switching).
+  Widget _buildLeftPanelFab(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Secondary FAB: refresh reachability.
+        SizedBox(
+          width: 48,
+          height: 48,
+          child: FloatingActionButton(
+            heroTag: 'accounts_refresh_wide',
+            onPressed: _isRefreshing ? null : _handleRefresh,
+            backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+            foregroundColor: Theme.of(context).colorScheme.onSecondaryContainer,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: RotationTransition(
+              turns: _refreshController,
+              child: const Icon(Icons.refresh),
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        _buildAddFab(context),
+      ],
     );
-  }
-
-  Future<void> _onWideSave() async {
-    final panel = _detailPanelKey.currentState;
-    if (panel == null || _isWideSaving) return;
-
-    setState(() => _isWideSaving = true);
-    try {
-      await panel.save();
-    } finally {
-      if (mounted) setState(() => _isWideSaving = false);
-    }
   }
 
   Widget _buildAddFab(BuildContext context) {
@@ -1021,6 +1007,7 @@ class _AccountsDetailPanel extends ConsumerStatefulWidget {
 class _AccountsDetailPanelState extends ConsumerState<_AccountsDetailPanel> {
   GlobalKey<AccountEditFormState> _formKey = GlobalKey();
   String? _renderedAccountId;
+  bool _isSaving = false;
 
   /// Triggers form validation and save. Returns the saved account or null.
   Future<Account?> save() async {
@@ -1035,6 +1022,43 @@ class _AccountsDetailPanelState extends ConsumerState<_AccountsDetailPanel> {
     return account;
   }
 
+  Future<void> _onSave() async {
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
+    try {
+      await save();
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  Future<void> _onDelete(Account account) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('删除账号'),
+        content: Text('确定要删除「${account.name}」吗？此操作无法撤销。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('删除'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final deletedId = account.id;
+    ref.read(accountsProvider.notifier).delete(deletedId);
+    if (ref.read(selectedAccountIdProvider) == deletedId) {
+      ref.read(selectedAccountIdProvider.notifier).state = null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final selectedId = ref.watch(selectedAccountIdProvider);
@@ -1045,35 +1069,93 @@ class _AccountsDetailPanelState extends ConsumerState<_AccountsDetailPanel> {
       _formKey = GlobalKey<AccountEditFormState>();
     }
 
-    if (selectedId == null) {
-      return const AppEmptyState(
-        icon: Icons.touch_app_outlined,
-        message: '选择一个账号查看详情',
-      );
-    }
-
     final accounts = ref.watch(accountsProvider);
-    final account = accounts.valueOrNull
-        ?.where((a) => a.id == selectedId)
-        .firstOrNull;
+    final account = selectedId != null
+        ? accounts.valueOrNull
+            ?.where((a) => a.id == selectedId)
+            .firstOrNull
+        : null;
 
-    if (account == null) {
-      // Account was deleted — clear selection on next frame.
+    // Account was deleted — clear selection on next frame.
+    if (selectedId != null && account == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           ref.read(selectedAccountIdProvider.notifier).state = null;
         }
       });
-      return const AppEmptyState(
-        icon: Icons.touch_app_outlined,
-        message: '选择一个账号查看详情',
-      );
     }
 
-    return AccountEditForm(
-      key: _formKey,
-      account: account,
-      dirtyNotifier: widget.dirtyNotifier,
+    return Scaffold(
+      body: account != null
+          ? AccountEditForm(
+              key: _formKey,
+              account: account,
+              dirtyNotifier: widget.dirtyNotifier,
+            )
+          : const AppEmptyState(
+              icon: Icons.touch_app_outlined,
+              message: '选择一个账号查看详情',
+            ),
+      floatingActionButton: account != null
+          ? ValueListenableBuilder<bool>(
+              valueListenable: widget.dirtyNotifier,
+              builder: (context, isDirty, _) =>
+                  _buildDetailPanelFab(context, account, isDirty),
+            )
+          : null,
+    );
+  }
+
+  Widget _buildDetailPanelFab(
+    BuildContext context,
+    Account account,
+    bool isDirty,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final showSave = isDirty && !_isSaving;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Delete FAB: always visible when an account is selected.
+        SizedBox(
+          width: 48,
+          height: 48,
+          child: FloatingActionButton(
+            heroTag: 'detail_delete',
+            onPressed: () => _onDelete(account),
+            backgroundColor: colorScheme.error,
+            foregroundColor: colorScheme.onError,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(Icons.delete_outline),
+          ),
+        ),
+        if (showSave) ...[
+          const SizedBox(height: AppSpacing.md),
+          FloatingActionButton(
+            heroTag: 'detail_save',
+            onPressed: _isSaving ? null : _onSave,
+            backgroundColor: colorScheme.tertiary,
+            foregroundColor: colorScheme.onTertiary,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            elevation: 4,
+            child: _isSaving
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.check, size: 32),
+          ),
+        ],
+      ],
     );
   }
 }

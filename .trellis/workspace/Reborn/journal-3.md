@@ -396,3 +396,36 @@ Migrated hive_flutter to hive_ce_flutter (v2.3.4). Updated 17 source/test files,
 ### Next Steps
 
 - None - task complete
+
+
+## Session 76: fix: 四项 UI 和功能修复
+
+**Date**: 2026-05-01
+**Task**: fix: 四项 UI 和功能修复
+**Branch**: `main`
+
+### Summary
+
+修复四个独立问题：R1 认证方式下拉框过滤、R2 账号启用/禁用排序优化、R3 密钥 group 字段持久化、R4 Android 备份保存文件修复
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `34e0348` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

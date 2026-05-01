@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Verify AccountCard edit mode pattern, PopupMenu implementation patterns, InkWell behavior"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Verify toggleEnabled, checkOne, accountsProvider contract"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Quality verification checklist"}

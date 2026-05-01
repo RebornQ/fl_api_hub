@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Contains edit mode with wobble animation pattern (AccountCard), PopupMenu patterns, and InkWell usage guidelines"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Contains accountsProvider, AccountsNotifier patterns, toggleEnabled, checkOne methods, and sortAccounts pattern"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Quality bar for code changes: lint, format, test requirements"}
+{"file": ".trellis/spec/frontend/theme-guidelines.md", "reason": "MD3 design tokens, color scheme usage, icon sizing conventions"}

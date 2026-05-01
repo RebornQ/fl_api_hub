@@ -4,10 +4,9 @@
 [![Dart](https://img.shields.io/badge/Dart-3.10.4+-0175C2?logo=dart)](https://dart.dev)
 [![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20Android%20%7C%20Desktop-lightgrey)](https://flutter.dev)
 
-> 一站式 AI API 中转站管理工具，统一管理多平台账号、余额、密钥与自动签到
+> 一站式 AI API 中转站管理工具，统一管理多平台账号、余额、密钥与快速签到
 
-Fl API Hub 是一个跨平台 Flutter 应用，帮助 AI 开发者和中转站用户集中管理多个 API
-中转站账号。告别分散的浏览器书签和手动签到，一切尽在掌控。
+Fl API Hub 是一个跨平台 Flutter 应用，帮助 AI 开发者和中转站用户集中管理多个 API 中转站账号。告别分散的浏览器书签和手动签到，一切尽在掌控。
 
 ## ✨ 核心功能
 
@@ -158,9 +157,8 @@ dart fix --apply
 
 ## 🙏 致谢
 
-- 项目灵感来自 [qixing-jk/all-api-hub](https://github.com/qixing-jk/all-api-hub)
-  ，感谢 [@qixing-jk](https://github.com/qixing-jk)
-  的 [all-api-hub](https://github.com/qixing-jk/all-api-hub) 项目
+- 项目灵感来自 [qixing-jk/all-api-hub](https://github.com/qixing-jk/all-api-hub)，感谢 [@qixing-jk](https://github.com/qixing-jk) 的 [all-api-hub](https://github.com/qixing-jk/all-api-hub) 项目
+- Github Actions Workflows 参考猴佬的 [Fluxdo](https://github.com/Lingyan000/fluxdo/blob/main/.github/workflows/build.yaml)，感谢 [@Lingyan000](https://github.com/Lingyan000)
 - 感谢 [Linux.do 社区](https://linux.do/)
 
 ---

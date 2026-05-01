@@ -16,39 +16,78 @@ import '../../domain/entities/account.dart';
 import '../providers/account_reachability_providers.dart';
 
 /// Displays a summary card for a single [Account].
-class AccountCard extends ConsumerWidget {
+class AccountCard extends ConsumerStatefulWidget {
   final Account account;
   final VoidCallback? onTap;
 
   /// Whether this card is currently selected (wide-screen master-detail).
   final bool isSelected;
 
+  /// Whether the list is in edit mode (shows drag handle + wobble animation).
+  final bool isEditMode;
+
   const AccountCard({
     super.key,
     required this.account,
     this.onTap,
     this.isSelected = false,
+    this.isEditMode = false,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AccountCard> createState() => _AccountCardState();
+}
+
+class _AccountCardState extends ConsumerState<AccountCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _wobbleController;
+
+  @override
+  void initState() {
+    super.initState();
+    _wobbleController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+  }
+
+  @override
+  void dispose() {
+    _wobbleController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final isDisabled = !account.enabled;
+    final isDisabled = !widget.account.enabled;
 
     // Watch the latest check-in result for this account only.
     final latestResult = ref.watch(
-      latestResultByAccountProvider.select((map) => map[account.id]),
+      latestResultByAccountProvider.select((map) => map[widget.account.id]),
     );
     final checkInIcon = _resolveCheckInIcon(
-      autoCheckInEnabled: account.checkIn.autoCheckInEnabled,
+      autoCheckInEnabled: widget.account.checkIn.autoCheckInEnabled,
       latestResult: latestResult,
     );
 
+    // Start/stop wobble animation based on edit mode.
+    if (widget.isEditMode) {
+      if (!_wobbleController.isAnimating) {
+        _wobbleController.repeat(reverse: true);
+      }
+    } else {
+      if (_wobbleController.isAnimating) {
+        _wobbleController.stop();
+      }
+      _wobbleController.value = 0;
+    }
+
     final Color cardColor;
     final BoxBorder? border;
-    if (isSelected) {
+    if (widget.isSelected) {
       cardColor = colorScheme.surfaceContainerLow;
       border = Border.all(
         color: colorScheme.primary.withValues(alpha: 0.5),
@@ -73,86 +112,109 @@ class AccountCard extends ConsumerWidget {
           border: border,
         ),
         child: InkWell(
-          onTap: onTap,
+          onTap: widget.onTap,
           borderRadius: BorderRadius.circular(AppRadius.lg),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: AnimatedOpacity(
               opacity: isDisabled ? 0.6 : 1.0,
               duration: const Duration(milliseconds: 200),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Left: info.
-                  Expanded(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Status dot.
-                        _StatusDot(account: account),
-                        const SizedBox(width: AppSpacing.sm + 4),
-                        // Name + type + URL.
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Account name + check-in icon.
-                              Row(
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                      account.name,
-                                      style: theme.textTheme.titleMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w600,
-                                            height: 1.3,
-                                          ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  if (checkInIcon != null) ...[
-                                    const SizedBox(width: 4),
-                                    Icon(
-                                      checkInIcon.icon,
-                                      size: 14,
-                                      color: checkInIcon.color,
-                                    ),
-                                  ],
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              // Site type label.
-                              Text(
-                                account.siteType.displayName,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              // Base URL (truncated).
-                              Text(
-                                _stripScheme(account.baseUrl),
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: colorScheme.outline,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
+              child: AnimatedBuilder(
+                animation: _wobbleController,
+                builder: (context, child) {
+                  // Wobble: ±0.5° rotation (±0.0087 rad)
+                  final angle = widget.isEditMode
+                      ? 0.0087 * _wobbleController.value * 2 - 0.0087
+                      : 0.0;
+                  return Transform.rotate(angle: angle, child: child);
+                },
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Left: drag handle (edit mode) or status dot.
+                    if (widget.isEditMode)
+                      Padding(
+                        padding: const EdgeInsets.only(right: AppSpacing.sm),
+                        child: Icon(
+                          Icons.drag_indicator_outlined,
+                          size: 20,
+                          color: colorScheme.onSurfaceVariant,
                         ),
-                      ],
+                      ),
+                    // Left: info.
+                    Expanded(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Status dot (hidden in edit mode to save space).
+                          if (!widget.isEditMode)
+                            _StatusDot(account: widget.account),
+                          if (!widget.isEditMode)
+                            const SizedBox(width: AppSpacing.sm + 4),
+                          // Name + type + URL.
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Account name + check-in icon.
+                                Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        widget.account.name,
+                                        style: theme.textTheme.titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                              height: 1.3,
+                                            ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    if (checkInIcon != null &&
+                                        !widget.isEditMode) ...[
+                                      const SizedBox(width: 4),
+                                      Icon(
+                                        checkInIcon.icon,
+                                        size: 14,
+                                        color: checkInIcon.color,
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                // Site type label.
+                                Text(
+                                  widget.account.siteType.displayName,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                // Base URL (truncated).
+                                Text(
+                                  _stripScheme(widget.account.baseUrl),
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: colorScheme.outline,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  // Right: balance + status text.
-                  _BalanceColumn(
-                    account: account,
-                    colorScheme: colorScheme,
-                    theme: theme,
-                  ),
-                ],
+                    // Right: balance + status text.
+                    _BalanceColumn(
+                      account: widget.account,
+                      colorScheme: colorScheme,
+                      theme: theme,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

@@ -56,6 +56,9 @@ class _AccountsPageState extends ConsumerState<AccountsPage>
   late final AnimationController _refreshController;
   bool _isRefreshing = false;
 
+  /// Edit mode for reordering accounts.
+  bool _isEditMode = false;
+
   /// Tracks whether the wide-screen detail panel has unsaved edits.
   final _detailDirtyNotifier = ValueNotifier<bool>(false);
 
@@ -427,6 +430,7 @@ class _AccountsPageState extends ConsumerState<AccountsPage>
   }
 
   Widget _buildHeader(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.md,
@@ -434,22 +438,38 @@ class _AccountsPageState extends ConsumerState<AccountsPage>
         AppSpacing.md,
         0,
       ),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '账号管理',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.5,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '账号管理',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  '一键管理所有AI中转站',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            '一键管理所有AI中转站',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+          // Edit/Done button
+          IconButton(
+            onPressed: () => setState(() => _isEditMode = !_isEditMode),
+            icon: Icon(
+              _isEditMode ? Icons.check : Icons.edit_outlined,
+              color: colorScheme.primary,
             ),
+            tooltip: _isEditMode ? '完成' : '编辑',
           ),
         ],
       ),
@@ -666,20 +686,34 @@ class _AccountsPageState extends ConsumerState<AccountsPage>
               horizontal: AppSpacing.md,
               vertical: AppSpacing.xs,
             ),
-            child: ReorderableDelayedDragStartListener(
-              index: index,
-              child: AccountCard(
-                account: account,
-                isSelected: isSelected,
-                onTap: () {
-                  if (isWide) {
-                    _onWideCardTap(account);
-                  } else {
-                    AccountEditPage.push(context, account: account);
-                  }
-                },
-              ),
-            ),
+            child: _isEditMode
+                ? ReorderableDragStartListener(
+                    key: ValueKey('${account.id}-reorder'),
+                    index: index,
+                    child: AccountCard(
+                      account: account,
+                      isSelected: isSelected,
+                      isEditMode: true,
+                      onTap: () {
+                        if (isWide) {
+                          _onWideCardTap(account);
+                        } else {
+                          AccountEditPage.push(context, account: account);
+                        }
+                      },
+                    ),
+                  )
+                : AccountCard(
+                    account: account,
+                    isSelected: isSelected,
+                    onTap: () {
+                      if (isWide) {
+                        _onWideCardTap(account);
+                      } else {
+                        AccountEditPage.push(context, account: account);
+                      }
+                    },
+                  ),
           ),
         );
       },

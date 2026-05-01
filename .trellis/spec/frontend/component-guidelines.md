@@ -418,3 +418,155 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
   fields inside the menu.
 - Don't store search state in a global provider — it's UI-local state that
   should reset when the dropdown closes.
+
+---
+
+### Pattern — Edit Mode with Wobble Animation
+
+**When to use**: a list needs an "edit mode" where items can be reordered
+via drag, but normal mode should free the long-press gesture for other uses.
+Classic iOS home screen behavior.
+
+**Reference implementation**:
+
+- `lib/features/accounts/presentation/pages/accounts_page.dart` — `_isEditMode` state, header button, conditional `ReorderableDragStartListener`
+- `lib/features/accounts/presentation/widgets/account_card.dart` — wobble animation, drag handle icon
+
+**Signature contract**:
+
+```dart
+// In the list page (StatefulWidget):
+class _ListPageState extends ConsumerState<ListPage>
+    with SingleTickerProviderStateMixin {
+  bool _isEditMode = false;
+
+  Widget _buildHeader(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(child: Column(...)),  // Title + subtitle
+        IconButton(
+          onPressed: () => setState(() => _isEditMode = !_isEditMode),
+          icon: Icon(_isEditMode ? Icons.check : Icons.edit_outlined),
+          tooltip: _isEditMode ? '完成' : '编辑',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildList() {
+    return ReorderableListView.builder(
+      buildDefaultDragHandles: false,
+      onReorder: (oldIndex, newIndex) { /* handle reorder */ },
+      itemBuilder: (context, index) {
+        return _isEditMode
+            ? ReorderableDragStartListener(
+                key: ValueKey(items[index].id),
+                index: index,
+                child: ItemWidget(item: items[index], isEditMode: true),
+              )
+            : ItemWidget(
+                key: ValueKey(items[index].id),
+                item: items[index],
+                isEditMode: false,
+              );
+      },
+    );
+  }
+}
+
+// In the item widget (ConsumerStatefulWidget for animation):
+class ItemWidget extends ConsumerStatefulWidget {
+  final Item item;
+  final bool isEditMode;
+
+  const ItemWidget({
+    super.key,
+    required this.item,
+    this.isEditMode = false,
+  });
+
+  @override
+  ConsumerState<ItemWidget> createState() => _ItemWidgetState();
+}
+
+class _ItemWidgetState extends ConsumerState<ItemWidget>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _wobbleController;
+
+  @override
+  void initState() {
+    super.initState();
+    _wobbleController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+  }
+
+  @override
+  void dispose() {
+    _wobbleController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Start/stop wobble based on edit mode.
+    if (widget.isEditMode) {
+      if (!_wobbleController.isAnimating) {
+        _wobbleController.repeat(reverse: true);
+      }
+    } else {
+      if (_wobbleController.isAnimating) {
+        _wobbleController.stop();
+      }
+      _wobbleController.value = 0;
+    }
+
+    return AnimatedBuilder(
+      animation: _wobbleController,
+      builder: (context, child) {
+        // Wobble: ±0.5° rotation (±0.0087 rad)
+        final angle = widget.isEditMode
+            ? 0.0087 * _wobbleController.value * 2 - 0.0087
+            : 0.0;
+        return Transform.rotate(angle: angle, child: child);
+      },
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          if (widget.isEditMode)
+            Icon(Icons.drag_indicator_outlined, size: 20),
+          // ... rest of item content
+        ],
+      ),
+    );
+  }
+}
+```
+
+**Rules**:
+
+- Use `ReorderableDragStartListener` (instant drag) in edit mode, not
+  `ReorderableDelayedDragStartListener` (long-press trigger). This frees
+  long-press for future use in non-edit mode.
+- The item widget must be `StatefulWidget` with `SingleTickerProviderStateMixin`
+  to own the `AnimationController`.
+- Wobble angle should be subtle: ±0.5° (0.0087 radians) is enough to convey
+  "editable" without being distracting.
+- Use `AnimatedBuilder` (not `AnimatedWidget`) to avoid creating extra widget
+  classes — the `builder` callback stays inline.
+- Stop and reset the controller when exiting edit mode to avoid holding frames.
+- Use `Icons.drag_indicator_outlined` for the drag handle — it's visually
+  lighter than `Icons.drag_handle`.
+- The drag handle should be vertically centered (`crossAxisAlignment: center`)
+  relative to the card content.
+
+**Don't**:
+
+- Don't use `ConsumerWidget` for the item if you need animation — animation
+  requires `AnimationController` lifecycle management.
+- Don't forget to dispose the `_wobbleController` in `dispose()`.
+- Don't leave the animation running when `isEditMode` becomes false — always
+  stop and reset.
+- Don't use `ReorderableDelayedDragStartListener` in edit mode — it defeats
+  the purpose of having an explicit edit mode toggle.

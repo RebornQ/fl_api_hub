@@ -22,13 +22,31 @@ class CheckInStatusDto {
   });
 
   /// Parses a raw JSON map into a [CheckInStatusDto].
+  ///
+  /// Expects the **inner data** object from the New API status check response:
+  /// ```json
+  /// {
+  ///   "enabled": true,
+  ///   "stats": {
+  ///     "checked_in_today": true,
+  ///     "records": [{"checkin_date": "2026-05-02", "quota_awarded": 1083226}],
+  ///     "total_quota": 500000
+  ///   }
+  /// }
+  /// ```
   static CheckInStatusDto fromJson(Map<String, dynamic> json) {
+    final stats = json['stats'] as Map<String, dynamic>?;
+    final records = (stats?['records'] as List<dynamic>?) ?? [];
     return CheckInStatusDto(
-      checkedInToday: json['checked_in_today'] as bool?,
-      checkedDays: (json['checked_days'] as List<dynamic>?)
-          ?.map((e) => e as int)
+      checkedInToday: stats?['checked_in_today'] as bool?,
+      checkedDays: records
+          .map((r) {
+            final date = (r as Map<String, dynamic>)['checkin_date'] as String?;
+            return date != null ? int.tryParse(date.split('-').last) : null;
+          })
+          .whereType<int>()
           .toList(),
-      totalReward: (json['total_reward'] as num?)?.toDouble(),
+      totalReward: (stats?['total_quota'] as num?)?.toDouble(),
     );
   }
 }

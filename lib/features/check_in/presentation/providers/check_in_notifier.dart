@@ -27,8 +27,6 @@ import 'check_in_request_log_providers.dart';
 /// their execution is short-circuited with a [CheckInStatus.skipped]
 /// result so the user sees a clear "暂不支持" message.
 const _unsupportedSiteTypes = <SiteType>{
-  SiteType.anyrouter,
-  SiteType.wongGongyi,
   SiteType.sub2api,
 };
 

@@ -8,6 +8,7 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'adapters/anyrouter_adapter.dart';
 import 'adapters/common_api_adapter.dart';
 import 'adapters/donehub_adapter.dart';
 import 'adapters/onehub_adapter.dart';
@@ -21,8 +22,8 @@ import 'site_type.dart';
 /// Provider for the map of [SiteType] to [SiteAdapter].
 ///
 /// Registers adapters for each supported site type. Common/new-api family
-/// shares one adapter. Veloera and Sub2API have their own adapters for
-/// endpoint and envelope differences.
+/// shares one adapter. Veloera, WONG, AnyRouter, and Sub2API have their own
+/// adapters for endpoint and envelope differences.
 final siteAdapterProvider = Provider<Map<SiteType, SiteAdapter>>((ref) {
   final dioClient = ref.watch(dioClientProvider);
   final commonAdapter = CommonApiAdapter(dioClient);
@@ -31,6 +32,7 @@ final siteAdapterProvider = Provider<Map<SiteType, SiteAdapter>>((ref) {
   final veloeraAdapter = VeloeraApiAdapter(dioClient);
   final sub2apiAdapter = Sub2ApiAdapter(dioClient);
   final wongAdapter = WongApiAdapter(dioClient);
+  final anyrouterAdapter = AnyRouterAdapter(dioClient);
   return {
     SiteType.newApi: commonAdapter,
     SiteType.oneApi: commonAdapter,
@@ -40,8 +42,7 @@ final siteAdapterProvider = Provider<Map<SiteType, SiteAdapter>>((ref) {
     SiteType.octopus: commonAdapter,
     SiteType.sub2api: sub2apiAdapter,
     SiteType.wongGongyi: wongAdapter,
-    // Cookie-based sites (anyrouter) will use their
-    // own adapters in a future batch.
+    SiteType.anyrouter: anyrouterAdapter,
   };
 });
 

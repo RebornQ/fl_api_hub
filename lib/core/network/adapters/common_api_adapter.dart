@@ -75,6 +75,7 @@ class CommonApiAdapter implements SiteAdapter {
           .getDio(proxy: request.proxy)
           .request(
             '/api/user/checkin',
+            data: {},
             options: Options(method: 'POST', extra: buildExtra(request)),
           );
 

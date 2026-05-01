@@ -17,6 +17,11 @@ class CheckInApiMapper {
   /// - If success is false and message suggests already checked in →
   ///   [CheckInStatus.alreadyChecked].
   /// - Otherwise → [CheckInStatus.failed].
+  ///
+  /// Message matching rules (per API doc):
+  /// - "already" (any case)
+  /// - "已签到" / "已经签到" / "今天已经签到"
+  /// - Empty message (AnyRouter specific: success=false + empty msg = already)
   static CheckInStatus inferStatus(CheckInResultDto dto) {
     // Prioritize the success field
     if (dto.success) {
@@ -24,8 +29,21 @@ class CheckInApiMapper {
     }
 
     // Check message content when success is false
-    final message = dto.message?.toLowerCase() ?? '';
-    if (message.contains('already') || message.contains('已签到')) {
+    final message = dto.message;
+
+    // AnyRouter: empty string (not null) means already checked in.
+    // Other providers return null for unknown failures.
+    if (message != null && message.trim().isEmpty) {
+      return CheckInStatus.alreadyChecked;
+    }
+
+    final normalizedMessage = message?.toLowerCase() ?? '';
+
+    // Keyword matching for "already checked in"
+    if (normalizedMessage.contains('already') ||
+        normalizedMessage.contains('已签到') ||
+        normalizedMessage.contains('已经签到') ||
+        normalizedMessage.contains('今天已经签到')) {
       return CheckInStatus.alreadyChecked;
     }
 

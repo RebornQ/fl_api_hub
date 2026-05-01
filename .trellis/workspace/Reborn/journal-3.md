@@ -572,3 +572,38 @@ Add fetchCheckInStatus to _checkSingle so account refresh also fetches check-in 
 ### Next Steps
 
 - None - task complete
+
+
+## Session 80: GitHub Actions CI multi-platform build workflow
+
+**Date**: 2026-05-02
+**Task**: GitHub Actions CI multi-platform build workflow
+**Branch**: `main`
+
+### Summary
+
+Created GitHub Actions workflow for full-platform CI: Android (3 ABIs, signed APK), iOS (unsigned .ipa), macOS (arm64 + x86_64 DMG via appdmg with Applications symlink), Windows (zip). Auto-publishes to GitHub Releases on v* tag push.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `043d7b8` | (see git log) |
+| `687e5fb` | (see git log) |
+| `87d3372` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

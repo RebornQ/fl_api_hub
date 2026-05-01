@@ -20,6 +20,12 @@ class AccountCard extends ConsumerStatefulWidget {
   final Account account;
   final VoidCallback? onTap;
 
+  /// Called when the user long-presses the card in non-edit mode.
+  ///
+  /// The callback receives the global press [Offset] for positioning
+  /// popup menus at the touch point.
+  final void Function(Offset)? onLongPress;
+
   /// Whether this card is currently selected (wide-screen master-detail).
   final bool isSelected;
 
@@ -30,6 +36,7 @@ class AccountCard extends ConsumerStatefulWidget {
     super.key,
     required this.account,
     this.onTap,
+    this.onLongPress,
     this.isSelected = false,
     this.isEditMode = false,
   });
@@ -111,109 +118,119 @@ class _AccountCardState extends ConsumerState<AccountCard>
           borderRadius: BorderRadius.circular(AppRadius.lg),
           border: border,
         ),
-        child: InkWell(
-          onTap: widget.onTap,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: AnimatedOpacity(
-              opacity: isDisabled ? 0.6 : 1.0,
-              duration: const Duration(milliseconds: 200),
-              child: AnimatedBuilder(
-                animation: _wobbleController,
-                builder: (context, child) {
-                  // Wobble: ±0.5° rotation (±0.0087 rad)
-                  final angle = widget.isEditMode
-                      ? 0.0087 * _wobbleController.value * 2 - 0.0087
-                      : 0.0;
-                  return Transform.rotate(angle: angle, child: child);
-                },
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Left: drag handle (edit mode) or status dot.
-                    if (widget.isEditMode)
-                      Padding(
-                        padding: const EdgeInsets.only(right: AppSpacing.sm),
-                        child: Icon(
-                          Icons.drag_indicator_outlined,
-                          size: 20,
-                          color: colorScheme.onSurfaceVariant,
+        child: GestureDetector(
+          onLongPressStart: widget.isEditMode || widget.onLongPress == null
+              ? null
+              : (details) => widget.onLongPress?.call(details.globalPosition),
+          onSecondaryTapDown: widget.isEditMode || widget.onLongPress == null
+              ? null
+              : (details) =>
+                    widget.onLongPress?.call(details.globalPosition),
+          child: InkWell(
+            onTap: widget.onTap,
+            // Don't set onLongPress here — it would intercept the GestureDetector's event
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: AnimatedOpacity(
+                opacity: isDisabled ? 0.6 : 1.0,
+                duration: const Duration(milliseconds: 200),
+                child: AnimatedBuilder(
+                  animation: _wobbleController,
+                  builder: (context, child) {
+                    // Wobble: ±0.5° rotation (±0.0087 rad)
+                    final angle = widget.isEditMode
+                        ? 0.0087 * _wobbleController.value * 2 - 0.0087
+                        : 0.0;
+                    return Transform.rotate(angle: angle, child: child);
+                  },
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Left: drag handle (edit mode) or status dot.
+                      if (widget.isEditMode)
+                        Padding(
+                          padding: const EdgeInsets.only(right: AppSpacing.sm),
+                          child: Icon(
+                            Icons.drag_indicator_outlined,
+                            size: 20,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      // Left: info.
+                      Expanded(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Status dot (hidden in edit mode to save space).
+                            if (!widget.isEditMode)
+                              _StatusDot(account: widget.account),
+                            if (!widget.isEditMode)
+                              const SizedBox(width: AppSpacing.sm + 4),
+                            // Name + type + URL.
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Account name + check-in icon.
+                                  Row(
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          widget.account.name,
+                                          style: theme.textTheme.titleMedium
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.w600,
+                                                height: 1.3,
+                                              ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      if (checkInIcon != null &&
+                                          !widget.isEditMode) ...[
+                                        const SizedBox(width: 4),
+                                        Icon(
+                                          checkInIcon.icon,
+                                          size: 14,
+                                          color: checkInIcon.color,
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  // Site type label.
+                                  Text(
+                                    widget.account.siteType.displayName,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  // Base URL (truncated).
+                                  Text(
+                                    _stripScheme(widget.account.baseUrl),
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      color: colorScheme.outline,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    // Left: info.
-                    Expanded(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Status dot (hidden in edit mode to save space).
-                          if (!widget.isEditMode)
-                            _StatusDot(account: widget.account),
-                          if (!widget.isEditMode)
-                            const SizedBox(width: AppSpacing.sm + 4),
-                          // Name + type + URL.
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Account name + check-in icon.
-                                Row(
-                                  children: [
-                                    Flexible(
-                                      child: Text(
-                                        widget.account.name,
-                                        style: theme.textTheme.titleMedium
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.w600,
-                                              height: 1.3,
-                                            ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                    if (checkInIcon != null &&
-                                        !widget.isEditMode) ...[
-                                      const SizedBox(width: 4),
-                                      Icon(
-                                        checkInIcon.icon,
-                                        size: 14,
-                                        color: checkInIcon.color,
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                // Site type label.
-                                Text(
-                                  widget.account.siteType.displayName,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                // Base URL (truncated).
-                                Text(
-                                  _stripScheme(widget.account.baseUrl),
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: colorScheme.outline,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                      // Right: balance + status text.
+                      _BalanceColumn(
+                        account: widget.account,
+                        colorScheme: colorScheme,
+                        theme: theme,
                       ),
-                    ),
-                    // Right: balance + status text.
-                    _BalanceColumn(
-                      account: widget.account,
-                      colorScheme: colorScheme,
-                      theme: theme,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

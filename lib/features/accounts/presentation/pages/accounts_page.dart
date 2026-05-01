@@ -17,6 +17,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/design_tokens.dart';
+import '../../../../core/browser/browser_service.dart';
 import '../../../../core/result/result.dart';
 import '../../../../core/storage/split_pane_provider.dart';
 import '../../../../core/widgets/app_empty_state.dart';
@@ -26,6 +27,7 @@ import '../../../../core/widgets/split_pane.dart';
 import '../../../check_in/domain/entities/check_in_result.dart';
 import '../../../check_in/presentation/providers/check_in_providers.dart'
     hide selectedAccountIdProvider;
+import '../../../settings/presentation/providers/browser_providers.dart';
 import '../../domain/entities/account.dart';
 import '../providers/accounts_filter_providers.dart';
 import '../providers/accounts_providers.dart';
@@ -713,11 +715,167 @@ class _AccountsPageState extends ConsumerState<AccountsPage>
                         AccountEditPage.push(context, account: account);
                       }
                     },
+                    onLongPress: (position) =>
+                        _showAccountContextMenu(position, account),
                   ),
           ),
         );
       },
     );
+  }
+
+  /// Shows a popup context menu for [account] at the given [pressPosition].
+  void _showAccountContextMenu(Offset pressPosition, Account account) {
+    final overlay =
+        Overlay.of(context).context.findRenderObject()! as RenderBox;
+    final position = RelativeRect.fromLTRB(
+      pressPosition.dx,
+      pressPosition.dy,
+      overlay.size.width - pressPosition.dx,
+      overlay.size.height - pressPosition.dy,
+    );
+
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDisabled = !account.enabled;
+
+    showMenu<String>(
+      context: context,
+      position: position,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
+      items: [
+        // Disabled accounts show only "visit" and "enable".
+        // Enabled accounts show all options.
+        if (!isDisabled && account.checkIn.autoCheckInEnabled)
+          PopupMenuItem<String>(
+            value: 'check_in',
+            height: 48,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.check_circle_outline,
+                  size: 20,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 12),
+                const Text('签到'),
+              ],
+            ),
+          ),
+        if (!isDisabled)
+          PopupMenuItem<String>(
+            value: 'refresh',
+            height: 48,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.refresh,
+                  size: 20,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 12),
+                const Text('刷新状态'),
+              ],
+            ),
+          ),
+        PopupMenuItem<String>(
+          value: 'visit',
+          height: 48,
+          child: Row(
+            children: [
+              Icon(
+                Icons.open_in_new,
+                size: 20,
+                color: colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 12),
+              const Text('访问站点'),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'toggle',
+          height: 48,
+          child: Row(
+            children: [
+              Icon(
+                account.enabled ? Icons.toggle_on : Icons.toggle_off,
+                size: 20,
+                color: colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 12),
+              Text(account.enabled ? '禁用账号' : '启用账号'),
+            ],
+          ),
+        ),
+      ],
+    ).then((value) {
+      if (value == null || !mounted) return;
+      _handleContextMenuAction(value, account);
+    });
+  }
+
+  /// Dispatches the context menu action selected by the user.
+  void _handleContextMenuAction(String action, Account account) {
+    final messenger = ScaffoldMessenger.of(context);
+    switch (action) {
+      case 'check_in':
+        _performCheckIn(account);
+      case 'refresh':
+        ref.read(accountsProvider.notifier).checkOne(account.id);
+        messenger.clearSnackBars();
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('正在刷新「${account.name}」状态...'),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      case 'visit':
+        _visitSite(account);
+      case 'toggle':
+        ref.read(accountsProvider.notifier).toggleEnabled(account.id);
+        messenger.clearSnackBars();
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              account.enabled ? '「${account.name}」已禁用' : '「${account.name}」已启用',
+            ),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+    }
+  }
+
+  /// Opens the account's site URL in browser.
+  /// Disabled accounts require confirmation first.
+  Future<void> _visitSite(Account account) async {
+    // Disabled accounts require confirmation.
+    if (!account.enabled) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('访问站点'),
+          content: Text('账号「${account.name}」已禁用，确定要访问 ${account.baseUrl} 吗？'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('访问'),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+    }
+
+    final useInApp = ref.read(useInAppBrowserProvider);
+    openUrlInBrowser(context, account.baseUrl, useInAppBrowser: useInApp);
   }
 
   /// Shows a confirmation dialog before performing a swipe-to-check-in.

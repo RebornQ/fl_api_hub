@@ -1,0 +1,5 @@
+{"type":"spec","path":".trellis/spec/frontend/quality-guidelines.md"}
+{"type":"spec","path":".trellis/spec/frontend/component-guidelines.md"}
+{"type":"source","path":"lib/features/accounts/presentation/widgets/account_card.dart"}
+{"type":"source","path":"lib/features/accounts/presentation/pages/accounts_page.dart"}
+{"type":"source","path":"lib/features/accounts/domain/entities/check_in_config.dart"}

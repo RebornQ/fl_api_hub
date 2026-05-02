@@ -1,0 +1,8 @@
+{"type":"spec","path":".trellis/spec/frontend/index.md"}
+{"type":"spec","path":".trellis/spec/frontend/component-guidelines.md"}
+{"type":"spec","path":".trellis/spec/frontend/quality-guidelines.md"}
+{"type":"source","path":"lib/features/accounts/presentation/widgets/account_card.dart"}
+{"type":"source","path":"lib/features/accounts/presentation/pages/accounts_page.dart"}
+{"type":"source","path":"lib/features/accounts/domain/entities/check_in_config.dart"}
+{"type":"source","path":"lib/core/browser/browser_service.dart"}
+{"type":"research","path":".trellis/tasks/archive/2026-05/05-01-account-list-long-press-popup-menu/prd.md"}

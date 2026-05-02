@@ -17,15 +17,11 @@ jobs:
           # Android builds
           - os: ubuntu-latest
             target: android
-            abi: arm64-v8a
+            abi: arm64
             artifact: apk
           - os: ubuntu-latest
             target: android
-            abi: armeabi-v7a
-            artifact: apk
-          - os: ubuntu-latest
-            target: android
-            abi: x86_64
+            abi: arm
             artifact: apk
           # iOS build (unsigned .ipa)
           - os: macos-latest
@@ -36,7 +32,7 @@ jobs:
             target: macos
             arch: arm64
             artifact: macos-arm64
-          - os: macos-13
+          - os: macos-15-intel
             target: macos
             arch: x86_64
             artifact: macos-x86_64
@@ -197,8 +193,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifacts/android-arm64-v8a/*.apk
-            artifacts/android-armeabi-v7a/*.apk
+            artifacts/android-arm64/*.apk
+            artifacts/android-arm/*.apk
             artifacts/android-x86_64/*.apk
             artifacts/ios-unsigned/*.ipa
             artifacts/macos-arm64/*.dmg

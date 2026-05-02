@@ -674,3 +674,36 @@ Created GitHub Actions workflow for full-platform CI: Android (3 ABIs, signed AP
 ### Next Steps
 
 - None - task complete
+
+
+## Session 83: External check-in URL UX + URL validation
+
+**Date**: 2026-05-02
+**Task**: External check-in URL UX + URL validation
+**Branch**: `main`
+
+### Summary
+
+实现外部签到 URL 模式：长按菜单替换为「外部签到」、禁用右划签到、卡片图标改为 Icons.web_outlined；新增签到 URL 和兑换 URL 的格式校验（TextFormField + validator）
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `bd08922` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

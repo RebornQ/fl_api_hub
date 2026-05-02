@@ -77,6 +77,8 @@ class _AccountCardState extends ConsumerState<AccountCard>
     final checkInIcon = _resolveCheckInIcon(
       autoCheckInEnabled: widget.account.checkIn.autoCheckInEnabled,
       apiCheckInStatusToday: reachabilityRecord?.checkInStatusToday,
+      customCheckInUrl: widget.account.checkIn.customCheckInUrl,
+      onSurfaceVariant: colorScheme.onSurfaceVariant,
     );
 
     // Start/stop wobble animation based on edit mode.
@@ -123,8 +125,7 @@ class _AccountCardState extends ConsumerState<AccountCard>
               : (details) => widget.onLongPress?.call(details.globalPosition),
           onSecondaryTapDown: widget.isEditMode || widget.onLongPress == null
               ? null
-              : (details) =>
-                    widget.onLongPress?.call(details.globalPosition),
+              : (details) => widget.onLongPress?.call(details.globalPosition),
           child: InkWell(
             onTap: widget.onTap,
             // Don't set onLongPress here — it would intercept the GestureDetector's event
@@ -356,6 +357,8 @@ Color _resolveDotColor(Account account, ReachabilityRecord? record) {
 /// Resolves the check-in status icon for an account.
 ///
 /// Returns `null` when auto-check-in is disabled (no icon shown).
+/// When [customCheckInUrl] is non-null/non-empty, returns a web icon to
+/// indicate external check-in mode instead of the API status icons.
 /// Otherwise returns `(IconData, Color)` based solely on API check-in status:
 /// - API checkedInToday=true → green check_circle
 /// - API checkedInToday=false or unknown → red cancel
@@ -365,8 +368,15 @@ Color _resolveDotColor(Account account, ReachabilityRecord? record) {
 ({IconData icon, Color color})? _resolveCheckInIcon({
   required bool autoCheckInEnabled,
   required bool? apiCheckInStatusToday,
+  String? customCheckInUrl,
+  required Color onSurfaceVariant,
 }) {
   if (!autoCheckInEnabled) return null;
+
+  // External check-in mode: show web icon instead of API status.
+  if (customCheckInUrl != null && customCheckInUrl.isNotEmpty) {
+    return (icon: Icons.web_outlined, color: onSurfaceVariant);
+  }
 
   // API status is the single source of truth.
   if (apiCheckInStatusToday == true) {

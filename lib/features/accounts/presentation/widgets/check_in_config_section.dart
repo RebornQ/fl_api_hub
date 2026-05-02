@@ -82,6 +82,19 @@ class _CheckInConfigSectionState extends State<CheckInConfigSection> {
     super.dispose();
   }
 
+  /// Validates an optional URL field.
+  ///
+  /// Returns `null` when empty (optional field). When non-empty, the value
+  /// must start with `http://` or `https://`.
+  String? _validateOptionalUrl(String? value) {
+    if (value == null || value.trim().isEmpty) return null;
+    final trimmed = value.trim();
+    if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+      return '请输入有效的 URL（以 http:// 或 https:// 开头）';
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -109,11 +122,12 @@ class _CheckInConfigSectionState extends State<CheckInConfigSection> {
           },
         ),
         const SizedBox(height: AppSpacing.sm),
-        TextField(
+        TextFormField(
           key: const ValueKey('checkInUrlField'),
           controller: _checkInUrlController,
           enabled: enabled,
           keyboardType: TextInputType.url,
+          validator: _validateOptionalUrl,
           decoration: const InputDecoration(
             labelText: '签到 URL（可选）',
             hintText: 'https://welfare.example.com/checkin',
@@ -127,10 +141,11 @@ class _CheckInConfigSectionState extends State<CheckInConfigSection> {
           },
         ),
         const SizedBox(height: AppSpacing.md),
-        TextField(
+        TextFormField(
           key: const ValueKey('redemptionUrlField'),
           controller: _redeemUrlController,
           keyboardType: TextInputType.url,
+          validator: _validateOptionalUrl,
           decoration: const InputDecoration(
             labelText: '兑换 URL（可选）',
             hintText: 'https://...',

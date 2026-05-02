@@ -121,65 +121,67 @@ void main() {
       expect(find.byKey(const ValueKey('primarySaveButton')), findsNothing);
     });
 
-    testWidgets('rocket_launch button only appears for managed site types', (
-      tester,
-    ) async {
-      await tester.pumpWidget(buildHost());
-      await tester.pumpAndSettle();
+    testWidgets(
+      'rocket_launch button only appears for managed site types',
+      (tester) async {
+        await tester.pumpWidget(buildHost());
+        await tester.pumpAndSettle();
 
-      // Default siteType is unknown which is non-managed, so the
-      // auto-config button is hidden until the user picks a managed type.
-      expect(find.byKey(const ValueKey('autoConfigButton')), findsNothing);
+        // Default siteType is unknown which is non-managed, so the
+        // auto-config button is hidden until the user picks a managed type.
+        expect(find.byKey(const ValueKey('autoConfigButton')), findsNothing);
 
-      // Switch to new-api (managed).
-      await tester.tap(find.byKey(const ValueKey('siteTypeField')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('New API').last);
-      await tester.pumpAndSettle();
+        // Switch to new-api (managed).
+        await tester.tap(find.byKey(const ValueKey('siteTypeField')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('New API').last);
+        await tester.pumpAndSettle();
 
-      // NOTE: auto-config button is currently hidden (bottomNavigationBar commented out).
-      // When re-enabled, this expectation should be findsOneWidget.
-      expect(find.byKey(const ValueKey('autoConfigButton')), findsNothing);
+        // NOTE: auto-config button is currently hidden (bottomNavigationBar commented out).
+        // When re-enabled, this expectation should be findsOneWidget.
+        expect(find.byKey(const ValueKey('autoConfigButton')), findsNothing);
 
-      // Switch to one-api (non-managed).
-      await tester.tap(find.byKey(const ValueKey('siteTypeField')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('One API').last);
-      await tester.pumpAndSettle();
+        // Switch to one-api (non-managed).
+        await tester.tap(find.byKey(const ValueKey('siteTypeField')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('One API').last);
+        await tester.pumpAndSettle();
 
-      expect(find.byKey(const ValueKey('autoConfigButton')), findsNothing);
-    }, skip: true // bottomNavigationBar (_buildAuxBar) is currently disabled
+        expect(find.byKey(const ValueKey('autoConfigButton')), findsNothing);
+      },
+      skip: true, // bottomNavigationBar (_buildAuxBar) is currently disabled
     );
 
-    testWidgets('re-detect and auto-config buttons show "即将上线" SnackBars', (
-      tester,
-    ) async {
-      await tester.pumpWidget(buildHost());
-      await tester.pumpAndSettle();
+    testWidgets(
+      're-detect and auto-config buttons show "即将上线" SnackBars',
+      (tester) async {
+        await tester.pumpWidget(buildHost());
+        await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const ValueKey('reDetectButton')));
-      await tester.pump();
-      expect(find.text('自动识别功能即将上线～'), findsOneWidget);
+        await tester.tap(find.byKey(const ValueKey('reDetectButton')));
+        await tester.pump();
+        expect(find.text('自动识别功能即将上线～'), findsOneWidget);
 
-      // Force-clear the SnackBar queue so the next one renders
-      // immediately; `pumpAndSettle` alone does not advance Timers.
-      tester
-          .state<ScaffoldMessengerState>(find.byType(ScaffoldMessenger))
-          .clearSnackBars();
-      await tester.pumpAndSettle();
-      expect(find.text('自动识别功能即将上线～'), findsNothing);
+        // Force-clear the SnackBar queue so the next one renders
+        // immediately; `pumpAndSettle` alone does not advance Timers.
+        tester
+            .state<ScaffoldMessengerState>(find.byType(ScaffoldMessenger))
+            .clearSnackBars();
+        await tester.pumpAndSettle();
+        expect(find.text('自动识别功能即将上线～'), findsNothing);
 
-      // The auto-config button is only visible for managed site types;
-      // default is unknown (non-managed), so switch to new-api first.
-      await tester.tap(find.byKey(const ValueKey('siteTypeField')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('New API').last);
-      await tester.pumpAndSettle();
+        // The auto-config button is only visible for managed site types;
+        // default is unknown (non-managed), so switch to new-api first.
+        await tester.tap(find.byKey(const ValueKey('siteTypeField')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('New API').last);
+        await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const ValueKey('autoConfigButton')));
-      await tester.pump();
-      expect(find.text('保存并配置功能即将上线～'), findsOneWidget);
-    }, skip: true // bottomNavigationBar (_buildAuxBar) is currently disabled
+        await tester.tap(find.byKey(const ValueKey('autoConfigButton')));
+        await tester.pump();
+        expect(find.text('保存并配置功能即将上线～'), findsOneWidget);
+      },
+      skip: true, // bottomNavigationBar (_buildAuxBar) is currently disabled
     );
 
     testWidgets('save in add mode creates account and triggers checkOne', (

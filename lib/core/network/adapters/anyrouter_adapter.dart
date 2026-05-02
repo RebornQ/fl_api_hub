@@ -111,7 +111,8 @@ class AnyRouterAdapter implements SiteAdapter {
         // checked in before. If message is empty or indicates "already", they
         // were already checked in.
         final message = dto.message?.toLowerCase() ?? '';
-        final alreadyChecked = message.isEmpty ||
+        final alreadyChecked =
+            message.isEmpty ||
             message.contains('already') ||
             message.contains('已经签到') ||
             message.contains('已签到');

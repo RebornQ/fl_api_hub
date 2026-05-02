@@ -127,9 +127,9 @@ class _AccountEditPageState extends ConsumerState<AccountEditPage> {
 
     ref.read(accountsProvider.notifier).delete(account.id);
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('账号 ${account.name} 已删除')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('账号 ${account.name} 已删除')));
       Navigator.of(context).pop();
     }
   }

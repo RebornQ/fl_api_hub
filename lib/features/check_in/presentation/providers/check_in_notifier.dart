@@ -26,9 +26,7 @@ import 'check_in_request_log_providers.dart';
 /// task list (when they opt into auto-check-in via [CheckInConfig]) but
 /// their execution is short-circuited with a [CheckInStatus.skipped]
 /// result so the user sees a clear "暂不支持" message.
-const _unsupportedSiteTypes = <SiteType>{
-  SiteType.sub2api,
-};
+const _unsupportedSiteTypes = <SiteType>{SiteType.sub2api};
 
 /// Manages the async state of the check-in task list.
 class CheckInNotifier extends AsyncNotifier<List<CheckInTask>> {

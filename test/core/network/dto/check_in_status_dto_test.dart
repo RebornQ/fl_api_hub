@@ -28,11 +28,7 @@ void main() {
     test('parses checked_in_today false when not checked in', () {
       final json = {
         'enabled': true,
-        'stats': {
-          'checked_in_today': false,
-          'records': [],
-          'total_quota': 0,
-        },
+        'stats': {'checked_in_today': false, 'records': [], 'total_quota': 0},
       };
       final dto = CheckInStatusDto.fromJson(json);
       expect(dto.checkedInToday, isFalse);
@@ -41,10 +37,7 @@ void main() {
     });
 
     test('parses empty stats gracefully', () {
-      final json = {
-        'enabled': true,
-        'stats': <String, dynamic>{},
-      };
+      final json = {'enabled': true, 'stats': <String, dynamic>{}};
       final dto = CheckInStatusDto.fromJson(json);
       expect(dto.checkedInToday, isNull);
       expect(dto.checkedDays, isEmpty);

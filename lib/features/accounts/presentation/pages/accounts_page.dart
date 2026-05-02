@@ -645,7 +645,11 @@ class _AccountsPageState extends ConsumerState<AccountsPage>
 
         return Dismissible(
           key: ValueKey(account.id),
-          direction: account.checkIn.autoCheckInEnabled
+          // Allow right-swipe only for API check-in (no external URL).
+          direction:
+              account.checkIn.autoCheckInEnabled &&
+                  (account.checkIn.customCheckInUrl == null ||
+                      account.checkIn.customCheckInUrl!.isEmpty)
               ? DismissDirection.horizontal
               : DismissDirection.endToStart,
           confirmDismiss: (direction) async {
@@ -659,7 +663,13 @@ class _AccountsPageState extends ConsumerState<AccountsPage>
               horizontal: AppSpacing.md,
               vertical: AppSpacing.xs,
             ),
-            child: account.checkIn.autoCheckInEnabled ? checkInBg : deleteBg,
+            // Show check-in swipe background only for API check-in (no external URL).
+            child:
+                (account.checkIn.autoCheckInEnabled &&
+                    (account.checkIn.customCheckInUrl == null ||
+                        account.checkIn.customCheckInUrl!.isEmpty))
+                ? checkInBg
+                : deleteBg,
           ),
           secondaryBackground: Padding(
             padding: const EdgeInsets.symmetric(
@@ -724,6 +734,12 @@ class _AccountsPageState extends ConsumerState<AccountsPage>
     final colorScheme = Theme.of(context).colorScheme;
     final isDisabled = !account.enabled;
 
+    // External check-in: autoCheckInEnabled + non-empty custom URL.
+    final hasExternalCheckIn =
+        account.checkIn.autoCheckInEnabled &&
+        account.checkIn.customCheckInUrl != null &&
+        account.checkIn.customCheckInUrl!.isNotEmpty;
+
     showMenu<String>(
       context: context,
       position: position,
@@ -733,7 +749,23 @@ class _AccountsPageState extends ConsumerState<AccountsPage>
       items: [
         // Disabled accounts show only "visit" and "enable".
         // Enabled accounts show all options.
-        if (!isDisabled && account.checkIn.autoCheckInEnabled)
+        if (!isDisabled && hasExternalCheckIn)
+          PopupMenuItem<String>(
+            value: 'external_check_in',
+            height: 48,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.language,
+                  size: 20,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 12),
+                const Text('外部签到'),
+              ],
+            ),
+          )
+        else if (!isDisabled && account.checkIn.autoCheckInEnabled)
           PopupMenuItem<String>(
             value: 'check_in',
             height: 48,
@@ -808,6 +840,8 @@ class _AccountsPageState extends ConsumerState<AccountsPage>
     switch (action) {
       case 'check_in':
         _performCheckIn(account);
+      case 'external_check_in':
+        _openExternalCheckIn(account);
       case 'refresh':
         ref.read(accountsProvider.notifier).checkOne(account.id);
         messenger.clearSnackBars();
@@ -862,6 +896,14 @@ class _AccountsPageState extends ConsumerState<AccountsPage>
 
     final useInApp = ref.read(useInAppBrowserProvider);
     openUrlInBrowser(context, account.baseUrl, useInAppBrowser: useInApp);
+  }
+
+  /// Opens the account's external check-in URL in browser.
+  Future<void> _openExternalCheckIn(Account account) async {
+    final url = account.checkIn.customCheckInUrl;
+    if (url == null || url.isEmpty) return;
+    final useInApp = ref.read(useInAppBrowserProvider);
+    openUrlInBrowser(context, url, useInAppBrowser: useInApp);
   }
 
   /// Shows a confirmation dialog before performing a swipe-to-check-in.
@@ -1071,9 +1113,7 @@ class _AccountsDetailPanelState extends ConsumerState<_AccountsDetailPanel> {
 
     final accounts = ref.watch(accountsProvider);
     final account = selectedId != null
-        ? accounts.valueOrNull
-            ?.where((a) => a.id == selectedId)
-            .firstOrNull
+        ? accounts.valueOrNull?.where((a) => a.id == selectedId).firstOrNull
         : null;
 
     // Account was deleted — clear selection on next frame.

@@ -83,7 +83,8 @@ class VeloeraApiAdapter extends CommonApiAdapter {
       if (!success) {
         return Failure<CheckInStatusDto>(
           NetworkException(
-            message: json['message']?.toString() ?? 'Fetch check-in status failed',
+            message:
+                json['message']?.toString() ?? 'Fetch check-in status failed',
           ),
         );
       }

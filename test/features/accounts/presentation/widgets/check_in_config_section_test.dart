@@ -39,7 +39,7 @@ void main() {
     ) async {
       await tester.pumpWidget(harness());
 
-      final urlField = tester.widget<TextField>(
+      final urlField = tester.widget<TextFormField>(
         find.byKey(const ValueKey('checkInUrlField')),
       );
       expect(urlField.enabled, isFalse);
@@ -47,7 +47,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('checkInAutoSwitch')));
       await tester.pump();
 
-      final urlFieldAfter = tester.widget<TextField>(
+      final urlFieldAfter = tester.widget<TextFormField>(
         find.byKey(const ValueKey('checkInUrlField')),
       );
       expect(urlFieldAfter.enabled, isTrue);
@@ -88,7 +88,7 @@ void main() {
       await tester.pumpWidget(harness());
 
       // Even when auto-checkin is disabled the redemption field is editable.
-      final field = tester.widget<TextField>(
+      final field = tester.widget<TextFormField>(
         find.byKey(const ValueKey('redemptionUrlField')),
       );
       // `TextField.enabled` is `null` when not explicitly set, which is

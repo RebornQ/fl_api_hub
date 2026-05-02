@@ -106,7 +106,9 @@ class AccountsNotifier extends AsyncNotifier<List<Account>> {
         state = AsyncData(updated.dataOrNull ?? []);
         // If the account was just disabled, clear its cached reachability.
         if (!accountToSave.enabled) {
-          await ref.read(accountReachabilityMapProvider.notifier).remove(account.id);
+          await ref
+              .read(accountReachabilityMapProvider.notifier)
+              .remove(account.id);
         }
       case Failure(:final exception):
         state = AsyncError(exception, StackTrace.current);
@@ -319,7 +321,8 @@ class AccountsNotifier extends AsyncNotifier<List<Account>> {
 
       // Compute current month string for check-in status API.
       final now = DateTime.now();
-      final currentMonth = '${now.year}-${now.month.toString().padLeft(2, '0')}';
+      final currentMonth =
+          '${now.year}-${now.month.toString().padLeft(2, '0')}';
 
       final results = await Future.wait([
         remote.fetchAccountInfo(request),
@@ -333,12 +336,16 @@ class AccountsNotifier extends AsyncNotifier<List<Account>> {
       final timestamp = DateTime.now();
       switch (userInfoResult) {
         case Success(:final data):
-          final checkInStatusToday = checkInStatusResult is Success<CheckInStatusDto>
+          final checkInStatusToday =
+              checkInStatusResult is Success<CheckInStatusDto>
               ? checkInStatusResult.data.checkedInToday
               : null;
           await reachabilityNotifier.put(
             account.id,
-            ReachabilityRecord.ok(timestamp, checkInStatusToday: checkInStatusToday),
+            ReachabilityRecord.ok(
+              timestamp,
+              checkInStatusToday: checkInStatusToday,
+            ),
           );
           final quotaPerUnit = _resolveQuotaPerUnit(statusResult);
           await _syncAccountInfo(account, data, quotaPerUnit);

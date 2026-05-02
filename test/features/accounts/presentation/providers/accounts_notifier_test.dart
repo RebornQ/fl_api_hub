@@ -404,10 +404,12 @@ void main() {
             (_) async =>
                 Success(SiteStatusDto(quotaPerUnit: 500000, version: 'v1')),
           );
-          when(() => mockCheckInRemote.fetchCheckInStatus(
-            any(),
-            month: any(named: 'month'),
-          )).thenAnswer(
+          when(
+            () => mockCheckInRemote.fetchCheckInStatus(
+              any(),
+              month: any(named: 'month'),
+            ),
+          ).thenAnswer(
             (_) async => const Success(CheckInStatusDto(checkedInToday: true)),
           );
           when(
@@ -448,10 +450,12 @@ void main() {
           when(() => mockRemote.fetchSiteStatus(any())).thenAnswer(
             (_) async => Failure(NetworkException(message: 'status boom')),
           );
-          when(() => mockCheckInRemote.fetchCheckInStatus(
-            any(),
-            month: any(named: 'month'),
-          )).thenAnswer(
+          when(
+            () => mockCheckInRemote.fetchCheckInStatus(
+              any(),
+              month: any(named: 'month'),
+            ),
+          ).thenAnswer(
             (_) async => const Success(CheckInStatusDto(checkedInToday: false)),
           );
           when(
@@ -492,10 +496,12 @@ void main() {
           when(
             () => mockRemote.fetchSiteStatus(any()),
           ).thenAnswer((_) async => Success(SiteStatusDto(version: 'v1')));
-          when(() => mockCheckInRemote.fetchCheckInStatus(
-            any(),
-            month: any(named: 'month'),
-          )).thenAnswer(
+          when(
+            () => mockCheckInRemote.fetchCheckInStatus(
+              any(),
+              month: any(named: 'month'),
+            ),
+          ).thenAnswer(
             (_) async => const Success(CheckInStatusDto(checkedInToday: null)),
           );
           when(
@@ -528,10 +534,12 @@ void main() {
           when(() => mockRemote.fetchSiteStatus(any())).thenAnswer(
             (_) async => Success(SiteStatusDto(quotaPerUnit: 500000)),
           );
-          when(() => mockCheckInRemote.fetchCheckInStatus(
-            any(),
-            month: any(named: 'month'),
-          )).thenAnswer(
+          when(
+            () => mockCheckInRemote.fetchCheckInStatus(
+              any(),
+              month: any(named: 'month'),
+            ),
+          ).thenAnswer(
             (_) async => const Success(CheckInStatusDto(checkedInToday: true)),
           );
 
@@ -570,10 +578,12 @@ void main() {
           when(() => mockRemote.fetchSiteStatus(any())).thenAnswer(
             (_) async => Success(SiteStatusDto(quotaPerUnit: 500000)),
           );
-          when(() => mockCheckInRemote.fetchCheckInStatus(
-            any(),
-            month: any(named: 'month'),
-          )).thenAnswer(
+          when(
+            () => mockCheckInRemote.fetchCheckInStatus(
+              any(),
+              month: any(named: 'month'),
+            ),
+          ).thenAnswer(
             (_) async => const Success(CheckInStatusDto(checkedInToday: false)),
           );
           when(
@@ -614,10 +624,12 @@ void main() {
           when(() => mockRemote.fetchSiteStatus(any())).thenAnswer(
             (_) async => Success(SiteStatusDto(quotaPerUnit: 500000)),
           );
-          when(() => mockCheckInRemote.fetchCheckInStatus(
-            any(),
-            month: any(named: 'month'),
-          )).thenAnswer(
+          when(
+            () => mockCheckInRemote.fetchCheckInStatus(
+              any(),
+              month: any(named: 'month'),
+            ),
+          ).thenAnswer(
             (_) async => const Success(CheckInStatusDto(checkedInToday: true)),
           );
 
@@ -643,10 +655,12 @@ void main() {
 
         verifyNever(() => mockRemote.fetchAccountInfo(any()));
         verifyNever(() => mockRemote.fetchSiteStatus(any()));
-        verifyNever(() => mockCheckInRemote.fetchCheckInStatus(
-          any(),
-          month: any(named: 'month'),
-        ));
+        verifyNever(
+          () => mockCheckInRemote.fetchCheckInStatus(
+            any(),
+            month: any(named: 'month'),
+          ),
+        );
         verifyNever(() => mockRepo.update(any()));
       });
 
@@ -666,10 +680,12 @@ void main() {
         when(
           () => mockRemote.fetchSiteStatus(any()),
         ).thenAnswer((_) async => Success(SiteStatusDto(quotaPerUnit: 500000)));
-        when(() => mockCheckInRemote.fetchCheckInStatus(
-          any(),
-          month: any(named: 'month'),
-        )).thenAnswer(
+        when(
+          () => mockCheckInRemote.fetchCheckInStatus(
+            any(),
+            month: any(named: 'month'),
+          ),
+        ).thenAnswer(
           (_) async => const Success(CheckInStatusDto(checkedInToday: true)),
         );
         when(
@@ -708,10 +724,12 @@ void main() {
             (_) async =>
                 Success(SiteStatusDto(quotaPerUnit: 500000, version: 'v1')),
           );
-          when(() => mockCheckInRemote.fetchCheckInStatus(
-            any(),
-            month: any(named: 'month'),
-          )).thenAnswer(
+          when(
+            () => mockCheckInRemote.fetchCheckInStatus(
+              any(),
+              month: any(named: 'month'),
+            ),
+          ).thenAnswer(
             (_) async => Failure(NetworkException(message: 'check-in boom')),
           );
           when(
